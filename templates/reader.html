@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ page.title }} - Chapitre {{ chapter }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}">
+</head>
+<body class="reader-body">
+    <header class="chapter-logo">
+        <a href="/">Manga Reader</a>
+    </header>
+
+    <nav class="chapter-breadcrumb" aria-label="Fil d'Ariane">
+        <a href="/">Manga Online</a>
+        <span>»</span>
+        <a href="/manga/{{ slug }}">{{ manga.title }}</a>
+        <span>»</span>
+        <span>Chapter {{ chapter }}</span>
+    </nav>
+
+    <section class="chapter-options">
+        <select class="chapter-select" aria-label="Changer de chapitre" onchange="if (this.value) window.location.href = this.value">
+            {% for item in chapters %}
+                <option value="/read/{{ slug }}/{{ item.number }}" {% if item.number|string == chapter|string %}selected{% endif %}>
+                    {{ item.title }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <div class="chapter-buttons" aria-label="Navigation chapitre">
+            {% if previous_chapter %}
+                <a class="chapter-btn" href="/read/{{ slug }}/{{ previous_chapter.number }}">PREV CHAPTER</a>
+            {% else %}
+                <span class="chapter-btn disabled">PREV CHAPTER</span>
+            {% endif %}
+            <a class="chapter-btn home" href="/">GO HOME</a>
+            {% if next_chapter %}
+                <a class="chapter-btn" href="/read/{{ slug }}/{{ next_chapter.number }}">NEXT CHAPTER</a>
+            {% else %}
+                <span class="chapter-btn disabled">NEXT CHAPTER</span>
+            {% endif %}
+        </div>
+
+        <h1>{{ manga.title }}: Chapter {{ chapter }}</h1>
+    </section>
+
+    <section class="chapter-info">
+        <h2>{{ manga.title }} Chapter {{ chapter }}</h2>
+        <p>You're reading <strong>{{ manga.title }} Chapter {{ chapter }}</strong>.</p>
+        <p>Images are loaded progressively and resized for desktop and mobile reading.</p>
+        <div class="image-server-row">
+            <span>IMAGES SERVER:</span>
+            <strong>1</strong>
+        </div>
+    </section>
+
+    <main class="chapter-reader" id="reader">
+        {% for image in page.images %}
+            <img
+                class="manga-page"
+                src="/{{ slug }}/{{ chapter }}/{{ loop.index }}.webp"
+                alt="{{ manga.title }} Chapter {{ chapter }} page {{ loop.index }}"
+                decoding="async"
+                loading="{% if loop.first %}eager{% else %}lazy{% endif %}"
+            >
+        {% else %}
+            <p class="empty">Aucune image trouvée.</p>
+        {% endfor %}
+    </main>
+
+    <section class="chapter-options chapter-options-bottom">
+        <select class="chapter-select" aria-label="Changer de chapitre" onchange="if (this.value) window.location.href = this.value">
+            {% for item in chapters %}
+                <option value="/read/{{ slug }}/{{ item.number }}" {% if item.number|string == chapter|string %}selected{% endif %}>
+                    {{ item.title }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <div class="chapter-buttons" aria-label="Navigation chapitre">
+            {% if previous_chapter %}
+                <a class="chapter-btn" href="/read/{{ slug }}/{{ previous_chapter.number }}">PREV CHAPTER</a>
+            {% else %}
+                <span class="chapter-btn disabled">PREV CHAPTER</span>
+            {% endif %}
+            <a class="chapter-btn home" href="/">GO HOME</a>
+            {% if next_chapter %}
+                <a class="chapter-btn" href="/read/{{ slug }}/{{ next_chapter.number }}">NEXT CHAPTER</a>
+            {% else %}
+                <span class="chapter-btn disabled">NEXT CHAPTER</span>
+            {% endif %}
+        </div>
+    </section>
+
+    <nav class="chapter-breadcrumb chapter-breadcrumb-bottom" aria-label="Fil d'Ariane">
+        <a href="/">Manga Online</a>
+        <span>»</span>
+        <a href="/manga/{{ slug }}">{{ manga.title }}</a>
+        <span>»</span>
+        <span>Chapter {{ chapter }}</span>
+    </nav>
+</body>
+</html>
