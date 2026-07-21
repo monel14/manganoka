@@ -4,7 +4,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import RedirectResponse, Response
 
 from services.image_cache import (
@@ -126,11 +126,20 @@ async def image_proxy(url: str):
 # Format: /{slug}/{chapter}/{page}.webp
 # ==============================
 @router.get("/{slug}/{chapter_num}/{page_num}.webp")
-async def chapter_image_semantic(slug: str, chapter_num: str, page_num: int):
+async def chapter_image_semantic(request: Request, slug: str, chapter_num: str, page_num: int):
     """
     Sert les images de chapitre avec des URLs sémantiques.
     Exemple: https://manganoka.xyz/i-became-the-rogue-first-prince/45/2.webp
     """
+    # Récupérer le slug et le chapitre bruts non-décodés pour préserver le double-encodage requis par le site source
+    raw_path_bytes = request.scope.get("raw_path")
+    if raw_path_bytes:
+        raw_path = raw_path_bytes.decode("utf-8")
+        parts = raw_path.strip("/").split("/")
+        if len(parts) >= 3:
+            slug = parts[0]
+            chapter_num = parts[1]
+
     try:
         from routes.reader import get_chapter_page
         page = await get_chapter_page(slug, chapter_num)
@@ -153,8 +162,18 @@ async def chapter_image_semantic(slug: str, chapter_num: str, page_num: int):
 # Route alternative (backward compatibility)
 # ==============================
 @router.get("/chapter-img/{slug}/{chapter}/{page_num}.webp")
-async def chapter_image(slug: str, chapter: str, page_num: int):
+async def chapter_image(request: Request, slug: str, chapter: str, page_num: int):
     """Route de compatibilité pour les anciennes URLs."""
+    # Récupérer le slug et le chapitre bruts non-décodés pour préserver le double-encodage requis par le site source
+    raw_path_bytes = request.scope.get("raw_path")
+    if raw_path_bytes:
+        raw_path = raw_path_bytes.decode("utf-8")
+        if "/chapter-img/" in raw_path:
+            parts = raw_path.split("/chapter-img/", 1)[1].split("/")
+            if len(parts) >= 2:
+                slug = parts[0]
+                chapter = parts[1]
+
     try:
         from routes.reader import get_chapter_page
         page = await get_chapter_page(slug, chapter)

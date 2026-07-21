@@ -1,0 +1,27 @@
+name: Deploy to PlanetHoster
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.PH_HOST }}
+          username: ${{ secrets.PH_USER }}
+          key: ${{ secrets.PH_SSH_KEY }}
+          port: ${{ secrets.PH_PORT }}
+          script: |
+            cd /home/wtzjscfs/manganoka
+            git pull origin main
+            source .venv/bin/activate
+            pip install -r requirements.txt
+            touch tmp/restart.txt
