@@ -17,9 +17,9 @@ templates = Jinja2Templates(directory=str(Path(__file__).resolve().parent.parent
 
 
 @router.get("/manga/{slug}", response_class=HTMLResponse)
-def manga_detail(request: Request, slug: str) -> HTMLResponse:
+async def manga_detail(request: Request, slug: str) -> HTMLResponse:
     try:
-        manga = cache.get_or_set(
+        manga = await cache.get_or_set(
             f"manga:{slug}",
             MANGA_TTL_SECONDS,
             lambda: _load_manga(slug),
@@ -38,6 +38,6 @@ def manga_detail(request: Request, slug: str) -> HTMLResponse:
     )
 
 
-def _load_manga(slug: str) -> MangaDetail:
-    html = get_html(f"/manga/{slug}")
+async def _load_manga(slug: str) -> MangaDetail:
+    html = await get_html(f"/manga/{slug}")
     return parse_manga(html, slug=slug)

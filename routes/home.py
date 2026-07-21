@@ -17,11 +17,11 @@ templates = Jinja2Templates(directory=str(Path(__file__).resolve().parent.parent
 
 
 @router.get("/", response_class=HTMLResponse)
-def index(request: Request, list_page: int = Query(default=1, ge=1, alias="list")) -> HTMLResponse:
+async def index(request: Request, list_page: int = Query(default=1, ge=1, alias="list")) -> HTMLResponse:
     error: str | None = None
 
     try:
-        mangas = cache.get_or_set(
+        mangas = await cache.get_or_set(
             f"home:lastupdates:{list_page}",
             HOME_TTL_SECONDS,
             lambda: _load_home(list_page),
@@ -47,7 +47,7 @@ def index(request: Request, list_page: int = Query(default=1, ge=1, alias="list"
     )
 
 
-def _load_home(page: int) -> list[HomeManga]:
+async def _load_home(page: int) -> list[HomeManga]:
     path = "/lastupdates.php" if page == 1 else f"/lastupdates.php?list={page}"
-    html = get_html(path)
+    html = await get_html(path)
     return parse_home(html)

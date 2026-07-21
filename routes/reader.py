@@ -16,13 +16,23 @@ router = APIRouter()
 templates = Jinja2Templates(directory=str(Path(__file__).resolve().parent.parent / "templates"))
 
 
-def get_chapter_page(slug: str, chapter: str) -> ChapterPage:
-    manga = cache.get_or_set(
-        f"manga:{slug}",
-        MANGA_TTL_SECONDS,
-        lambda: _load_manga(slug),
-    )
-    return cache.get_or_set(
+async def get_chapter_page(slug: str, chapter: str, manga: MangaDetail | None = None) -> ChapterPage:
+    """
+    Récupère une page de chapitre depuis le cache ou la charge.
+    
+    Args:
+        slug: Slug du manga
+        chapter: Numéro du chapitre
+        manga: Données du manga déjà chargées (optionnel, pour éviter un double chargement)
+    """
+    if manga is None:
+        manga = await cache.get_or_set(
+            f"manga:{slug}",
+            MANGA_TTL_SECONDS,
+            lambda: _load_manga(slug),
+        )
+    
+    return await cache.get_or_set(
         f"chapter:{slug}:{chapter}",
         CHAPTER_TTL_SECONDS,
         lambda: _load_chapter_from_manga(manga, chapter),
@@ -30,14 +40,15 @@ def get_chapter_page(slug: str, chapter: str) -> ChapterPage:
 
 
 @router.get("/read/{slug}/{chapter}", response_class=HTMLResponse)
-def read_chapter(request: Request, slug: str, chapter: str) -> HTMLResponse:
+async def read_chapter(request: Request, slug: str, chapter: str) -> HTMLResponse:
     try:
-        manga = cache.get_or_set(
+        manga = await cache.get_or_set(
             f"manga:{slug}",
             MANGA_TTL_SECONDS,
             lambda: _load_manga(slug),
         )
-        page = get_chapter_page(slug, chapter)
+        # Passer le manga déjà chargé pour éviter un double fetch
+        page = await get_chapter_page(slug, chapter, manga=manga)
     except FetchError as exc:
         logger.warning("Unable to load chapter %s/%s: %s", slug, chapter, exc)
         raise HTTPException(status_code=502, detail="Source indisponible") from exc
@@ -63,18 +74,18 @@ def read_chapter(request: Request, slug: str, chapter: str) -> HTMLResponse:
     )
 
 
-def _load_chapter(slug: str, chapter: str) -> ChapterPage:
-    return get_chapter_page(slug, chapter)
+async def _load_chapter(slug: str, chapter: str) -> ChapterPage:
+    return await get_chapter_page(slug, chapter)
 
 
-def _load_chapter_from_manga(manga: MangaDetail, chapter: str) -> ChapterPage:
+async def _load_chapter_from_manga(manga: MangaDetail, chapter: str) -> ChapterPage:
     source_url = _find_chapter_url(manga, chapter)
-    html = get_html(source_url)
+    html = await get_html(source_url)
     return parse_chapter(html, title=manga["title"], chapter=chapter)
 
 
-def _load_manga(slug: str) -> MangaDetail:
-    html = get_html(f"/manga/{slug}")
+async def _load_manga(slug: str) -> MangaDetail:
+    html = await get_html(f"/manga/{slug}")
     return parse_manga(html, slug=slug)
 
 

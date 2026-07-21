@@ -1,26 +1,30 @@
 import os
-import hashlib
+import logging
 from pathlib import Path
-from urllib.parse import urlsplit
 
 from dotenv import load_dotenv
-import requests
-import boto3
-
-from botocore.client import Config
-from botocore.exceptions import BotoCoreError, ClientError
 
 from fastapi import APIRouter, HTTPException
-from fastapi.responses import RedirectResponse, FileResponse, Response
+from fastapi.responses import RedirectResponse, Response
+
+from services.image_cache import (
+    ImageCacheService,
+    ImageCacheError,
+    ImageTooBigError,
+    InvalidContentTypeError,
+    InvalidDomainError,
+    get_cache_filename,
+)
 
 # Charger le .env local dès que le module est importé
 dotenv_path = Path(__file__).resolve().parent.parent / ".env"
 load_dotenv(dotenv_path)
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 # ==============================
-# Variables N0C Storage & Config
+# Configuration
 # ==============================
 BUCKET_NAME = os.environ.get("N0C_BUCKET")
 ENDPOINT_URL = os.environ.get("N0C_ENDPOINT")
@@ -28,7 +32,6 @@ ACCESS_KEY = os.environ.get("N0C_ACCESS_KEY")
 SECRET_KEY = os.environ.get("N0C_SECRET_KEY")
 BASE_URL = os.environ.get("BASE_URL", "https://manganoka.xyz")
 
-# Cache local de secours
 LOCAL_CACHE_DIR = (
     Path(__file__).resolve().parent.parent
     / "static"
@@ -36,41 +39,24 @@ LOCAL_CACHE_DIR = (
 )
 
 # ==============================
-# Client S3 N0C
+# Service d'image cache (singleton)
 # ==============================
-s3_client = boto3.client(
-    "s3",
-    endpoint_url=ENDPOINT_URL,
-    aws_access_key_id=ACCESS_KEY,
-    aws_secret_access_key=SECRET_KEY,
-    config=Config(
-        signature_version="s3v4",
-        s3={
-            "addressing_style": "path"
-        },
-        connect_timeout=3,
-        retries={
-            "max_attempts": 1
-        }
-    )
-)
+_image_cache_service: ImageCacheService | None = None
 
-# ==============================
-# Fonctions Utilitaires
-# ==============================
-def get_cache_filename(url: str) -> tuple[str, str]:
-    """
-    Extrait de manière robuste l'extension et génère un hash SHA256 pour le nom de fichier.
-    Retourne un tuple : (nom_de_fichier, extension).
-    """
-    path = urlsplit(url).path
-    ext = Path(path).suffix.lower().lstrip(".")
-    
-    if ext not in {"jpg", "jpeg", "png", "webp", "gif"}:
-        ext = "jpg"
-        
-    filename = hashlib.sha256(url.encode()).hexdigest() + f".{ext}"
-    return filename, ext
+
+def get_image_cache_service() -> ImageCacheService:
+    """Retourne le service de cache d'images singleton."""
+    global _image_cache_service
+    if _image_cache_service is None:
+        _image_cache_service = ImageCacheService(
+            bucket_name=BUCKET_NAME,
+            endpoint_url=ENDPOINT_URL,
+            access_key=ACCESS_KEY,
+            secret_key=SECRET_KEY,
+            base_url=BASE_URL,
+            local_cache_dir=LOCAL_CACHE_DIR,
+        )
+    return _image_cache_service
 
 
 # ==============================
@@ -79,162 +65,60 @@ def get_cache_filename(url: str) -> tuple[str, str]:
 
 @router.get("/img/{filename}")
 def serve_cached_image(filename: str):
-    return RedirectResponse(
-        f"{BASE_URL}/img/cache_manga/{filename}"
-    )
+    """Redirection vers l'image en cache CDN."""
+    return RedirectResponse(f"{BASE_URL}/img/cache_manga/{filename}")
 
 
 # ==============================
-# Proxy image
+# Proxy image sécurisé avec streaming
 # ==============================
-ALLOWED_DOMAINS = {
-    "demonicscans.org",
-    "cdn.demoniclibs.com"
-}
-
 @router.get("/img-proxy")
-def image_proxy(url: str):
-    # Validation robuste de l'URL pour éviter les vulnérabilités SSRF / Open Redirect
+async def image_proxy(url: str):
+    """
+    Proxy sécurisé pour les images avec :
+    - Whitelist de domaines (SSRF protection)
+    - Limite de taille (20 Mo)
+    - Validation Content-Type
+    - Streaming (pas de chargement complet en RAM)
+    - Cache S3 + fallback local
+    """
+    service = get_image_cache_service()
+    
     try:
-        parsed_url = urlsplit(url)
+        image_data, content_type, source = await service.get_or_cache_image(url)
+        
+        logger.info(
+            "Image servie: %s octets, type=%s, source=%s",
+            len(image_data),
+            content_type,
+            source,
+        )
+        
+        return Response(
+            content=image_data,
+            media_type=content_type,
+            headers={"Cache-Control": "public, max-age=31536000"},
+        )
+    
+    except InvalidDomainError as exc:
+        logger.warning("Domaine non autorisé: %s", url)
+        raise HTTPException(status_code=400, detail="URL non autorisée") from exc
+    
+    except ImageTooBigError as exc:
+        logger.warning("Image trop grande: %s", url)
+        raise HTTPException(status_code=413, detail="Image trop grande (max 20 Mo)") from exc
+    
+    except InvalidContentTypeError as exc:
+        logger.warning("Content-Type invalide: %s", url)
+        raise HTTPException(status_code=400, detail="Type de fichier non autorisé") from exc
+    
+    except ImageCacheError as exc:
+        logger.warning("Erreur cache image pour %s: %s", url, exc)
+        raise HTTPException(status_code=502, detail="Image source indisponible") from exc
+    
     except Exception as exc:
-        raise HTTPException(
-            status_code=400,
-            detail="Format d'URL invalide"
-        ) from exc
-
-    if parsed_url.scheme not in {"http", "https"}:
-        raise HTTPException(
-            status_code=400,
-            detail="Protocole non supporté"
-        )
-
-    # Extraction et validation du domaine exact
-    domain = parsed_url.hostname
-    if not domain or domain not in ALLOWED_DOMAINS:
-        raise HTTPException(
-            status_code=400,
-            detail="URL non autorisée"
-        )
-
-    filename, ext = get_cache_filename(url)
-    object_key = f"public/cache_manga/{filename}"
-    local_file_path = LOCAL_CACHE_DIR / filename
-
-    # ==========================
-    # Tentative d'accès au cache S3
-    # ==========================
-    try:
-        s3_client.head_object(
-            Bucket=BUCKET_NAME,
-            Key=object_key
-        )
-        # L'image existe dans S3 -> Redirection directe
-        return RedirectResponse(f"{BASE_URL}/img/cache_manga/{filename}")
-
-    except ClientError as e:
-        error_code = e.response.get("Error", {}).get("Code")
-        if error_code == "404":
-            # L'image est absente de S3, on doit la télécharger depuis la source
-            try:
-                headers = {
-                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-                    "Referer": "https://demonicscans.org/"
-                }
-                r = requests.get(
-                    url,
-                    headers=headers,
-                    timeout=15
-                )
-                r.raise_for_status()
-                image_data = r.content
-                content_type = r.headers.get("Content-Type", f"image/{ext}")
-            except Exception as exc:
-                raise HTTPException(
-                    status_code=502,
-                    detail="Image source indisponible"
-                ) from exc
-
-            # Tentative de sauvegarde dans le S3
-            try:
-                s3_client.put_object(
-                    Bucket=BUCKET_NAME,
-                    Key=object_key,
-                    Body=image_data,
-                    ContentLength=len(image_data),
-                    ContentType=content_type,
-                    ACL="public-read"
-                )
-                return Response(
-                    content=image_data,
-                    media_type=content_type,
-                    headers={
-                        "Cache-Control": "public, max-age=31536000"
-                    }
-                )
-            except Exception:
-                # Si l'upload S3 échoue (ex: problème réseau/crédentiels), on se replie sur le cache local
-                LOCAL_CACHE_DIR.mkdir(parents=True, exist_ok=True)
-                try:
-                    with open(local_file_path, "wb") as f:
-                        f.write(image_data)
-                except Exception:
-                    pass  # Si l'écriture disque échoue aussi, on retourne quand même l'image depuis la RAM
-                
-                return Response(
-                    content=image_data,
-                    media_type=content_type,
-                    headers={
-                        "Cache-Control": "public, max-age=31536000"
-                    }
-                )
-        else:
-            # Autre erreur S3 (ex: 403 Forbidden) -> repli sur le cache local
-            pass
-
-    except (BotoCoreError, Exception):
-        # Timeout, erreur de connexion ou autre exception S3 -> repli sur le cache local
-        pass
-
-    # ==========================
-    # Mode de secours : Cache Local
-    # ==========================
-    LOCAL_CACHE_DIR.mkdir(parents=True, exist_ok=True)
-
-    if local_file_path.exists():
-        return FileResponse(
-            local_file_path,
-            media_type=f"image/{ext}"
-        )
-
-    # Si l'image n'est pas dans le cache local, on la télécharge
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-        "Referer": "https://demonicscans.org/"
-    }
-    try:
-        r = requests.get(
-            url,
-            headers=headers,
-            timeout=15
-        )
-        r.raise_for_status()
-        image_data = r.content
-        content_type = r.headers.get("Content-Type", f"image/{ext}")
-
-        with open(local_file_path, "wb") as f:
-            f.write(image_data)
-            
-    except Exception as exc:
-        raise HTTPException(
-            status_code=502,
-            detail="Source indisponible en mode local"
-        ) from exc
-
-    return FileResponse(
-        local_file_path,
-        media_type=content_type
-    )
+        logger.error("Erreur inattendue pour %s: %s", url, exc, exc_info=True)
+        raise HTTPException(status_code=500, detail="Erreur interne") from exc
 
 
 # ==============================
@@ -242,61 +126,48 @@ def image_proxy(url: str):
 # Format: /{slug}/{chapter}/{page}.webp
 # ==============================
 @router.get("/{slug}/{chapter_num}/{page_num}.webp")
-def chapter_image_semantic(slug: str, chapter_num: str, page_num: int):
+async def chapter_image_semantic(slug: str, chapter_num: str, page_num: int):
     """
     Sert les images de chapitre avec des URLs sémantiques.
     Exemple: https://manganoka.xyz/i-became-the-rogue-first-prince/45/2.webp
     """
     try:
         from routes.reader import get_chapter_page
-        page = get_chapter_page(slug, chapter_num)
-    except Exception:
-        raise HTTPException(
-            status_code=404,
-            detail="Chapitre introuvable"
-        )
+        page = await get_chapter_page(slug, chapter_num)
+    except Exception as exc:
+        logger.warning("Chapitre introuvable: %s/%s", slug, chapter_num)
+        raise HTTPException(status_code=404, detail="Chapitre introuvable") from exc
 
     images = page.get("images", [])
 
     if page_num < 1 or page_num > len(images):
-        raise HTTPException(
-            status_code=404,
-            detail="Page inexistante"
-        )
+        raise HTTPException(status_code=404, detail="Page inexistante")
 
     target_url = images[page_num - 1]
     filename, _ = get_cache_filename(target_url)
 
-    return RedirectResponse(
-        f"{BASE_URL}/img/cache_manga/{filename}"
-    )
+    return RedirectResponse(f"{BASE_URL}/img/cache_manga/{filename}")
 
 
 # ==============================
 # Route alternative (backward compatibility)
 # ==============================
 @router.get("/chapter-img/{slug}/{chapter}/{page_num}.webp")
-def chapter_image(slug: str, chapter: str, page_num: int):
+async def chapter_image(slug: str, chapter: str, page_num: int):
+    """Route de compatibilité pour les anciennes URLs."""
     try:
         from routes.reader import get_chapter_page
-        page = get_chapter_page(slug, chapter)
-    except Exception:
-        raise HTTPException(
-            status_code=404,
-            detail="Chapitre introuvable"
-        )
+        page = await get_chapter_page(slug, chapter)
+    except Exception as exc:
+        logger.warning("Chapitre introuvable: %s/%s", slug, chapter)
+        raise HTTPException(status_code=404, detail="Chapitre introuvable") from exc
 
     images = page.get("images", [])
 
     if page_num < 1 or page_num > len(images):
-        raise HTTPException(
-            status_code=404,
-            detail="Page inexistante"
-        )
+        raise HTTPException(status_code=404, detail="Page inexistante")
 
     target_url = images[page_num - 1]
     filename, _ = get_cache_filename(target_url)
 
-    return RedirectResponse(
-        f"{BASE_URL}/img/cache_manga/{filename}"
-    )
+    return RedirectResponse(f"{BASE_URL}/img/cache_manga/{filename}")

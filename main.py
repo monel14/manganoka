@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from contextlib import asynccontextmanager
 
 # 1. Chargement immédiat des variables d'environnement depuis le dossier app
 dotenv_path = Path(__file__).resolve().parent / ".env"
@@ -11,9 +12,19 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 # Import de tes routes modulaires
-from routes import home, manga, reader, search, images 
+from routes import home, manga, reader, search, images
+from scraper.client import close_http_client
 
-app = FastAPI(title="Lola Manga Reader")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    yield
+    # Shutdown
+    await close_http_client()
+
+
+app = FastAPI(title="Lola Manga Reader", lifespan=lifespan)
 
 # 2. Configuration des dossiers statiques et templates
 app.mount("/static", StaticFiles(directory="static"), name="static")

@@ -1,6 +1,7 @@
 import sqlite3
 import time
-import pickle
+import json
+import inspect
 from pathlib import Path
 
 DB_PATH = Path(__file__).resolve().parent / "cache.db"
@@ -14,25 +15,34 @@ def _conn():
     conn = sqlite3.connect(DB_PATH)
     conn.execute(
         "CREATE TABLE IF NOT EXISTS cache "
-        "(key TEXT PRIMARY KEY, data BLOB, expires REAL)"
+        "(key TEXT PRIMARY KEY, data TEXT, expires REAL)"
     )
     return conn
 
 
 class _Cache:
-    def get_or_set(self, key: str, ttl_seconds: int, loader):
+    async def get_or_set(self, key: str, ttl_seconds: int, loader):
         with _conn() as conn:
             row = conn.execute(
                 "SELECT data, expires FROM cache WHERE key=?", (key,)
             ).fetchone()
 
             if row and row[1] > time.time():
-                return pickle.loads(row[0])
+                try:
+                    return json.loads(row[0])
+                except json.JSONDecodeError:
+                    # Cache corrompu, on le recharge
+                    pass
 
-            data = loader()
+            # Support both sync and async loaders
+            if inspect.iscoroutinefunction(loader):
+                data = await loader()
+            else:
+                data = loader()
+            
             conn.execute(
                 "INSERT OR REPLACE INTO cache VALUES (?, ?, ?)",
-                (key, pickle.dumps(data), time.time() + ttl_seconds),
+                (key, json.dumps(data, ensure_ascii=False), time.time() + ttl_seconds),
             )
             return data
 

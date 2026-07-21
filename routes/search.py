@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import logging
+import re
+import unicodedata
 from pathlib import Path
 
 from fastapi import APIRouter, Query, Request
@@ -16,15 +18,52 @@ router = APIRouter()
 templates = Jinja2Templates(directory=str(Path(__file__).resolve().parent.parent / "templates"))
 
 
+def normalize_query(query: str) -> str:
+    """
+    Normalise une requête de recherche pour améliorer le taux de hit du cache.
+    
+    Transformations appliquées :
+    - Suppression des accents (é → e, à → a, etc.)
+    - Conversion en minuscules
+    - Suppression des espaces multiples/tabulations
+    - Trim des espaces de début/fin
+    
+    Examples:
+        >>> normalize_query("  Naruto  ")
+        'naruto'
+        >>> normalize_query("Café Français")
+        'cafe francais'
+        >>> normalize_query("ONE    PIECE")
+        'one piece'
+    """
+    if not query:
+        return ""
+    
+    # Suppression des accents (NFD = décomposition, puis on garde que ASCII)
+    query = unicodedata.normalize('NFD', query)
+    query = ''.join(char for char in query if unicodedata.category(char) != 'Mn')
+    
+    # Conversion en minuscules
+    query = query.lower()
+    
+    # Remplacement des espaces multiples/tabs par un seul espace
+    query = re.sub(r'\s+', ' ', query)
+    
+    # Trim
+    query = query.strip()
+    
+    return query
+
+
 @router.get("/api/search")
-def api_search(q: str = Query(default="", min_length=1)) -> JSONResponse:
+async def api_search(q: str = Query(default="", min_length=1)) -> JSONResponse:
     """Endpoint JSON pour le dropdown de recherche live."""
     if not q.strip():
         return JSONResponse({"results": []})
 
     try:
         cache_key = f"search:{q.lower().strip()}:1"
-        mangas = cache.get_or_set(
+        mangas = await cache.get_or_set(
             cache_key,
             HOME_TTL_SECONDS,
             lambda: _load_search(q, 1),
@@ -47,7 +86,7 @@ def api_search(q: str = Query(default="", min_length=1)) -> JSONResponse:
 
 
 @router.get("/search", response_class=HTMLResponse)
-def search(
+async def search(
     request: Request,
     q: str = Query(default="", min_length=1),
     page: int = Query(default=1, ge=1, alias="p")
@@ -60,7 +99,7 @@ def search(
     else:
         try:
             cache_key = f"search:{q.lower().strip()}:{page}"
-            mangas = cache.get_or_set(
+            mangas = await cache.get_or_set(
                 cache_key,
                 HOME_TTL_SECONDS,
                 lambda: _load_search(q, page),
@@ -86,7 +125,7 @@ def search(
     )
 
 
-def _load_search(query: str, page: int) -> list[SearchManga]:
+async def _load_search(query: str, page: int) -> list[SearchManga]:
     path = f"/search.php?manga={query}" if page == 1 else f"/search.php?manga={query}&page={page}"
-    html = get_html(path)
+    html = await get_html(path)
     return parse_search(html)
