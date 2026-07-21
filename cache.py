@@ -12,7 +12,9 @@ CHAPTER_TTL_SECONDS = 30 * 60     # 30 minutes
 
 
 def _conn():
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=30.0)
+    # Activation du mode WAL (Write-Ahead Logging) pour d'excellentes performances concurrentes
+    conn.execute("PRAGMA journal_mode=WAL")
     conn.execute(
         "CREATE TABLE IF NOT EXISTS cache "
         "(key TEXT PRIMARY KEY, data TEXT, expires REAL)"
@@ -34,11 +36,13 @@ class _Cache:
                     # Cache corrompu, on le recharge
                     pass
 
-            # Support both sync and async loaders
+            # Support both sync and async loaders, including lambdas returning coroutines
             if inspect.iscoroutinefunction(loader):
                 data = await loader()
             else:
                 data = loader()
+                if inspect.iscoroutine(data):
+                    data = await data
             
             conn.execute(
                 "INSERT OR REPLACE INTO cache VALUES (?, ?, ?)",

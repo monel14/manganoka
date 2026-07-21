@@ -41,6 +41,16 @@ async def get_chapter_page(slug: str, chapter: str, manga: MangaDetail | None = 
 
 @router.get("/read/{slug}/{chapter}", response_class=HTMLResponse)
 async def read_chapter(request: Request, slug: str, chapter: str) -> HTMLResponse:
+    # Récupérer le slug et le chapitre bruts non-décodés (double encodage) depuis la socket HTTP pour le site source
+    raw_path_bytes = request.scope.get("raw_path")
+    if raw_path_bytes:
+        raw_path = raw_path_bytes.decode("utf-8")
+        if "/read/" in raw_path:
+            parts = raw_path.split("/read/", 1)[1].split("/")
+            if len(parts) >= 2:
+                slug = parts[0]
+                chapter = parts[1]
+
     try:
         manga = await cache.get_or_set(
             f"manga:{slug}",

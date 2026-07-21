@@ -18,6 +18,13 @@ templates = Jinja2Templates(directory=str(Path(__file__).resolve().parent.parent
 
 @router.get("/manga/{slug}", response_class=HTMLResponse)
 async def manga_detail(request: Request, slug: str) -> HTMLResponse:
+    # Récupérer le slug brut non-décodé (double encodage d'origine) depuis la socket HTTP pour le site source
+    raw_path_bytes = request.scope.get("raw_path")
+    if raw_path_bytes:
+        raw_path = raw_path_bytes.decode("utf-8")
+        if "/manga/" in raw_path:
+            slug = raw_path.split("/manga/", 1)[1]
+
     try:
         manga = await cache.get_or_set(
             f"manga:{slug}",
