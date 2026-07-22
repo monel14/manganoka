@@ -219,7 +219,8 @@ class ImageCacheService:
                 Body=image_data,
                 ContentLength=len(image_data),
                 ContentType=content_type,
-                ACL="public-read",
+                # Enlevé ACL="public-read" car N0C S3 gère la visibilité par dossier (public/ vs private/)
+                # et leverait une erreur 403 Forbidden Access Denied si on l'envoie.
             )
             logger.info("Image uploadée vers S3: %s", object_key)
             return True
