@@ -33,10 +33,10 @@ async def manga_detail(request: Request, slug: str) -> HTMLResponse:
         )
     except FetchError as exc:
         logger.warning("Unable to load manga %s: %s", slug, exc)
-        raise HTTPException(status_code=502, detail="Source indisponible") from exc
+        raise HTTPException(status_code=502, detail="Source unavailable") from exc
 
     if not manga["title"]:
-        raise HTTPException(status_code=404, detail="Manga introuvable")
+        raise HTTPException(status_code=404, detail="Manga not found")
 
     return templates.TemplateResponse(
         request,

@@ -50,5 +50,13 @@ class _Cache:
             )
             return data
 
+    def get_keys_by_prefix(self, prefix: str) -> list[str]:
+        """Retourne toutes les clés en cache qui commencent par un préfixe donné."""
+        with _conn() as conn:
+            rows = conn.execute(
+                "SELECT key FROM cache WHERE key LIKE ?", (f"{prefix}%",)
+            ).fetchall()
+            return [row[0] for row in rows]
+
 
 cache = _Cache()

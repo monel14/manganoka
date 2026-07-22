@@ -3,11 +3,12 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from fastapi import APIRouter, Query, Request
+from fastapi import APIRouter, Query, Request, Response
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from cache import HOME_TTL_SECONDS, cache
+import os
 from scraper.client import FetchError, get_html
 from scraper.parser import HomeManga, parse_home
 
@@ -29,7 +30,7 @@ async def index(request: Request, list_page: int = Query(default=1, ge=1, alias=
     except FetchError as exc:
         logger.warning("Unable to load homepage data page %s: %s", list_page, exc)
         mangas = []
-        error = "Impossible de charger les dernières sorties pour le moment."
+        error = "Unable to load latest releases at the moment."
 
     has_next_page = bool(mangas)
 
@@ -51,3 +52,42 @@ async def _load_home(page: int) -> list[HomeManga]:
     path = "/lastupdates.php" if page == 1 else f"/lastupdates.php?list={page}"
     html = await get_html(path)
     return parse_home(html)
+
+
+@router.get("/sitemap.xml")
+def sitemap() -> Response:
+    """Génère un sitemap XML dynamique basé sur les mangas actuellement en cache."""
+    base_url = os.environ.get("BASE_URL", "https://manganoka.xyz").rstrip("/")
+    
+    # Récupérer toutes les clés de manga du cache (ex: 'manga:Dan%252C-the-Bat...')
+    manga_keys = cache.get_keys_by_prefix("manga:")
+    slugs = []
+    for key in manga_keys:
+        if ":" in key:
+            slugs.append(key.split(":", 1)[1])
+
+    # Génération du contenu XML
+    xml_lines = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+    ]
+    
+    # 1. URL de la page d'accueil
+    xml_lines.append("    <url>")
+    xml_lines.append(f"        <loc>{base_url}/</loc>")
+    xml_lines.append("        <changefreq>daily</changefreq>")
+    xml_lines.append("        <priority>1.0</priority>")
+    xml_lines.append("    </url>")
+    
+    # 2. URLs de tous les mangas en cache
+    for slug in slugs:
+        xml_lines.append("    <url>")
+        xml_lines.append(f"        <loc>{base_url}/manga/{slug}</loc>")
+        xml_lines.append("        <changefreq>weekly</changefreq>")
+        xml_lines.append("        <priority>0.8</priority>")
+        xml_lines.append("    </url>")
+        
+    xml_lines.append("</urlset>")
+    xml_content = "\n".join(xml_lines)
+    
+    return Response(content=xml_content, media_type="application/xml")

@@ -58,15 +58,16 @@ def normalize_query(query: str) -> str:
 @router.get("/api/search")
 async def api_search(q: str = Query(default="", min_length=1)) -> JSONResponse:
     """Endpoint JSON pour le dropdown de recherche live."""
-    if not q.strip():
+    normalized_q = normalize_query(q)
+    if not normalized_q:
         return JSONResponse({"results": []})
 
     try:
-        cache_key = f"search:{q.lower().strip()}:1"
+        cache_key = f"search:{normalized_q}:1"
         mangas = await cache.get_or_set(
             cache_key,
             HOME_TTL_SECONDS,
-            lambda: _load_search(q, 1),
+            lambda: _load_search(normalized_q, 1),
         )
     except FetchError as exc:
         logger.warning("Unable to search for '%s': %s", q, exc)
@@ -93,20 +94,21 @@ async def search(
 ) -> HTMLResponse:
     error: str | None = None
     mangas: list[SearchManga] = []
+    normalized_q = normalize_query(q)
 
-    if not q.strip():
-        error = "Veuillez entrer un terme de recherche."
+    if not normalized_q:
+        error = "Please enter a search query."
     else:
         try:
-            cache_key = f"search:{q.lower().strip()}:{page}"
+            cache_key = f"search:{normalized_q}:{page}"
             mangas = await cache.get_or_set(
                 cache_key,
                 HOME_TTL_SECONDS,
-                lambda: _load_search(q, page),
+                lambda: _load_search(normalized_q, page),
             )
         except FetchError as exc:
             logger.warning("Unable to search for '%s' page %s: %s", q, page, exc)
-            error = "Impossible de rechercher pour le moment."
+            error = "Unable to search at the moment."
 
     has_next_page = len(mangas) >= 20
 
@@ -115,7 +117,7 @@ async def search(
         "search.html",
         {
             "request": request,
-            "query": q,
+            "query": q,  # On garde la recherche originale pour l'affichage utilisateur
             "mangas": mangas,
             "error": error,
             "current_page": page,

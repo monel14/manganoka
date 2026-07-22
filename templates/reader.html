@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ page.title }} - Chapitre {{ chapter }}</title>
+    <title>{{ page.title }} - Chapter {{ chapter }}</title>
     <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}">
 </head>
 <body class="reader-body">
@@ -11,7 +11,7 @@
         <a href="/">Manga Reader</a>
     </header>
 
-    <nav class="chapter-breadcrumb" aria-label="Fil d'Ariane">
+    <nav class="chapter-breadcrumb" aria-label="Breadcrumb">
         <a href="/">Manga Online</a>
         <span>»</span>
         <a href="/manga/{{ slug }}">{{ manga.title }}</a>
@@ -20,7 +20,7 @@
     </nav>
 
     <section class="chapter-options">
-        <select class="chapter-select" aria-label="Changer de chapitre" onchange="if (this.value) window.location.href = this.value">
+        <select class="chapter-select" aria-label="Change chapter" onchange="if (this.value) window.location.href = this.value">
             {% for item in chapters %}
                 <option value="/read/{{ slug }}/{{ item.number }}" {% if item.number|string == chapter|string %}selected{% endif %}>
                     {{ item.title }}
@@ -28,7 +28,7 @@
             {% endfor %}
         </select>
 
-        <div class="chapter-buttons" aria-label="Navigation chapitre">
+        <div class="chapter-buttons" aria-label="Chapter navigation">
             {% if previous_chapter %}
                 <a class="chapter-btn" href="/read/{{ slug }}/{{ previous_chapter.number }}">PREV CHAPTER</a>
             {% else %}
@@ -65,12 +65,12 @@
                 loading="{% if loop.first %}eager{% else %}lazy{% endif %}"
             >
         {% else %}
-            <p class="empty">Aucune image trouvée.</p>
+            <p class="empty">No images found.</p>
         {% endfor %}
     </main>
 
     <section class="chapter-options chapter-options-bottom">
-        <select class="chapter-select" aria-label="Changer de chapitre" onchange="if (this.value) window.location.href = this.value">
+        <select class="chapter-select" aria-label="Change chapter" onchange="if (this.value) window.location.href = this.value">
             {% for item in chapters %}
                 <option value="/read/{{ slug }}/{{ item.number }}" {% if item.number|string == chapter|string %}selected{% endif %}>
                     {{ item.title }}
@@ -78,7 +78,7 @@
             {% endfor %}
         </select>
 
-        <div class="chapter-buttons" aria-label="Navigation chapitre">
+        <div class="chapter-buttons" aria-label="Chapter navigation">
             {% if previous_chapter %}
                 <a class="chapter-btn" href="/read/{{ slug }}/{{ previous_chapter.number }}">PREV CHAPTER</a>
             {% else %}
@@ -93,12 +93,48 @@
         </div>
     </section>
 
-    <nav class="chapter-breadcrumb chapter-breadcrumb-bottom" aria-label="Fil d'Ariane">
+    <nav class="chapter-breadcrumb chapter-breadcrumb-bottom" aria-label="Breadcrumb">
         <a href="/">Manga Online</a>
         <span>»</span>
         <a href="/manga/{{ slug }}">{{ manga.title }}</a>
         <span>»</span>
         <span>Chapter {{ chapter }}</span>
     </nav>
-</body>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const pages = Array.from(document.querySelectorAll(".manga-page"));
+        if (!pages.length) return;
+
+        const preloaded = new Set();
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    const index = pages.indexOf(img);
+                    
+                    // Intelligent preloading of the next 2 pages
+                    for (let offset = 1; offset <= 2; offset++) {
+                        const nextImg = pages[index + offset];
+                        if (nextImg && !preloaded.has(nextImg.src)) {
+                            // Changing loading to "eager" forces the browser to load it immediately
+                            nextImg.loading = "eager";
+                            
+                            // Create virtual Image object to force browser cache in the background
+                            const tempImg = new Image();
+                            tempImg.src = nextImg.src;
+                            preloaded.add(nextImg.src);
+                        }
+                    }
+                }
+            });
+        }, {
+            rootMargin: "0px 0px 600px 0px" // Trigger observation 600px before image enters viewport
+        });
+
+        pages.forEach(page => observer.observe(page));
+    });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1ee5168191723ce',t:'MTc4NDY4MDAyOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

@@ -102,23 +102,23 @@ async def image_proxy(url: str):
     
     except InvalidDomainError as exc:
         logger.warning("Domaine non autorisé: %s", url)
-        raise HTTPException(status_code=400, detail="URL non autorisée") from exc
+        raise HTTPException(status_code=400, detail="Unauthorized URL") from exc
     
     except ImageTooBigError as exc:
         logger.warning("Image trop grande: %s", url)
-        raise HTTPException(status_code=413, detail="Image trop grande (max 20 Mo)") from exc
+        raise HTTPException(status_code=413, detail="Image too large (max 20 MB)") from exc
     
     except InvalidContentTypeError as exc:
         logger.warning("Content-Type invalide: %s", url)
-        raise HTTPException(status_code=400, detail="Type de fichier non autorisé") from exc
+        raise HTTPException(status_code=400, detail="File type not allowed") from exc
     
     except ImageCacheError as exc:
         logger.warning("Erreur cache image pour %s: %s", url, exc)
-        raise HTTPException(status_code=502, detail="Image source indisponible") from exc
+        raise HTTPException(status_code=502, detail="Source image unavailable") from exc
     
     except Exception as exc:
         logger.error("Erreur inattendue pour %s: %s", url, exc, exc_info=True)
-        raise HTTPException(status_code=500, detail="Erreur interne") from exc
+        raise HTTPException(status_code=500, detail="Internal error") from exc
 
 
 # ==============================
@@ -145,12 +145,12 @@ async def chapter_image_semantic(request: Request, slug: str, chapter_num: str, 
         page = await get_chapter_page(slug, chapter_num)
     except Exception as exc:
         logger.warning("Chapitre introuvable: %s/%s", slug, chapter_num)
-        raise HTTPException(status_code=404, detail="Chapitre introuvable") from exc
+        raise HTTPException(status_code=404, detail="Chapter not found") from exc
 
     images = page.get("images", [])
 
     if page_num < 1 or page_num > len(images):
-        raise HTTPException(status_code=404, detail="Page inexistante")
+        raise HTTPException(status_code=404, detail="Page does not exist")
 
     target_url = images[page_num - 1]
     filename, _ = get_cache_filename(target_url)
@@ -179,12 +179,12 @@ async def chapter_image(request: Request, slug: str, chapter: str, page_num: int
         page = await get_chapter_page(slug, chapter)
     except Exception as exc:
         logger.warning("Chapitre introuvable: %s/%s", slug, chapter)
-        raise HTTPException(status_code=404, detail="Chapitre introuvable") from exc
+        raise HTTPException(status_code=404, detail="Chapter not found") from exc
 
     images = page.get("images", [])
 
     if page_num < 1 or page_num > len(images):
-        raise HTTPException(status_code=404, detail="Page inexistante")
+        raise HTTPException(status_code=404, detail="Page does not exist")
 
     target_url = images[page_num - 1]
     filename, _ = get_cache_filename(target_url)

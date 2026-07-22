@@ -61,10 +61,10 @@ async def read_chapter(request: Request, slug: str, chapter: str) -> HTMLRespons
         page = await get_chapter_page(slug, chapter, manga=manga)
     except FetchError as exc:
         logger.warning("Unable to load chapter %s/%s: %s", slug, chapter, exc)
-        raise HTTPException(status_code=502, detail="Source indisponible") from exc
+        raise HTTPException(status_code=502, detail="Source unavailable") from exc
 
     if not page["images"]:
-        raise HTTPException(status_code=404, detail="Chapitre introuvable")
+        raise HTTPException(status_code=404, detail="Chapter not found")
 
     previous_chapter, next_chapter = _chapter_neighbors(manga["chapters"], chapter)
 
@@ -103,7 +103,7 @@ def _find_chapter_url(manga: MangaDetail, chapter: str) -> str:
     for item in manga["chapters"]:
         if str(item["number"]) == str(chapter):
             return item["url"]
-    raise HTTPException(status_code=404, detail="Chapitre introuvable")
+    raise HTTPException(status_code=404, detail="Chapter not found")
 
 
 def _chapter_neighbors(

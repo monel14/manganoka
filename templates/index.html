@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Dernières sorties</title>
+    <title>Latest Releases - Manga Reader</title>
     <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}">
 </head>
 <body>
@@ -15,15 +15,15 @@
                     type="text"
                     name="q"
                     id="search-input"
-                    placeholder="Rechercher un manga..."
+                    placeholder="Search manga..."
                     autocomplete="off"
                     required>
                 <button type="submit">🔍</button>
                 <div id="search-dropdown" class="search-dropdown" hidden></div>
             </form>
-            <nav class="quick-links" aria-label="Navigation principale">
-                <a href="/">Accueil</a>
-                <a href="/?list=2">Dernières sorties</a>
+            <nav class="quick-links" aria-label="Main navigation">
+                <a href="/">Home</a>
+                <a href="/?list=2">Latest Releases</a>
             </nav>
         </div>
     </header>
@@ -31,20 +31,20 @@
     <main class="shell">
         <section class="notice-strip">
             <strong>Updates</strong>
-            <span>Nouveaux chapitres et séries récemment ajoutées</span>
+            <span>New chapters and recently added series</span>
         </section>
 
         <div class="content-layout">
             <section class="main-column">
                 <div class="section-bar">
-                    <h1>Dernières sorties</h1>
+                    <h1>Latest Releases</h1>
                     <div class="pagination">
                         {% if previous_page %}
-                            <a href="/?list={{ previous_page }}">Précédent</a>
+                            <a href="/?list={{ previous_page }}">Previous</a>
                         {% endif %}
                         <span>Page {{ current_page }}</span>
                         {% if next_page %}
-                            <a href="/?list={{ next_page }}">Suivant</a>
+                            <a href="/?list={{ next_page }}">Next</a>
                         {% endif %}
                     </div>
                 </div>
@@ -80,24 +80,24 @@
                             </div>
                         </article>
                     {% else %}
-                        <p class="empty">Aucun manga trouvé.</p>
+                        <p class="empty">No manga found.</p>
                     {% endfor %}
                 </div>
 
                 <nav class="pagination pagination-bottom" aria-label="Pagination">
                     {% if previous_page %}
-                        <a href="/?list={{ previous_page }}">Précédent</a>
+                        <a href="/?list={{ previous_page }}">Previous</a>
                     {% endif %}
                     <span>Page {{ current_page }}</span>
                     {% if next_page %}
-                        <a href="/?list={{ next_page }}">Suivant</a>
+                        <a href="/?list={{ next_page }}">Next</a>
                     {% endif %}
                 </nav>
             </section>
 
             <aside class="side-column">
                 <section class="side-panel">
-                    <h2>À suivre</h2>
+                    <h2>Trending</h2>
                     <ol class="rank-list">
                         {% for manga in mangas[:10] %}
                             <li>
@@ -128,10 +128,10 @@
                      onerror="this.style.display='none'">
                 <div class="sd-info">
                     <span class="sd-title">${r.title}</span>
-                    ${r.views ? `<span class="sd-views">👁 ${Number(r.views.replace(/\s/g,'')).toLocaleString('fr-FR')}</span>` : ''}
+                    ${r.views ? `<span class="sd-views">👁 ${Number(r.views.replace(/\s/g,'')).toLocaleString('en-US')}</span>` : ''}
                 </div>
             </a>
-        `).join('') + `<div class="sd-footer">20 premiers résultats — <a href="/search?q=${encodeURIComponent(input.value)}">Voir tout</a></div>`;
+        `).join('') + `<div class="sd-footer">Top 20 results — <a href="/search?q=${encodeURIComponent(input.value)}">View all</a></div>`;
 
         activeIndex = -1;
         dropdown.hidden = false;

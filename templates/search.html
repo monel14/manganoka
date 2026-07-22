@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Recherche : {{ query }} - Manga Reader</title>
+    <title>Search: {{ query }} - Manga Reader</title>
     <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}">
 </head>
 <body>
@@ -15,24 +15,24 @@
                     type="text"
                     name="q"
                     id="search-input"
-                    placeholder="Rechercher un manga..."
+                    placeholder="Search manga..."
                     autocomplete="off"
                     value="{{ query }}"
                     required>
                 <button type="submit">🔍</button>
                 <div id="search-dropdown" class="search-dropdown" hidden></div>
             </form>
-            <nav class="quick-links" aria-label="Navigation principale">
-                <a href="/">Accueil</a>
-                <a href="/?list=2">Dernières sorties</a>
+            <nav class="quick-links" aria-label="Main navigation">
+                <a href="/">Home</a>
+                <a href="/?list=2">Latest Releases</a>
             </nav>
         </div>
     </header>
 
     <main class="shell">
         <section class="notice-strip">
-            <strong>Recherche</strong>
-            <span>Résultats pour "{{ query }}"</span>
+            <strong>Search</strong>
+            <span>Results for "{{ query }}"</span>
         </section>
 
         <div class="content-layout">
@@ -40,19 +40,19 @@
                 <div class="section-bar">
                     <h1>
                         {% if mangas %}
-                            {{ mangas|length }} résultat(s)
+                            {{ mangas|length }} result(s)
                         {% else %}
-                            Aucun résultat
+                            No results
                         {% endif %}
                     </h1>
                     {% if mangas %}
                         <div class="pagination">
                             {% if previous_page %}
-                                <a href="/search?q={{ query }}&p={{ previous_page }}">Précédent</a>
+                                <a href="/search?q={{ query }}&p={{ previous_page }}">Previous</a>
                             {% endif %}
                             <span>Page {{ current_page }}</span>
                             {% if next_page %}
-                                <a href="/search?q={{ query }}&p={{ next_page }}">Suivant</a>
+                                <a href="/search?q={{ query }}&p={{ next_page }}">Next</a>
                             {% endif %}
                         </div>
                     {% endif %}
@@ -77,7 +77,7 @@
                                     <a href="/manga/{{ manga.slug }}">{{ manga.title }}</a>
                                 </h2>
                                 {% if manga.latest_chapter %}
-                                    <p class="result-latest">Dernier chapitre : {{ manga.latest_chapter }}</p>
+                                    <p class="result-latest">Latest chapter: {{ manga.latest_chapter }}</p>
                                 {% endif %}
                                 {% if manga.views %}
                                     <p class="result-views">{{ manga.views }}</p>
@@ -85,18 +85,18 @@
                             </div>
                         </article>
                     {% else %}
-                        <p class="empty">Aucun manga trouvé pour "{{ query }}".</p>
+                        <p class="empty">No manga found for "{{ query }}".</p>
                     {% endfor %}
                 </div>
 
                 {% if mangas %}
                     <nav class="pagination pagination-bottom" aria-label="Pagination">
                         {% if previous_page %}
-                            <a href="/search?q={{ query }}&p={{ previous_page }}">Précédent</a>
+                            <a href="/search?q={{ query }}&p={{ previous_page }}">Previous</a>
                         {% endif %}
                         <span>Page {{ current_page }}</span>
                         {% if next_page %}
-                            <a href="/search?q={{ query }}&p={{ next_page }}">Suivant</a>
+                            <a href="/search?q={{ query }}&p={{ next_page }}">Next</a>
                         {% endif %}
                     </nav>
                 {% endif %}
@@ -104,13 +104,13 @@
 
             <aside class="side-column">
                 <section class="side-panel">
-                    <h2>Recherches suggérées</h2>
+                    <h2>Suggested Searches</h2>
                     <div class="search-tips">
-                        <p>Essayez de rechercher :</p>
+                        <p>Try searching for:</p>
                         <ul>
-                            <li>Le titre complet du manga</li>
-                            <li>L'auteur du manga</li>
-                            <li>Des mots-clés du titre</li>
+                            <li>The full title of the manga</li>
+                            <li>The author of the manga</li>
+                            <li>Keywords from the title</li>
                         </ul>
                     </div>
                 </section>
@@ -132,10 +132,10 @@
                      onerror="this.style.display='none'">
                 <div class="sd-info">
                     <span class="sd-title">${r.title}</span>
-                    ${r.views ? `<span class="sd-views">👁 ${Number(r.views.replace(/\s/g,'')).toLocaleString('fr-FR')}</span>` : ''}
+                    ${r.views ? `<span class="sd-views">👁 ${Number(r.views.replace(/\s/g,'')).toLocaleString('en-US')}</span>` : ''}
                 </div>
             </a>
-        `).join('') + `<div class="sd-footer">20 premiers résultats — <a href="/search?q=${encodeURIComponent(input.value)}">Voir tout</a></div>`;
+        `).join('') + `<div class="sd-footer">Top 20 results — <a href="/search?q=${encodeURIComponent(input.value)}">View all</a></div>`;
         activeIndex = -1;
         dropdown.hidden = false;
     }
@@ -170,5 +170,5 @@
     });
 })();
 </script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1ee51c97f0723ce',t:'MTc4NDY4MDA0NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
