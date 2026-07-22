@@ -29,6 +29,15 @@
     </header>
 
     <main class="shell">
+        <div class="notification-header" style="margin-bottom: 20px; background: rgba(255, 83, 13, 0.08); border-left: 4px solid #ff530d; padding: 12px 18px; border-radius: 4px; display: flex; align-items: center; gap: 10px;">
+            <div class="notification-header-content" style="font-size: 13.5px; color: var(--text-color); line-height: 1.5; text-align: left;">
+                <span class="text" style="font-weight: bold; color: #ff530d; margin-right: 8px;">📢 Important Notice!</span>
+                <span class="notification-content-pc text">
+                    To ensure you always have easy access to our site, we highly recommend bookmarking our website by pressing <strong>Ctrl + D</strong> (on Windows) or <strong>Command + D</strong> (on Mac).
+                </span>
+            </div>
+        </div>
+
         <section class="notice-strip">
             <strong>Updates</strong>
             <span>New chapters and recently added series</span>
@@ -121,27 +130,68 @@
             </section>
 
             <aside class="side-column">
-                <!-- History Panel (Local Storage Guest History) -->
-                <section class="side-panel" id="history-panel" style="display: none; margin-bottom: 20px;">
-                    <h2>Reading History</h2>
-                    <ul class="rank-list" id="history-list" style="list-style: none; padding: 0; margin: 0;">
-                        <!-- Rempli en JS -->
-                    </ul>
-                </section>
+                <!-- History Widget (MangaBats Style) -->
+                <div id="history-sidebar" class="history-container only-pc" style="display: none; margin-bottom: 20px;">
+                    <div id="history-sidebar-header" class="history-sidebar-header">
+                        <h3 class="history-title history-title-bold">History</h3>
+                        <a href="/history" class="history-title history-title-viewmore">View More <i class="fas fa-angle-double-right"></i></a>
+                    </div>
+                    <div id="history-sidebar-content" class="history-sidebar-content" style="display: flex; flex-direction: column; gap: 10px;">
+                        <!-- Dynamically populated in JS -->
+                    </div>
+                </div>
 
                 <section class="side-panel">
-                    <h2>Trending</h2>
+                    <h2>Most Popular Manga</h2>
                     <ol class="rank-list">
-                        {% for manga in mangas[:10] %}
-                            <li>
-                                <a href="/manga/{{ manga.slug }}">{{ manga.title }}</a>
-                                {% if manga.chapters %}
-                                    <span>{{ manga.chapters[0].title }}</span>
-                                {% endif %}
+                        {% for item in popular_sidebar %}
+                            <li style="margin-bottom: 10px; text-align: left; line-height: 1.4;">
+                                <a href="/manga/{{ item.slug }}" style="font-size: 13px; font-weight: 500; text-decoration: none; color: var(--text-color);">{{ item.title }}</a>
                             </li>
+                        {% else %}
+                            <!-- Fallback si la barre latérale populaire est vide (ex: pages suivantes) -->
+                            {% for manga in mangas[:10] %}
+                                <li style="margin-bottom: 10px; text-align: left; line-height: 1.4;">
+                                    <a href="/manga/{{ manga.slug }}" style="font-size: 13px; font-weight: 500; text-decoration: none; color: var(--text-color);">{{ manga.title }}</a>
+                                </li>
+                            {% endfor %}
                         {% endfor %}
                     </ol>
                 </section>
+
+                <!-- Panel GENRES (MangaBats style) -->
+                <div class="panel-category" style="margin-top: 25px; text-align: left;">
+                    <h3 class="panel-category-title" style="font-size: 14px; font-weight: bold; border-bottom: 2px solid #ff530d; padding-bottom: 8px; margin-bottom: 15px; color: var(--text-color);">GENRES</h3>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 12.5px;">
+                        <tbody>
+                            <tr>
+                                <td style="padding: 6px 4px;"><a rel="nofollow" href="/manga-list/new-manga" style="color: #ff530d; font-weight: bold; text-decoration: none;">Newest</a></td>
+                                <td style="padding: 6px 4px;"><a rel="nofollow" href="/manga-list/latest-manga" style="color: var(--text-color); text-decoration: none;">Latest</a></td>
+                                <td style="padding: 6px 4px;"><a rel="nofollow" href="/manga-list/hot-manga" style="color: var(--text-color); text-decoration: none;">Top read</a></td>
+                            </tr>
+                            <tr style="border-top: 1px solid rgba(255,255,255,0.05);">
+                                <td style="padding: 6px 4px;"><a rel="nofollow" href="/genre/all" style="color: #ff530d; font-weight: bold; text-decoration: none;">All</a></td>
+                                <td style="padding: 6px 4px;"><a rel="nofollow" href="/manga-list/completed-manga" style="color: var(--text-color); text-decoration: none;">Completed</a></td>
+                                <td style="padding: 6px 4px;"><a rel="nofollow" href="/manga-list/ongoing-manga" style="color: var(--text-color); text-decoration: none;">Ongoing</a></td>
+                            </tr>
+                            <tr style="border-top: 1px solid rgba(255,255,255,0.05);">
+                                <td style="padding: 6px 4px;"><a href="/genre/action" title="Action" style="color: var(--text-color); text-decoration: none;">Action</a></td>
+                                <td style="padding: 6px 4px;"><a href="/genre/adventure" title="Adventure" style="color: var(--text-color); text-decoration: none;">Adventure</a></td>
+                                <td style="padding: 6px 4px;"><a href="/genre/comedy" title="Comedy" style="color: var(--text-color); text-decoration: none;">Comedy</a></td>
+                            </tr>
+                            <tr style="border-top: 1px solid rgba(255,255,255,0.05);">
+                                <td style="padding: 6px 4px;"><a href="/genre/drama" title="Drama" style="color: var(--text-color); text-decoration: none;">Drama</a></td>
+                                <td style="padding: 6px 4px;"><a href="/genre/fantasy" title="Fantasy" style="color: var(--text-color); text-decoration: none;">Fantasy</a></td>
+                                <td style="padding: 6px 4px;"><a href="/genre/romance" title="Romance" style="color: var(--text-color); text-decoration: none;">Romance</a></td>
+                            </tr>
+                            <tr style="border-top: 1px solid rgba(255,255,255,0.05);">
+                                <td style="padding: 6px 4px;"><a href="/genre/shounen" title="Shounen" style="color: var(--text-color); text-decoration: none;">Shounen</a></td>
+                                <td style="padding: 6px 4px;"><a href="/genre/shoujo" title="Shoujo" style="color: var(--text-color); text-decoration: none;">Shoujo</a></td>
+                                <td style="padding: 6px 4px;"><a href="/genre/slice-of-life" title="Slice of life" style="color: var(--text-color); text-decoration: none;">Slice of Life</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </aside>
         </div>
     </main>
@@ -214,23 +264,26 @@
 // Initialisation du carrousel populaire et chargement de l'historique
 $(document).ready(function() {
     // 1. Peuplement de l'historique de lecture depuis localStorage
-    const historyList = document.getElementById("history-list");
-    const historyPanel = document.getElementById("history-panel");
+    const historyList = document.getElementById("history-sidebar-content");
+    const historyPanel = document.getElementById("history-sidebar");
     const history = JSON.parse(localStorage.getItem("manga_history") || "[]");
     
     if (historyList && historyPanel && history.length > 0) {
         historyPanel.style.display = "block";
         historyList.innerHTML = history.map(item => `
-            <li style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
-                <a href="/manga/${item.slug}" style="display: flex; align-items: center; gap: 10px; text-decoration: none; width: 100%;">
-                    <img src="/img-proxy?url=${item.cover}" style="width: 45px; height: 55px; object-fit: cover; border-radius: 4px;" alt="${item.title}" onerror="this.src='/static/style.css';">
-                    <div style="display: flex; flex-direction: column; overflow: hidden; text-align: left;">
-                        <strong style="font-size: 13px; color: var(--text-color); text-overflow: ellipsis; overflow: hidden; white-space: nowrap; width: 100%; display: block;">${item.title}</strong>
-                        <span style="font-size: 11px; color: #ff530d; margin-top: 2px;">Read: Chapter ${item.chapter}</span>
-                        <span style="font-size: 10px; color: #888; margin-top: 2px;">${item.time}</span>
-                    </div>
+            <div class="history-sidebar-content-item" style="display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
+                <a rel="nofollow" href="/manga/${item.slug}" class="comic-link">
+                    <img src="/img-proxy?url=${item.cover}" alt="${item.title}" class="lazy" width="36" height="48" style="border-radius: 4px; object-fit: cover;" onerror="this.src='/static/style.css';">
                 </a>
-            </li>
+                <div style="display: flex; flex-direction: column; overflow: hidden; text-align: left; flex-grow: 1;">
+                    <span class="history-sidebar-content-text comic-name" style="font-size: 13px; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; width: 100%;">
+                        <a rel="nofollow" href="/manga/${item.slug}" class="comic-link-title" style="text-decoration: none; color: var(--text-color);">${item.title}</a>
+                    </span>
+                    <span class="history-sidebar-content-text" style="font-size: 11px; margin-top: 2px;">
+                        <a rel="nofollow" href="/read/${item.slug}/${item.chapter}" class="chapter-link" style="text-decoration: none; color: #ff530d; font-weight: bold;">Chapter ${item.chapter}</a>
+                    </span>
+                </div>
+            </div>
         `).join('');
     }
 
@@ -250,5 +303,5 @@ $(document).ready(function() {
     }
 });
 </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1f223e969ec435e',t:'MTc4NDcyMDEwOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1f223e969ec435e',t:'MTc4NDcyMDEwOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1f27f8decf1b12a',t:'MTc4NDcyMzg2Mg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

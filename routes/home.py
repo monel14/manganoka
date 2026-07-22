@@ -10,7 +10,7 @@ from fastapi.templating import Jinja2Templates
 from cache import HOME_TTL_SECONDS, cache
 import os
 from scraper.client import FetchError, get_html
-from scraper.parser import HomeManga, parse_home, parse_popular
+from scraper.parser import HomeManga, parse_home, parse_popular, parse_popular_sidebar
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -29,10 +29,12 @@ async def index(request: Request, list_page: int = Query(default=1, ge=1, alias=
         )
         mangas = data.get("mangas", [])
         popular = data.get("popular", [])
+        popular_sidebar = data.get("popular_sidebar", [])
     except FetchError as exc:
         logger.warning("Unable to load homepage data page %s: %s", list_page, exc)
         mangas = []
         popular = []
+        popular_sidebar = []
         error = "Unable to load latest releases at the moment."
 
     has_next_page = bool(mangas)
@@ -44,6 +46,7 @@ async def index(request: Request, list_page: int = Query(default=1, ge=1, alias=
             "request": request,
             "mangas": mangas,
             "popular": popular,
+            "popular_sidebar": popular_sidebar,
             "error": error,
             "current_page": list_page,
             "previous_page": list_page - 1 if list_page > 1 else None,
@@ -61,6 +64,7 @@ async def _load_home(page: int) -> dict:
     return {
         "mangas": parse_home(html),
         "popular": parse_popular(html) if page == 1 else [],
+        "popular_sidebar": parse_popular_sidebar(html) if page == 1 else [],
     }
 
 

@@ -141,6 +141,26 @@ def parse_popular(html: str, base_url: str = BASE_URL) -> list[dict]:
     return popular
 
 
+def parse_popular_sidebar(html: str, base_url: str = BASE_URL) -> list[dict]:
+    """Parse la section 'Most Popular Manga' de la barre latérale de MangaBats."""
+    soup = BeautifulSoup(html, "html.parser")
+    popular_sidebar: list[dict] = []
+
+    for item in soup.select(".xem-nhieu .xem-nhieu-item"):
+        title_a = item.select_one("h3 a")
+        if title_a:
+            title = title_a.text.strip()
+            url = _absolute(title_a.get("href"), base_url)
+            slug = _slug_from_url(url)
+            popular_sidebar.append({
+                "title": title,
+                "slug": slug,
+                "url": url,
+            })
+            
+    return popular_sidebar
+
+
 def parse_manga(html: str, slug: str = "", chapters_data: dict | None = None, base_url: str = BASE_URL) -> MangaDetail:
     """Parse les détails d'un manga sur sa fiche MangaBats."""
     soup = BeautifulSoup(html, "html.parser")
