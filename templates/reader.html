@@ -136,5 +136,32 @@
         pages.forEach(page => observer.observe(page));
     });
     </script>
+
+    <script>
+    // Enregistrement de la lecture dans l'historique local (LocalStorage)
+    (function() {
+        const slug = "{{ slug }}";
+        const title = "{{ manga.title }}";
+        const chapter = "{{ chapter }}";
+        const cover = "{{ manga.cover }}";
+        
+        if (slug && title && chapter) {
+            let history = JSON.parse(localStorage.getItem("manga_history") || "[]");
+            // Filtrer l'ancien historique pour ce manga
+            history = history.filter(item => item.slug !== slug);
+            // Ajouter en tête de liste
+            history.unshift({
+                slug: slug,
+                title: title,
+                chapter: chapter,
+                cover: cover,
+                time: new Date().toLocaleDateString()
+            });
+            // Limiter à 8 mangas dans l'historique
+            if (history.length > 8) history.pop();
+            localStorage.setItem("manga_history", JSON.stringify(history));
+        }
+    })();
+    </script>
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1ee5168191723ce',t:'MTc4NDY4MDAyOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

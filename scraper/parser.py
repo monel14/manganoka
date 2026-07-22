@@ -107,6 +107,40 @@ def parse_home(html: str, base_url: str = BASE_URL) -> list[HomeManga]:
     return mangas
 
 
+def parse_popular(html: str, base_url: str = BASE_URL) -> list[dict]:
+    """Parse la section 'POPULAR MANGA' du carrousel de MangaBats."""
+    soup = BeautifulSoup(html, "html.parser")
+    popular: list[dict] = []
+
+    for item in soup.select(".slide .owl-carousel .item"):
+        img_tag = item.select_one("img")
+        cover = _absolute(img_tag.get("src") or img_tag.get("data-src"), base_url) if img_tag else ""
+        
+        title_a = item.select_one(".slide-caption h3 a")
+        title = title_a.text.strip() if title_a else ""
+        url = _absolute(title_a.get("href"), base_url) if title_a else ""
+        slug = _slug_from_url(url)
+        
+        ch_a = item.select_one('.slide-caption a[href*="/chapter-"]')
+        ch_title = ch_a.text.strip() if ch_a else ""
+        ch_url = _absolute(ch_a.get("href"), base_url) if ch_a else ""
+        ch_num = _chapter_number(ch_url)
+        
+        popular.append({
+            "title": title,
+            "slug": slug,
+            "url": url,
+            "cover": cover,
+            "chapter": {
+                "title": ch_title,
+                "url": ch_url,
+                "number": ch_num,
+            }
+        })
+        
+    return popular
+
+
 def parse_manga(html: str, slug: str = "", chapters_data: dict | None = None, base_url: str = BASE_URL) -> MangaDetail:
     """Parse les détails d'un manga sur sa fiche MangaBats."""
     soup = BeautifulSoup(html, "html.parser")

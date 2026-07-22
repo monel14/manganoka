@@ -10,7 +10,7 @@ from fastapi.templating import Jinja2Templates
 from cache import HOME_TTL_SECONDS, cache
 import os
 from scraper.client import FetchError, get_html
-from scraper.parser import HomeManga, parse_home
+from scraper.parser import HomeManga, parse_home, parse_popular
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -22,14 +22,17 @@ async def index(request: Request, list_page: int = Query(default=1, ge=1, alias=
     error: str | None = None
 
     try:
-        mangas = await cache.get_or_set(
+        data = await cache.get_or_set(
             f"home:lastupdates:{list_page}",
             HOME_TTL_SECONDS,
             lambda: _load_home(list_page),
         )
+        mangas = data.get("mangas", [])
+        popular = data.get("popular", [])
     except FetchError as exc:
         logger.warning("Unable to load homepage data page %s: %s", list_page, exc)
         mangas = []
+        popular = []
         error = "Unable to load latest releases at the moment."
 
     has_next_page = bool(mangas)
@@ -40,6 +43,7 @@ async def index(request: Request, list_page: int = Query(default=1, ge=1, alias=
         {
             "request": request,
             "mangas": mangas,
+            "popular": popular,
             "error": error,
             "current_page": list_page,
             "previous_page": list_page - 1 if list_page > 1 else None,
@@ -48,13 +52,16 @@ async def index(request: Request, list_page: int = Query(default=1, ge=1, alias=
     )
 
 
-async def _load_home(page: int) -> list[HomeManga]:
+async def _load_home(page: int) -> dict:
     if page == 1:
         path = "/"
     else:
         path = f"/manga-list/latest-manga?page={page}"
     html = await get_html(path)
-    return parse_home(html)
+    return {
+        "mangas": parse_home(html),
+        "popular": parse_popular(html) if page == 1 else [],
+    }
 
 
 @router.get("/sitemap.xml")
@@ -94,3 +101,15 @@ def sitemap() -> Response:
     xml_content = "\n".join(xml_lines)
     
     return Response(content=xml_content, media_type="application/xml")
+
+
+@router.get("/history", response_class=HTMLResponse)
+def history_page(request: Request) -> HTMLResponse:
+    """Sert la page d'historique de lecture dédiée."""
+    return templates.TemplateResponse(
+        request,
+        "history.html",
+        {
+            "request": request,
+        },
+    )

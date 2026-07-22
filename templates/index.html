@@ -34,6 +34,31 @@
             <span>New chapters and recently added series</span>
         </section>
 
+        {% if popular %}
+        <section class="slide" style="margin-bottom: 20px;">
+            <h3 class="title update-slide" style="font-size: 18px; margin-bottom: 10px; font-weight: bold; color: var(--text-color);">POPULAR MANGA</h3>
+            <div class="popular-carousel-wrap">
+                <div id="owl-demo" class="owl-carousel" style="display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px;">
+                    {% for item in popular %}
+                        <div class="item" style="flex: 0 0 150px; position: relative; border-radius: 6px; overflow: hidden; background: #000;">
+                            <a href="/manga/{{ item.slug }}">
+                                <img src="/img-proxy?url={{ item.cover }}" alt="{{ item.title }}" style="width: 150px; height: 200px; object-fit: cover; opacity: 0.8; transition: opacity 0.3s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.8">
+                            </a>
+                            <div class="slide-caption" style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.9)); padding: 10px; color: #fff;">
+                                <h3 style="font-size: 12px; margin: 0 0 5px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                    <a href="/manga/{{ item.slug }}" title="{{ item.title }}" style="color: #fff; text-decoration: none;">{{ item.title }}</a>
+                                </h3>
+                                {% if item.chapter.title %}
+                                    <a href="/read/{{ item.slug }}/{{ item.chapter.number }}" title="{{ item.chapter.title }}" style="font-size: 11px; color: #ff530d; text-decoration: none;">{{ item.chapter.title }}</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+        {% endif %}
+
         <div class="content-layout">
             <section class="main-column">
                 <div class="section-bar">
@@ -96,6 +121,14 @@
             </section>
 
             <aside class="side-column">
+                <!-- History Panel (Local Storage Guest History) -->
+                <section class="side-panel" id="history-panel" style="display: none; margin-bottom: 20px;">
+                    <h2>Reading History</h2>
+                    <ul class="rank-list" id="history-list" style="list-style: none; padding: 0; margin: 0;">
+                        <!-- Rempli en JS -->
+                    </ul>
+                </section>
+
                 <section class="side-panel">
                     <h2>Trending</h2>
                     <ol class="rank-list">
@@ -175,6 +208,47 @@
         }
     });
 })();
+</script>
+
+<script>
+// Initialisation du carrousel populaire et chargement de l'historique
+$(document).ready(function() {
+    // 1. Peuplement de l'historique de lecture depuis localStorage
+    const historyList = document.getElementById("history-list");
+    const historyPanel = document.getElementById("history-panel");
+    const history = JSON.parse(localStorage.getItem("manga_history") || "[]");
+    
+    if (historyList && historyPanel && history.length > 0) {
+        historyPanel.style.display = "block";
+        historyList.innerHTML = history.map(item => `
+            <li style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
+                <a href="/manga/${item.slug}" style="display: flex; align-items: center; gap: 10px; text-decoration: none; width: 100%;">
+                    <img src="/img-proxy?url=${item.cover}" style="width: 45px; height: 55px; object-fit: cover; border-radius: 4px;" alt="${item.title}" onerror="this.src='/static/style.css';">
+                    <div style="display: flex; flex-direction: column; overflow: hidden; text-align: left;">
+                        <strong style="font-size: 13px; color: var(--text-color); text-overflow: ellipsis; overflow: hidden; white-space: nowrap; width: 100%; display: block;">${item.title}</strong>
+                        <span style="font-size: 11px; color: #ff530d; margin-top: 2px;">Read: Chapter ${item.chapter}</span>
+                        <span style="font-size: 10px; color: #888; margin-top: 2px;">${item.time}</span>
+                    </div>
+                </a>
+            </li>
+        `).join('');
+    }
+
+    // 2. Initialisation d'Owl Carousel si disponible
+    if ($.fn.owlCarousel && $("#owl-demo").length) {
+        $("#owl-demo").owlCarousel({
+            autoPlay: 4000,
+            items : 5,
+            itemsDesktop : [1199,4],
+            itemsDesktopSmall : [979,3],
+            itemsTablet: [768,2],
+            itemsMobile : [479,1],
+            stopOnHover : true,
+            pagination : false,
+            navigation : true
+        });
+    }
+});
 </script>
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1f223e969ec435e',t:'MTc4NDcyMDEwOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
