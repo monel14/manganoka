@@ -80,6 +80,8 @@ async def api_search(q: str = Query(default="", min_length=1)) -> JSONResponse:
                 "slug": m["slug"],
                 "cover": m["cover"],
                 "views": m["views"],
+                "author": m.get("author", ""),
+                "latest_chapter": m.get("latest_chapter", ""),
             }
             for m in mangas[:20]
         ]

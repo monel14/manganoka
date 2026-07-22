@@ -836,3 +836,45 @@ img {
 .search-tips li {
     margin: 4px 0;
 }
+
+/* Footer Styles (MangaBats Dark Theme style) */
+footer {
+    background: var(--paper-deep);
+    border-top: 1px solid var(--line);
+    padding: 30px 0;
+    margin-top: 40px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.footer-content {
+    width: min(1120px, calc(100% - 24px));
+    margin: 0 auto;
+    text-align: center;
+}
+
+.footer-content p {
+    margin: 10px 0;
+}
+
+.footer-content a {
+    color: var(--brand);
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.footer-content a:hover {
+    text-decoration: underline;
+}
+
+.footer-links {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.footer-links a {
+    color: var(--ink);
+}

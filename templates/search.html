@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ manga.title }} - Manga Reader</title>
+    <title>Search: {{ query }} - Manga Reader</title>
     <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}">
 </head>
 <body>
@@ -17,6 +17,7 @@
                     id="search-input"
                     placeholder="Search manga..."
                     autocomplete="off"
+                    value="{{ query }}"
                     required>
                 <button type="submit">🔍</button>
                 <div id="search-dropdown" class="search-dropdown" hidden></div>
@@ -29,65 +30,89 @@
     </header>
 
     <main class="shell">
-        <div class="content-layout single">
-            <section class="main-column bare">
-                <article class="manga-profile">
-                    <div class="profile-cover">
-                        {% if manga.cover %}
-                            <img src="/img-proxy?url={{ manga.cover }}" alt="{{ manga.title }}">
-                        {% else %}
-                            <span>{{ manga.title[:1] }}</span>
-                        {% endif %}
-                    </div>
-                    <div class="profile-body">
-                        <div class="section-bar compact">
-                            <h1>{{ manga.title }}</h1>
-                        </div>
-                        <dl class="info-list">
-                            {% if manga.author %}
-                                <div><dt>Author</dt><dd>{{ manga.author }}</dd></div>
-                            {% endif %}
-                            {% if manga.status %}
-                                <div><dt>Status</dt><dd>{{ manga.status }}</dd></div>
-                            {% endif %}
-                            {% if manga.rating %}
-                                <div><dt>Rating</dt><dd>{{ manga.rating }}</dd></div>
-                            {% endif %}
-                        </dl>
-                        {% if manga.description %}
-                            <p class="description">{{ manga.description }}</p>
-                        {% endif %}
-                    </div>
-                </article>
+        <section class="notice-strip">
+            <strong>Search</strong>
+            <span>Results for "{{ query }}"</span>
+        </section>
 
-                <section class="chapter-panel">
-                    <div class="section-bar compact">
-                        <h2>Chapters</h2>
-                    </div>
-                    <div class="chapters">
-                        {% for chapter in manga.chapters %}
-                            <a href="/read/{{ slug }}/{{ chapter.number }}">
-                                <span>{{ chapter.title }}</span>
-                                {% if chapter.date %}<time>{{ chapter.date }}</time>{% endif %}
-                            </a>
+        <div class="content-layout">
+            <section class="main-column">
+                <div class="section-bar">
+                    <h1>
+                        {% if mangas %}
+                            {{ mangas|length }} result(s)
                         {% else %}
-                            <p class="empty">No chapters found.</p>
-                        {% endfor %}
-                    </div>
-                </section>
+                            No results
+                        {% endif %}
+                    </h1>
+                    {% if mangas %}
+                        <div class="pagination">
+                            {% if previous_page %}
+                                <a href="/search?q={{ query }}&p={{ previous_page }}">Previous</a>
+                            {% endif %}
+                            <span>Page {{ current_page }}</span>
+                            {% if next_page %}
+                                <a href="/search?q={{ query }}&p={{ next_page }}">Next</a>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                {% if error %}
+                    <p class="notice">{{ error }}</p>
+                {% endif %}
+
+                <div class="search-results">
+                    {% for manga in mangas %}
+                        <article class="search-result-item">
+                            <a href="/manga/{{ manga.slug }}" class="result-cover">
+                                {% if manga.cover %}
+                                    <img src="/img-proxy?url={{ manga.cover }}" alt="{{ manga.title }}" loading="lazy">
+                                {% else %}
+                                    <span>{{ manga.title[:1] }}</span>
+                                {% endif %}
+                            </a>
+                            <div class="result-meta">
+                                <h2>
+                                    <a href="/manga/{{ manga.slug }}">{{ manga.title }}</a>
+                                </h2>
+                                {% if manga.latest_chapter %}
+                                    <p class="result-latest">Latest chapter: {{ manga.latest_chapter }}</p>
+                                {% endif %}
+                                {% if manga.views %}
+                                    <p class="result-views">{{ manga.views }}</p>
+                                {% endif %}
+                            </div>
+                        </article>
+                    {% else %}
+                        <p class="empty">No manga found for "{{ query }}".</p>
+                    {% endfor %}
+                </div>
+
+                {% if mangas %}
+                    <nav class="pagination pagination-bottom" aria-label="Pagination">
+                        {% if previous_page %}
+                            <a href="/search?q={{ query }}&p={{ previous_page }}">Previous</a>
+                        {% endif %}
+                        <span>Page {{ current_page }}</span>
+                        {% if next_page %}
+                            <a href="/search?q={{ query }}&p={{ next_page }}">Next</a>
+                        {% endif %}
+                    </nav>
+                {% endif %}
             </section>
 
             <aside class="side-column">
                 <section class="side-panel">
-                    <h2>Quick Read</h2>
-                    <ol class="rank-list">
-                        {% for chapter in manga.chapters[:8] %}
-                            <li>
-                                <a href="/read/{{ slug }}/{{ chapter.number }}">{{ chapter.title }}</a>
-                                {% if chapter.date %}<span>{{ chapter.date }}</span>{% endif %}
-                            </li>
-                        {% endfor %}
-                    </ol>
+                    <h2>Suggested Searches</h2>
+                    <div class="search-tips">
+                        <p>Try searching for:</p>
+                        <ul>
+                            <li>The full title of the manga</li>
+                            <li>The author of the manga</li>
+                            <li>Keywords from the title</li>
+                        </ul>
+                    </div>
                 </section>
             </aside>
         </div>
@@ -101,16 +126,32 @@
 
     function renderDropdown(results) {
         if (!results.length) { dropdown.hidden = true; return; }
-        dropdown.innerHTML = results.map((r, i) => `
-            <a class="sd-item" href="/manga/${r.slug}" data-index="${i}">
-                <img class="sd-thumb" src="/img-proxy?url=${r.cover}" alt="${r.title}" loading="lazy"
-                     onerror="this.style.display='none'">
-                <div class="sd-info">
-                    <span class="sd-title">${r.title}</span>
-                    ${r.views ? `<span class="sd-views">👁 ${Number(r.views.replace(/\s/g,'')).toLocaleString('en-US')}</span>` : ''}
-                </div>
+
+        const query = encodeURIComponent(input.value.trim());
+        
+        let str = "<ul>";
+        str += results.map((r, i) => `
+            <a href="/manga/${r.slug}">
+                <li id="${i}" class="option ${i === activeIndex ? 'selected' : ''}" style="display: flex; gap: 10px; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 8px 12px; text-align: left;">
+                    <img class="search_result_img" src="/img-proxy?url=${r.cover}" style="width: 45px; height: 60px; object-fit: cover; border-radius: 4px;" onerror="this.src='/static/style.css';" />
+                    <div class="search_result_item_right" style="display: flex; flex-direction: column; overflow: hidden; flex-grow: 1;">
+                        <p class="search_result_row1" id="${r.slug}" style="font-size: 13.5px; font-weight: bold; margin: 0 0 4px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-color);">${r.title}</p>
+                        <p class="search_result_row2" style="font-size: 11px; margin: 0 0 2px 0; color: #888; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${r.author || ''}</p>
+                        <p class="search_result_row3" style="font-size: 11px; margin: 0; color: #ff530d; font-weight: bold;">${r.latest_chapter || 'Chapter 1'}</p>
+                    </div>
+                </li>
             </a>
-        `).join('') + `<div class="sd-footer">Top 20 results — <a href="/search?q=${encodeURIComponent(input.value)}">View all</a></div>`;
+        `).join('');
+        str += "</ul>";
+        
+        str += `
+            <div id="search-footer" class="searchf" style="padding: 8px 12px; background: rgba(0,0,0,0.1); text-align: center; font-size: 11.5px; color: #888;">
+                <p style="margin: 0 0 4px 0;">Display first 20 results.</p>
+                <p style="margin: 0;"><a href="/search?q=${query}" style="color: #ff530d; text-decoration: none; font-weight: bold;">Click here to view all results.</a></p>
+            </div>
+        `;
+
+        dropdown.innerHTML = str;
         activeIndex = -1;
         dropdown.hidden = false;
     }
@@ -129,21 +170,75 @@
         debounceTimer = setTimeout(() => fetchResults(q), 300);
     });
 
+    // Keyboard navigation
     input.addEventListener('keydown', function (e) {
-        const items = dropdown.querySelectorAll('.sd-item');
+        const items = dropdown.querySelectorAll('.option');
         if (!items.length) return;
-        if (e.key === 'ArrowDown') { e.preventDefault(); activeIndex = Math.min(activeIndex + 1, items.length - 1); }
-        else if (e.key === 'ArrowUp') { e.preventDefault(); activeIndex = Math.max(activeIndex - 1, -1); }
-        else if (e.key === 'Escape') { dropdown.hidden = true; return; }
-        else { return; }
-        items.forEach((el, i) => el.classList.toggle('active', i === activeIndex));
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            activeIndex = Math.min(activeIndex + 1, items.length - 1);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            activeIndex = Math.max(activeIndex - 1, -1);
+        } else if (e.key === 'Escape') {
+            dropdown.hidden = true; return;
+        } else { return; }
+        
+        items.forEach((el, i) => {
+            if (i === activeIndex) {
+                el.classList.add('selected');
+                el.style.background = 'rgba(255,255,255,0.05)';
+            } else {
+                el.classList.remove('selected');
+                el.style.background = 'transparent';
+            }
+        });
         if (activeIndex >= 0) items[activeIndex].focus();
     });
 
+    // Close on outside click
     document.addEventListener('click', function (e) {
-        if (!document.getElementById('search-form').contains(e.target)) dropdown.hidden = true;
+        if (!document.getElementById('search-form').contains(e.target)) {
+            dropdown.hidden = true;
+        }
     });
 })();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1ee50ffab7d23ce',t:'MTc4NDY4MDAxMg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1f22498cf03435e',t:'MTc4NDcyMDEzNw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+
+    <!-- Footer (MangaBats Style) -->
+    <footer>
+        <div class=footer-content>
+            <div class=footer-links>
+                <a href="#" rel="nofollow" style="color: var(--brand); font-weight: bold;">Privacy Policy</a>
+                <span style="color: var(--line);">--</span>
+                <a href="#" rel="nofollow" style="color: var(--brand); font-weight: bold;">Terms Conditions</a>
+            </div>
+            <p>Why You Should <a href="/" style="color: var(--brand); font-weight: bold;">Read Manga</a> Online at Manga Reader ?</p>
+            <p style="max-width: 800px; margin: 0 auto; font-size: 12px; color: var(--faint);">
+                There are many reasons you should read Manga online, and if you are a fan of this unique storytelling style then learning about them is a must. One of the biggest reasons why you should read Manga online is the money it can save you. While there's nothing like actually holding a book in your hands, there's also no denying that the cost of those books can add up quickly. So why not join the digital age and read Manga online? Another big reason to read Manga online is the huge amount of material that is available. When you go to a comic store or other book store their shelves are limited by the space that they have. When you go to an online site to read Manga those limitations don't exist. So if you want the best selection and you also want to save money then reading Manga online should be an obvious choice for you.
+            </p>
+            <p style="margin-top: 15px; font-weight: bold; font-size: 12.5px; color: var(--ink);">© 2026 Manga Reader, all rights reserved. Top speed, completely free.</p>
+            <p style="font-size: 11.5px; color: var(--faint);">Current Time is <span id="current-time"></span></p>
+            <script>
+                function updateTime() {
+                    const now = new Date();
+                    const formattedTime = now.toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: 'numeric',
+                        minute: 'numeric',
+                        second: 'numeric',
+                        hour12: true,
+                    });
+                    const el = document.getElementById('current-time');
+                    if (el) el.textContent = formattedTime;
+                }
+                setInterval(updateTime, 1000);
+                updateTime();
+            </script>
+        </div>
+    </footer>
+
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1f47418f8e74fb3',t:'MTc4NDc0NDM2NA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

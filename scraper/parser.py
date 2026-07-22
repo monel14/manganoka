@@ -221,11 +221,17 @@ def parse_manga(html: str, slug: str = "", chapters_data: dict | None = None, ba
     cover_tag = soup.select_one(".info-image img, .manga-info-pic img")
     cover = _absolute(cover_tag.get("src") or cover_tag.get("data-src"), base_url) if cover_tag else ""
     
-    # Description
-    desc_tag = soup.select_one(".panel-story-info-description, .story-info-right-description, #panel-story-info-description")
+    # Description (MangaBats uses #contentBox for summaries)
+    desc_tag = soup.select_one(".panel-story-info-description, .story-info-right-description, #panel-story-info-description, #contentBox")
     description = ""
     if desc_tag:
-        description = desc_tag.text.strip()
+        h2 = desc_tag.select_one("h2")
+        if h2:
+            h2_text = h2.text.strip()
+            description = desc_tag.get_text(" ", strip=True).replace(h2_text, "").strip()
+        else:
+            description = desc_tag.get_text(" ", strip=True)
+            
         if description.lower().startswith("description :"):
             description = description[13:].strip()
             
@@ -317,12 +323,17 @@ def parse_search(html: str, base_url: str = BASE_URL) -> list[SearchManga]:
         img = element.select_one("img")
         cover = _absolute(img.get("src") or img.get("data-src"), base_url) if img else ""
         
-        # Récupération des vues dans le texte brut de l'élément (ex: "View : 62,254,648")
+        # Récupération des vues et de l'auteur dans le texte brut ou les spans
         views = ""
-        meta_text = element.text
-        view_match = re.search(r'View\s*:\s*([\d,]+)', meta_text, re.IGNORECASE)
-        if view_match:
-            views = view_match.group(1).replace(",", "").strip()
+        author = ""
+        for span in element.select("span"):
+            span_text = span.text
+            if "view" in span_text.lower():
+                view_match = re.search(r'[\d,]+', span_text)
+                if view_match:
+                    views = view_match.group(0).replace(",", "").strip()
+            elif "author" in span_text.lower():
+                author = span_text.split(":", 1)[1].strip() if ":" in span_text else span_text.strip()
             
         latest_chapter = ""
         ch_a = element.select_one("em.story_chapter a")
@@ -336,6 +347,7 @@ def parse_search(html: str, base_url: str = BASE_URL) -> list[SearchManga]:
             "cover": cover,
             "latest_chapter": latest_chapter,
             "views": views,
+            "author": author,  # Ajout de l'auteur
         })
 
     return mangas
@@ -393,4 +405,3 @@ def _text(tag: Tag | None) -> str:
 
 def _absolute(url: str, base_url: str) -> str:
     return urljoin(base_url, url) if url else ""
-
