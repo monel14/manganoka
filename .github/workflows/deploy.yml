@@ -10,7 +10,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
 
       - name: Deploy
         uses: appleboy/ssh-action@v1.2.0
@@ -21,7 +20,12 @@ jobs:
           port: ${{ secrets.PH_PORT }}
           script: |
             cd /home/wtzjscfs/manganoka
-            git pull origin main
+
+            git fetch origin
+            git reset --hard origin/main
+
             source .venv/bin/activate
+
             pip install -r requirements.txt
+
             touch tmp/restart.txt
