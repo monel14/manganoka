@@ -64,9 +64,32 @@ def get_image_cache_service() -> ImageCacheService:
 # ==============================
 
 @router.get("/img/{filename}")
-def serve_cached_image(filename: str):
-    """Redirection vers l'image en cache CDN."""
-    return RedirectResponse(f"{BASE_URL}/img/cache_manga/{filename}")
+async def serve_cached_image(filename: str):
+    """Sert l'image en cache CDN de manière robuste et directe (sans redirection)."""
+    service = get_image_cache_service()
+    
+    # 1. Tentative de récupération depuis le cache local
+    image_data = service.get_from_local_cache(filename)
+    if image_data:
+        ext = filename.split(".")[-1] if "." in filename else "jpg"
+        return Response(
+            content=image_data,
+            media_type=f"image/{ext}",
+            headers={"Cache-Control": "public, max-age=31536000"},
+        )
+        
+    # 2. Tentative depuis le stockage S3 (via nos clés API privées)
+    object_key = service.get_s3_object_key(filename)
+    image_data = service.get_from_s3(object_key)
+    if image_data:
+        ext = filename.split(".")[-1] if "." in filename else "jpg"
+        return Response(
+            content=image_data,
+            media_type=f"image/{ext}",
+            headers={"Cache-Control": "public, max-age=31536000"},
+        )
+        
+    raise HTTPException(status_code=404, detail="Image not found")
 
 
 # ==============================
@@ -153,9 +176,19 @@ async def chapter_image_semantic(request: Request, slug: str, chapter_num: str, 
         raise HTTPException(status_code=404, detail="Page does not exist")
 
     target_url = images[page_num - 1]
-    filename, _ = get_cache_filename(target_url)
-
-    return RedirectResponse(f"{BASE_URL}/img/cache_manga/{filename}")
+    
+    # Récupération et service de l'image directement (sans redirection) via le cache service
+    service = get_image_cache_service()
+    try:
+        image_data, content_type, source = await service.get_or_cache_image(target_url)
+        return Response(
+            content=image_data,
+            media_type=content_type,
+            headers={"Cache-Control": "public, max-age=31536000"},
+        )
+    except Exception as exc:
+        logger.warning("Impossible de servir l'image du chapitre %s/%s page %s: %s", slug, chapter_num, page_num, exc)
+        raise HTTPException(status_code=502, detail="Source image unavailable") from exc
 
 
 # ==============================
@@ -187,6 +220,15 @@ async def chapter_image(request: Request, slug: str, chapter: str, page_num: int
         raise HTTPException(status_code=404, detail="Page does not exist")
 
     target_url = images[page_num - 1]
-    filename, _ = get_cache_filename(target_url)
- 
-    return RedirectResponse(f"{BASE_URL}/img/cache_manga/{filename}")
+    
+    service = get_image_cache_service()
+    try:
+        image_data, content_type, source = await service.get_or_cache_image(target_url)
+        return Response(
+            content=image_data,
+            media_type=content_type,
+            headers={"Cache-Control": "public, max-age=31536000"},
+        )
+    except Exception as exc:
+        logger.warning("Impossible de servir l'image alternative du chapitre %s/%s page %s: %s", slug, chapter, page_num, exc)
+        raise HTTPException(status_code=502, detail="Source image unavailable") from exc
