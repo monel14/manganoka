@@ -10,7 +10,7 @@ from fastapi.templating import Jinja2Templates
 from cache import HOME_TTL_SECONDS, cache
 import os
 from scraper.client import FetchError, get_html
-from scraper.parser import HomeManga, parse_home, parse_popular, parse_popular_sidebar
+from scraper.parser import HomeManga, parse_home, parse_popular, parse_popular_sidebar, parse_manga_list
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -115,5 +115,95 @@ def history_page(request: Request) -> HTMLResponse:
         "history.html",
         {
             "request": request,
+        },
+    )
+
+
+async def _load_generic_list(path: str) -> dict:
+    """Helper asynchrone pour charger et parser une liste générique (manga-list ou genre)."""
+    html = await get_html(path)
+    return {
+        "mangas": parse_manga_list(html),
+        "popular_sidebar": parse_popular_sidebar(html),
+    }
+
+
+@router.get("/manga-list/{list_type}", response_class=HTMLResponse)
+async def list_mangas_page(
+    request: Request,
+    list_type: str,
+    page: int = Query(default=1, ge=1)
+) -> HTMLResponse:
+    """Sert les listes de mangas globales (hot-manga, new-manga, completed-manga, etc.)."""
+    try:
+        data = await cache.get_or_set(
+            f"list:{list_type}:{page}",
+            HOME_TTL_SECONDS,
+            lambda: _load_generic_list(f"/manga-list/{list_type}?page={page}"),
+        )
+        mangas = data.get("mangas", [])
+        popular_sidebar = data.get("popular_sidebar", [])
+    except FetchError as exc:
+        logger.warning("Unable to load list %s page %s: %s", list_type, page, exc)
+        mangas = []
+        popular_sidebar = []
+
+    has_next_page = len(mangas) >= 20
+
+    # Formatage propre du titre (ex: completed-manga -> Completed Manga)
+    title_parts = [word.capitalize() for word in list_type.split("-")]
+    page_title = " ".join(title_parts)
+
+    return templates.TemplateResponse(
+        request,
+        "index.html",
+        {
+            "request": request,
+            "mangas": mangas,
+            "popular": [],  # Pas de carrousel populaire sur les pages de liste
+            "popular_sidebar": popular_sidebar,
+            "current_page": page,
+            "previous_page": page - 1 if page > 1 else None,
+            "next_page": page + 1 if has_next_page else None,
+            "page_title": page_title,
+        },
+    )
+
+
+@router.get("/genre/{genre_slug}", response_class=HTMLResponse)
+async def genre_mangas_page(
+    request: Request,
+    genre_slug: str,
+    page: int = Query(default=1, ge=1)
+) -> HTMLResponse:
+    """Sert la liste des mangas filtrée par genre (ex: action, comedy, romance)."""
+    try:
+        data = await cache.get_or_set(
+            f"genre:{genre_slug}:{page}",
+            HOME_TTL_SECONDS,
+            lambda: _load_generic_list(f"/genre/{genre_slug}?page={page}"),
+        )
+        mangas = data.get("mangas", [])
+        popular_sidebar = data.get("popular_sidebar", [])
+    except FetchError as exc:
+        logger.warning("Unable to load genre %s page %s: %s", genre_slug, page, exc)
+        mangas = []
+        popular_sidebar = []
+
+    has_next_page = len(mangas) >= 20
+    page_title = f"{genre_slug.capitalize()} Manga"
+
+    return templates.TemplateResponse(
+        request,
+        "index.html",
+        {
+            "request": request,
+            "mangas": mangas,
+            "popular": [],
+            "popular_sidebar": popular_sidebar,
+            "current_page": page,
+            "previous_page": page - 1 if page > 1 else None,
+            "next_page": page + 1 if has_next_page else None,
+            "page_title": page_title,
         },
     )

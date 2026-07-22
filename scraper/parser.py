@@ -161,6 +161,55 @@ def parse_popular_sidebar(html: str, base_url: str = BASE_URL) -> list[dict]:
     return popular_sidebar
 
 
+def parse_manga_list(html: str, base_url: str = BASE_URL) -> list[HomeManga]:
+    """Parse une liste de mangas au format grille cPanel (utilisé par /manga-list/ et /genre/)."""
+    soup = BeautifulSoup(html, "html.parser")
+    mangas: list[HomeManga] = []
+
+    for element in soup.select(".list-comic-item-wrap"):
+        # Ignorer les bannières publicitaires
+        if "_098cc7f8" in element.get("class", []):
+            continue
+            
+        cover_a = element.select_one("a.cover")
+        if not cover_a:
+            continue
+            
+        title_a = element.select_one("h3 a")
+        title = title_a.text.strip() if title_a else ""
+        url = _absolute(cover_a.get("href") or title_a.get("href"), base_url)
+        slug = _slug_from_url(url)
+        
+        img = cover_a.select_one("img")
+        cover = _absolute(img.get("src") or img.get("data-src"), base_url) if img else ""
+        
+        # Récupérer le dernier chapitre
+        chapters: list[ChapterLink] = []
+        ch_a = element.select_one("a.list-story-item-wrap-chapter")
+        if ch_a:
+            ch_href = ch_a.get("href")
+            ch_url = _absolute(ch_href, base_url)
+            ch_title = ch_a.text.strip()
+            ch_num = _chapter_number(ch_href)
+            chapters.append({
+                "number": ch_num,
+                "title": ch_title,
+                "url": ch_url,
+                "date": "New"
+            })
+            
+        mangas.append({
+            "title": title,
+            "slug": slug,
+            "url": url,
+            "cover": cover,
+            "chapters": chapters,
+            "dates": ["New"] if chapters else []
+        })
+
+    return mangas
+
+
 def parse_manga(html: str, slug: str = "", chapters_data: dict | None = None, base_url: str = BASE_URL) -> MangaDetail:
     """Parse les détails d'un manga sur sa fiche MangaBats."""
     soup = BeautifulSoup(html, "html.parser")
@@ -344,3 +393,4 @@ def _text(tag: Tag | None) -> str:
 
 def _absolute(url: str, base_url: str) -> str:
     return urljoin(base_url, url) if url else ""
+
