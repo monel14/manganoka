@@ -188,5 +188,5 @@ async def chapter_image(request: Request, slug: str, chapter: str, page_num: int
 
     target_url = images[page_num - 1]
     filename, _ = get_cache_filename(target_url)
-
+ 
     return RedirectResponse(f"{BASE_URL}/img/cache_manga/{filename}")
