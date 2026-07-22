@@ -128,6 +128,6 @@ async def search(
 
 
 async def _load_search(query: str, page: int) -> list[SearchManga]:
-    path = f"/search.php?manga={query}" if page == 1 else f"/search.php?manga={query}&page={page}"
+    path = f"/search/story/{query}?page={page}"
     html = await get_html(path)
     return parse_search(html)

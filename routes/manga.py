@@ -8,7 +8,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from cache import MANGA_TTL_SECONDS, cache
-from scraper.client import FetchError, get_html
+from scraper.client import FetchError, get_html, get_http_client
 from scraper.parser import MangaDetail, parse_manga
 
 logger = logging.getLogger(__name__)
@@ -47,4 +47,16 @@ async def manga_detail(request: Request, slug: str) -> HTMLResponse:
 
 async def _load_manga(slug: str) -> MangaDetail:
     html = await get_html(f"/manga/{slug}")
-    return parse_manga(html, slug=slug)
+    
+    # Récupérer la liste des chapitres depuis l'API officielle de MangaBats
+    chapters_json_url = f"https://www.mangabats.com/api/manga/{slug}/chapters"
+    client = get_http_client()
+    try:
+        r = await client.get(chapters_json_url)
+        r.raise_for_status()
+        chapters_data = r.json()
+    except Exception as exc:
+        logger.warning("Failed to fetch chapters JSON for %s: %s", slug, exc)
+        chapters_data = {}
+        
+    return parse_manga(html, slug=slug, chapters_data=chapters_data)

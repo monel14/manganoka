@@ -5,7 +5,7 @@ from urllib.parse import urljoin
 
 import httpx
 
-BASE_URL = "https://demonicscans.org"
+BASE_URL = "https://www.mangabats.com"
 TIMEOUT_SECONDS = 15
 
 logger = logging.getLogger(__name__)
@@ -31,7 +31,8 @@ def get_http_client() -> httpx.AsyncClient:
                     "Chrome/126.0 Safari/537.36"
                 ),
                 "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-                "Accept-Language": "fr-FR,fr;q=0.9,en;q=0.8",
+                "Accept-Language": "en-US,en;q=0.9",
+                "Referer": "https://www.mangabats.com/",
             },
             timeout=TIMEOUT_SECONDS,
             follow_redirects=True,

@@ -53,46 +53,123 @@ class SearchManga(TypedDict):
 
 
 def parse_home(html: str, base_url: str = BASE_URL) -> list[HomeManga]:
+    """Parse la page d'accueil de MangaBats (itemupdate)."""
     soup = BeautifulSoup(html, "html.parser")
     mangas: list[HomeManga] = []
 
-    for element in soup.select("div.updates-element"):
-        manga_link = _first_tag(element, "h2 a[href], .thumb a[href], a[href*='/manga/']")
-        title = _text(_first_tag(element, "h2 a")) or _text(manga_link)
-        url = _absolute(_attr(manga_link, "href"), base_url)
+    for element in soup.select("div.itemupdate"):
+        # Ignorer les bannières publicitaires cachées ou modèles AI
+        if "js-banner-ai-home" in element.get("class", []):
+            continue
+            
+        cover_a = element.select_one("a.cover")
+        if not cover_a:
+            continue
+            
+        title_a = element.select_one("h3 a")
+        title = title_a.text.strip() if title_a else ""
+        url = _absolute(cover_a.get("href") or title_a.get("href"), base_url)
         slug = _slug_from_url(url)
-        cover = _absolute(_attr(_first_tag(element, ".thumb img, img"), "src"), base_url)
-        chapters = _chapter_links(element, base_url)
-        dates = [item["date"] for item in chapters if item["date"]]
-
+        
+        img = cover_a.select_one("img")
+        cover = _absolute(img.get("src") or img.get("data-src"), base_url) if img else ""
+        
+        # Récupérer les chapitres listés sous le manga (généralement 3 max)
+        chapters: list[ChapterLink] = []
+        for li in element.select("ul li")[1:]:  # Le premier li est le h3 du titre
+            ch_a = li.select_one("a")
+            if ch_a:
+                ch_href = ch_a.get("href")
+                ch_url = _absolute(ch_href, base_url)
+                ch_num = _chapter_number(ch_href)
+                ch_title = ch_a.text.strip()
+                
+                date_i = li.select_one("i")
+                ch_date = date_i.text.strip() if date_i else ""
+                
+                chapters.append({
+                    "number": ch_num,
+                    "title": ch_title,
+                    "url": ch_url,
+                    "date": ch_date
+                })
+        
         if title or url:
-            mangas.append(
-                {
-                    "title": title,
-                    "slug": slug,
-                    "url": url,
-                    "cover": cover,
-                    "chapters": chapters,
-                    "dates": dates,
-                }
-            )
+            mangas.append({
+                "title": title,
+                "slug": slug,
+                "url": url,
+                "cover": cover,
+                "chapters": chapters,
+                "dates": [item["date"] for item in chapters if item["date"]],
+            })
 
     return mangas
 
 
-def parse_manga(html: str, slug: str = "", base_url: str = BASE_URL) -> MangaDetail:
+def parse_manga(html: str, slug: str = "", chapters_data: dict | None = None, base_url: str = BASE_URL) -> MangaDetail:
+    """Parse les détails d'un manga sur sa fiche MangaBats."""
     soup = BeautifulSoup(html, "html.parser")
-    stats = _first_tag(soup, "#manga-info-stats")
-
+    
+    title_tag = soup.select_one("h1")
+    title = title_tag.text.strip() if title_tag else ""
+    
+    # Couverture
+    cover_tag = soup.select_one(".info-image img, .manga-info-pic img")
+    cover = _absolute(cover_tag.get("src") or cover_tag.get("data-src"), base_url) if cover_tag else ""
+    
+    # Description
+    desc_tag = soup.select_one(".panel-story-info-description, .story-info-right-description, #panel-story-info-description")
+    description = ""
+    if desc_tag:
+        description = desc_tag.text.strip()
+        if description.lower().startswith("description :"):
+            description = description[13:].strip()
+            
+    # Extraction propre des métadonnées (Auteur, Statut, Rating)
+    meta_container = soup.select_one(".story-info-right, .panel-story-info, .manga-info-top")
+    meta_text = meta_container.text if meta_container else ""
+    
+    # Remplacement des labels complexes pour que _value_from_text les parse proprement
+    meta_text_clean = meta_text.replace("Author(s)", "Author").replace("Auteur(s)", "Author")
+    
+    author = _value_from_text(meta_text_clean, ("author", "auteur"))
+    status = _value_from_text(meta_text_clean, ("status", "statut"))
+    rating = _value_from_text(meta_text_clean, ("rate", "rating", "note"))
+    
+    # Récupération de la liste des chapitres depuis les données de l'API (passées en argument)
+    chapters: list[ChapterLink] = []
+    if chapters_data and chapters_data.get("success") and "data" in chapters_data:
+        raw_chapters = chapters_data["data"].get("chapters", [])
+        for ch in raw_chapters:
+            ch_slug = ch.get("chapter_slug", "")
+            ch_num = str(ch.get("chapter_num", ""))
+            ch_name = ch.get("chapter_name", f"Chapter {ch_num}")
+            ch_url = f"{base_url}/manga/{slug}/{ch_slug}"
+            
+            # Formatage de la date (ex: "2026-07-22T10:51:08.000000Z" -> "2026-07-22")
+            raw_date = ch.get("updated_at", "")
+            if raw_date and "T" in raw_date:
+                ch_date = raw_date.split("T")[0]
+            else:
+                ch_date = raw_date
+                
+            chapters.append({
+                "number": ch_num,
+                "title": ch_name,
+                "url": ch_url,
+                "date": ch_date
+            })
+            
     return {
-        "title": _text(_first_tag(soup, "h1.big-fat-titles, h1")),
+        "title": title,
         "slug": slug,
-        "cover": _cover_url(soup, base_url),
-        "description": _description(soup),
-        "author": _stat_value(stats, ("author", "auteur", "artist", "artiste")),
-        "status": _stat_value(stats, ("status", "statut")),
-        "rating": _rating(soup, stats),
-        "chapters": _chapter_links(_first_tag(soup, "#chapters-list") or soup, base_url),
+        "cover": cover,
+        "description": description,
+        "author": author or "Unknown",
+        "status": status or "Ongoing",
+        "rating": rating or "N/A",
+        "chapters": chapters,
     }
 
 
@@ -102,12 +179,15 @@ def parse_chapter(
     chapter: str = "",
     base_url: str = BASE_URL,
 ) -> ChapterPage:
+    """Parse les images de la liseuse de chapitre sur MangaBats."""
     soup = BeautifulSoup(html, "html.parser")
-    images = [
-        _absolute(_attr(img, "src") or _attr(img, "data-src"), base_url)
-        for img in soup.select("img.imgholder")
-    ]
-    images = [image for image in images if image]
+    images: list[str] = []
+    
+    # MangaBats liste toutes ses images dans un conteneur dédié '.container-chapter-reader'
+    for img in soup.select(".container-chapter-reader img"):
+        src = img.get("src") or img.get("data-src")
+        if src:
+            images.append(_absolute(src, base_url))
 
     return {
         "title": title or _text(_first_tag(soup, "title")),
@@ -116,135 +196,46 @@ def parse_chapter(
     }
 
 
-def _chapter_links(container: Tag, base_url: str) -> list[ChapterLink]:
-    chapters: list[ChapterLink] = []
-    seen_urls: set[str] = set()
+def parse_search(html: str, base_url: str = BASE_URL) -> list[SearchManga]:
+    """Parse la page de résultats de recherche de MangaBats."""
+    soup = BeautifulSoup(html, "html.parser")
+    mangas: list[SearchManga] = []
 
-    # Priority 1 : .chap-date rows (page d'accueil demonicscans)
-    for row in container.select(".chap-date"):
-        chapter = _chapter_from_row(row, base_url)
-        if chapter and chapter["url"] not in seen_urls:
-            seen_urls.add(chapter["url"])
-            chapters.append(chapter)
+    # Chaque résultat est contenu dans un bloc '.story_item'
+    for element in soup.select(".panel_story_list .story_item"):
+        title_a = element.select_one("h3.story_name a")
+        if not title_a:
+            continue
+            
+        title = title_a.text.strip()
+        url = _absolute(title_a.get("href"), base_url)
+        slug = _slug_from_url(url)
+        
+        img = element.select_one("img")
+        cover = _absolute(img.get("src") or img.get("data-src"), base_url) if img else ""
+        
+        # Récupération des vues dans le texte brut de l'élément (ex: "View : 62,254,648")
+        views = ""
+        meta_text = element.text
+        view_match = re.search(r'View\s*:\s*([\d,]+)', meta_text, re.IGNORECASE)
+        if view_match:
+            views = view_match.group(1).replace(",", "").strip()
+            
+        latest_chapter = ""
+        ch_a = element.select_one("em.story_chapter a")
+        if ch_a:
+            latest_chapter = ch_a.text.strip()
+            
+        mangas.append({
+            "title": title,
+            "slug": slug,
+            "url": url,
+            "cover": cover,
+            "latest_chapter": latest_chapter,
+            "views": views,
+        })
 
-    # Priority 2 : a.chplinks inside #chapters-list (page manga demonicscans)
-    # Only if no .chap-date rows were found (page manga n'a pas de .chap-date)
-    if not chapters:
-        for link in container.select("a.chplinks[href*='chaptered.php']"):
-            href = _attr(link, "href")
-            url = _absolute(href, base_url)
-            if url in seen_urls:
-                continue
-            number = _chapter_number(href)
-            span = link.find("span")
-            date = _text(span) if isinstance(span, Tag) else ""
-            raw_title = link.get_text(" ", strip=True)
-            if date and raw_title.endswith(date):
-                raw_title = raw_title[: -len(date)].strip()
-            title = raw_title or f"Chapter {number}"
-            chapters.append({"number": number, "title": title, "url": url, "date": date})
-            seen_urls.add(url)
-
-    return _dedupe_chapters(chapters)
-
-
-def _chapter_from_row(row: Tag, base_url: str) -> ChapterLink | None:
-    # demonicscans structure:
-    # <div class="chap-date flex flex-row justify-space-between">
-    #   <div><a class="chplinks" href="...">Chapter X</a></div>
-    #   <div><a class="chplinks" href="...">2026-07-15</a></div>
-    # </div>
-    divs = row.find_all("div", recursive=False)
-    if len(divs) >= 2:
-        chapter_link = divs[0].find("a")
-        date_link = divs[1].find("a")
-        if not chapter_link:
-            return None
-        href = _attr(chapter_link, "href")
-        number = _chapter_number(href) or _chapter_number(_text(chapter_link))
-        date = _text(date_link) if date_link else ""
-        return {
-            "number": number,
-            "title": _text(chapter_link) or f"Chapter {number}",
-            "url": _absolute(href, base_url),
-            "date": date,
-        }
-
-    # fallback: old format with a single link + date text
-    links = [l for l in row.select("a[href*='chaptered.php']") if isinstance(l, Tag)]
-    if not links:
-        return None
-    chapter_link = next((l for l in links if not _looks_like_date(_text(l))), links[0])
-    href = _attr(chapter_link, "href")
-    number = _chapter_number(href) or _chapter_number(_text(chapter_link))
-    date = next((_text(l) for l in links if _looks_like_date(_text(l))), "")
-    return {
-        "number": number,
-        "title": _text(chapter_link) or f"Chapter {number}",
-        "url": _absolute(href, base_url),
-        "date": date,
-    }
-
-
-def _dedupe_chapters(chapters: list[ChapterLink]) -> list[ChapterLink]:
-    seen: set[tuple[str, str]] = set()
-    unique: list[ChapterLink] = []
-
-    for chapter in chapters:
-        key = (chapter["number"], chapter["url"])
-        if key not in seen:
-            seen.add(key)
-            unique.append(chapter)
-
-    return unique
-
-
-def _cover_url(soup: BeautifulSoup, base_url: str) -> str:
-    selectors = [
-        "meta[property='og:image']",
-        ".thumb img",
-        "#manga-info img",
-        ".manga-info img",
-        "img[src*='cover']",
-    ]
-
-    for selector in selectors:
-        tag = _first_tag(soup, selector)
-        value = _attr(tag, "content") or _attr(tag, "src")
-        if value:
-            return _absolute(value, base_url)
-
-    return ""
-
-
-def _description(soup: BeautifulSoup) -> str:
-    candidates = soup.select("div.white-font")
-    for candidate in candidates:
-        text = _text(candidate)
-        if len(text) > 30:
-            return text
-    return _text(candidates[0]) if candidates else ""
-
-
-def _rating(soup: BeautifulSoup, stats: Tag | None) -> str:
-    rating = _stat_value(stats, ("rating", "note"))
-    if rating:
-        return rating
-
-    tag = _first_tag(soup, "[class*='rating'], [id*='rating']")
-    return _text(tag)
-
-
-def _stat_value(stats: Tag | None, labels: tuple[str, ...]) -> str:
-    if stats is None:
-        return ""
-
-    for row in stats.find_all(["div", "p", "li", "span"], recursive=True):
-        value = _value_from_text(_text(row), labels)
-        if value:
-            return value
-
-    return _value_from_text(_text(stats), labels)
+    return mangas
 
 
 def _value_from_text(text: str, labels: tuple[str, ...]) -> str:
@@ -260,43 +251,11 @@ def _value_from_text(text: str, labels: tuple[str, ...]) -> str:
     return ""
 
 
-def _near_date(link: Tag) -> str:
-    for selector in ("time", ".date", ".chapter-date", ".chapterdate"):
-        date_tag = _first_tag(link.parent if isinstance(link.parent, Tag) else link, selector)
-        date = _attr(date_tag, "datetime") or _text(date_tag)
-        if date:
-            return date
-
-    parent = link.parent
-    grandparent = parent.parent if isinstance(parent, Tag) else None
-    if isinstance(grandparent, Tag):
-        for candidate in grandparent.select("a, time, span, i"):
-            text = _text(candidate)
-            if candidate is not link and _looks_like_date(text):
-                return text
-
-    return ""
-
-
-def _looks_like_date(text: str) -> bool:
-    if not text:
-        return False
-    return bool(
-        re.search(r"\b\d{4}-\d{2}-\d{2}\b", text)
-        or re.search(r"\b\d{2}-\d{2}\s+\d{2}:\d{2}\b", text)
-        or re.search(r"\b\d+\s+(?:minute|hour|day|week|month|year)s?\s+ago\b", text, re.I)
-    )
-
-
 def _chapter_number(value: str) -> str:
     if not value:
         return ""
 
-    query = parse_qs(urlparse(value).query)
-    if "chapter" in query and query["chapter"]:
-        return query["chapter"][0]
-
-    match = re.search(r"(?:chapter|chapitre|ch\.?)\s*([0-9]+(?:\.[0-9]+)?)", value, re.I)
+    match = re.search(r'chapter-([0-9]+(?:\.[0-9]+)?)', value, re.IGNORECASE)
     if match:
         return match.group(1)
 
@@ -331,50 +290,3 @@ def _text(tag: Tag | None) -> str:
 
 def _absolute(url: str, base_url: str) -> str:
     return urljoin(base_url, url) if url else ""
-
-
-def parse_search(html: str, base_url: str = BASE_URL) -> list[SearchManga]:
-    """Parse search results - handles both full page and dropdown fragment."""
-    soup = BeautifulSoup(html, "html.parser")
-    mangas: list[SearchManga] = []
-
-    # demonicscans returns a dropdown fragment: #result-box-bg > a > li
-    for link in soup.select("a[href]"):
-        href = _attr(link, "href")
-        if not href or "/manga/" not in href:
-            continue
-
-        title_div = link.select_one("li div div:first-child")
-        title = _text(title_div) if title_div else _text(link)
-        if not title:
-            continue
-
-        # href may be relative (/manga/Slug) or absolute
-        url = href if href.startswith("http") else _absolute(href, base_url)
-        slug = _slug_from_url(url)
-
-        cover_tag = link.select_one("img.search-thumb, img")
-        # covers may be hosted on a different domain — use as-is if already absolute
-        raw_cover = _attr(cover_tag, "src")
-        cover = raw_cover if raw_cover.startswith("http") else _absolute(raw_cover, base_url)
-
-        # views are in the second div inside the flex column
-        divs = link.select("li .seach-right div, li .flex.flex-col div")
-        views = ""
-        if len(divs) >= 2:
-            raw = _text(divs[-1])
-            # strip SVG text residue, keep only digits and spaces
-            views = re.sub(r"[^\d\s]", "", raw).strip()
-
-        mangas.append(
-            {
-                "title": title,
-                "slug": slug,
-                "url": url,
-                "cover": cover,
-                "latest_chapter": "",
-                "views": views,
-            }
-        )
-
-    return mangas

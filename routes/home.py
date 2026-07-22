@@ -49,7 +49,10 @@ async def index(request: Request, list_page: int = Query(default=1, ge=1, alias=
 
 
 async def _load_home(page: int) -> list[HomeManga]:
-    path = "/lastupdates.php" if page == 1 else f"/lastupdates.php?list={page}"
+    if page == 1:
+        path = "/"
+    else:
+        path = f"/manga-list/latest-manga?page={page}"
     html = await get_html(path)
     return parse_home(html)
 

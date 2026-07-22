@@ -58,7 +58,7 @@
                         <article class="release-item">
                             <a href="/manga/{{ manga.slug }}" class="release-cover">
                                 {% if manga.cover %}
-                                    <img src="{{ manga.cover }}" alt="{{ manga.title }}" loading="lazy">
+                                    <img src="/img-proxy?url={{ manga.cover }}" alt="{{ manga.title }}" loading="lazy">
                                 {% else %}
                                     <span>{{ manga.title[:1] }}</span>
                                 {% endif %}
@@ -124,7 +124,7 @@
 
         dropdown.innerHTML = results.map((r, i) => `
             <a class="sd-item" href="/manga/${r.slug}" data-index="${i}">
-                <img class="sd-thumb" src="${r.cover}" alt="${r.title}" loading="lazy"
+                <img class="sd-thumb" src="/img-proxy?url=${r.cover}" alt="${r.title}" loading="lazy"
                      onerror="this.style.display='none'">
                 <div class="sd-info">
                     <span class="sd-title">${r.title}</span>
@@ -176,5 +176,5 @@
     });
 })();
 </script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1f223e969ec435e',t:'MTc4NDcyMDEwOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

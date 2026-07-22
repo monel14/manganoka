@@ -96,7 +96,20 @@ async def _load_chapter_from_manga(manga: MangaDetail, chapter: str) -> ChapterP
 
 async def _load_manga(slug: str) -> MangaDetail:
     html = await get_html(f"/manga/{slug}")
-    return parse_manga(html, slug=slug)
+    
+    # Récupérer la liste des chapitres depuis l'API officielle de MangaBats
+    chapters_json_url = f"https://www.mangabats.com/api/manga/{slug}/chapters"
+    from scraper.client import get_http_client
+    client = get_http_client()
+    try:
+        r = await client.get(chapters_json_url)
+        r.raise_for_status()
+        chapters_data = r.json()
+    except Exception as exc:
+        logger.warning("Failed to fetch chapters JSON for %s: %s", slug, exc)
+        chapters_data = {}
+        
+    return parse_manga(html, slug=slug, chapters_data=chapters_data)
 
 
 def _find_chapter_url(manga: MangaDetail, chapter: str) -> str:

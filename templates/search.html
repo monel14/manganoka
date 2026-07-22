@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Search: {{ query }} - Manga Reader</title>
+    <title>{{ manga.title }} - Manga Reader</title>
     <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}">
 </head>
 <body>
@@ -17,7 +17,6 @@
                     id="search-input"
                     placeholder="Search manga..."
                     autocomplete="off"
-                    value="{{ query }}"
                     required>
                 <button type="submit">🔍</button>
                 <div id="search-dropdown" class="search-dropdown" hidden></div>
@@ -30,89 +29,65 @@
     </header>
 
     <main class="shell">
-        <section class="notice-strip">
-            <strong>Search</strong>
-            <span>Results for "{{ query }}"</span>
-        </section>
-
-        <div class="content-layout">
-            <section class="main-column">
-                <div class="section-bar">
-                    <h1>
-                        {% if mangas %}
-                            {{ mangas|length }} result(s)
+        <div class="content-layout single">
+            <section class="main-column bare">
+                <article class="manga-profile">
+                    <div class="profile-cover">
+                        {% if manga.cover %}
+                            <img src="/img-proxy?url={{ manga.cover }}" alt="{{ manga.title }}">
                         {% else %}
-                            No results
+                            <span>{{ manga.title[:1] }}</span>
                         {% endif %}
-                    </h1>
-                    {% if mangas %}
-                        <div class="pagination">
-                            {% if previous_page %}
-                                <a href="/search?q={{ query }}&p={{ previous_page }}">Previous</a>
-                            {% endif %}
-                            <span>Page {{ current_page }}</span>
-                            {% if next_page %}
-                                <a href="/search?q={{ query }}&p={{ next_page }}">Next</a>
-                            {% endif %}
+                    </div>
+                    <div class="profile-body">
+                        <div class="section-bar compact">
+                            <h1>{{ manga.title }}</h1>
                         </div>
-                    {% endif %}
-                </div>
+                        <dl class="info-list">
+                            {% if manga.author %}
+                                <div><dt>Author</dt><dd>{{ manga.author }}</dd></div>
+                            {% endif %}
+                            {% if manga.status %}
+                                <div><dt>Status</dt><dd>{{ manga.status }}</dd></div>
+                            {% endif %}
+                            {% if manga.rating %}
+                                <div><dt>Rating</dt><dd>{{ manga.rating }}</dd></div>
+                            {% endif %}
+                        </dl>
+                        {% if manga.description %}
+                            <p class="description">{{ manga.description }}</p>
+                        {% endif %}
+                    </div>
+                </article>
 
-                {% if error %}
-                    <p class="notice">{{ error }}</p>
-                {% endif %}
-
-                <div class="search-results">
-                    {% for manga in mangas %}
-                        <article class="search-result-item">
-                            <a href="/manga/{{ manga.slug }}" class="result-cover">
-                                {% if manga.cover %}
-                                    <img src="{{ manga.cover }}" alt="{{ manga.title }}" loading="lazy">
-                                {% else %}
-                                    <span>{{ manga.title[:1] }}</span>
-                                {% endif %}
+                <section class="chapter-panel">
+                    <div class="section-bar compact">
+                        <h2>Chapters</h2>
+                    </div>
+                    <div class="chapters">
+                        {% for chapter in manga.chapters %}
+                            <a href="/read/{{ slug }}/{{ chapter.number }}">
+                                <span>{{ chapter.title }}</span>
+                                {% if chapter.date %}<time>{{ chapter.date }}</time>{% endif %}
                             </a>
-                            <div class="result-meta">
-                                <h2>
-                                    <a href="/manga/{{ manga.slug }}">{{ manga.title }}</a>
-                                </h2>
-                                {% if manga.latest_chapter %}
-                                    <p class="result-latest">Latest chapter: {{ manga.latest_chapter }}</p>
-                                {% endif %}
-                                {% if manga.views %}
-                                    <p class="result-views">{{ manga.views }}</p>
-                                {% endif %}
-                            </div>
-                        </article>
-                    {% else %}
-                        <p class="empty">No manga found for "{{ query }}".</p>
-                    {% endfor %}
-                </div>
-
-                {% if mangas %}
-                    <nav class="pagination pagination-bottom" aria-label="Pagination">
-                        {% if previous_page %}
-                            <a href="/search?q={{ query }}&p={{ previous_page }}">Previous</a>
-                        {% endif %}
-                        <span>Page {{ current_page }}</span>
-                        {% if next_page %}
-                            <a href="/search?q={{ query }}&p={{ next_page }}">Next</a>
-                        {% endif %}
-                    </nav>
-                {% endif %}
+                        {% else %}
+                            <p class="empty">No chapters found.</p>
+                        {% endfor %}
+                    </div>
+                </section>
             </section>
 
             <aside class="side-column">
                 <section class="side-panel">
-                    <h2>Suggested Searches</h2>
-                    <div class="search-tips">
-                        <p>Try searching for:</p>
-                        <ul>
-                            <li>The full title of the manga</li>
-                            <li>The author of the manga</li>
-                            <li>Keywords from the title</li>
-                        </ul>
-                    </div>
+                    <h2>Quick Read</h2>
+                    <ol class="rank-list">
+                        {% for chapter in manga.chapters[:8] %}
+                            <li>
+                                <a href="/read/{{ slug }}/{{ chapter.number }}">{{ chapter.title }}</a>
+                                {% if chapter.date %}<span>{{ chapter.date }}</span>{% endif %}
+                            </li>
+                        {% endfor %}
+                    </ol>
                 </section>
             </aside>
         </div>
@@ -128,7 +103,7 @@
         if (!results.length) { dropdown.hidden = true; return; }
         dropdown.innerHTML = results.map((r, i) => `
             <a class="sd-item" href="/manga/${r.slug}" data-index="${i}">
-                <img class="sd-thumb" src="${r.cover}" alt="${r.title}" loading="lazy"
+                <img class="sd-thumb" src="/img-proxy?url=${r.cover}" alt="${r.title}" loading="lazy"
                      onerror="this.style.display='none'">
                 <div class="sd-info">
                     <span class="sd-title">${r.title}</span>
@@ -170,5 +145,5 @@
     });
 })();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1ee51c97f0723ce',t:'MTc4NDY4MDA0NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1ee50ffab7d23ce',t:'MTc4NDY4MDAxMg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1f22498cf03435e',t:'MTc4NDcyMDEzNw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

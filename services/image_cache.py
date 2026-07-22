@@ -30,8 +30,10 @@ ALLOWED_CONTENT_TYPES = {
     "image/gif",
 }
 ALLOWED_DOMAINS = {
-    "demonicscans.org",
-    "cdn.demoniclibs.com",
+    "www.mangabats.com",
+    "mangabats.com",
+    "img-r1.2xstorage.com",
+    "img-r2.2xstorage.com",
 }
 
 
@@ -88,7 +90,19 @@ def validate_url(url: str) -> None:
         raise ImageCacheError("Protocole non supporté")
     
     domain = parsed.hostname
-    if not domain or domain not in ALLOWED_DOMAINS:
+    if not domain:
+        raise InvalidDomainError("Domaine non autorisé: Vide")
+        
+    # Validation flexible pour autoriser tous les sous-domaines de 2xstorage.com et waitst.com
+    is_allowed = (
+        domain in ALLOWED_DOMAINS or
+        domain == "2xstorage.com" or
+        domain.endswith(".2xstorage.com") or
+        domain == "waitst.com" or
+        domain.endswith(".waitst.com")
+    )
+    
+    if not is_allowed:
         raise InvalidDomainError(f"Domaine non autorisé: {domain}")
 
 
@@ -108,19 +122,32 @@ class ImageCacheService:
         self.base_url = base_url
         self.local_cache_dir = Path(local_cache_dir)
         
-        # Configuration du client S3
-        self.s3_client = boto3.client(
-            "s3",
-            endpoint_url=endpoint_url,
-            aws_access_key_id=access_key,
-            aws_secret_access_key=secret_key,
-            config=Config(
-                signature_version="s3v4",
-                s3={"addressing_style": "path"},
-                connect_timeout=3,
-                retries={"max_attempts": 1},
-            ),
-        )
+        # S3 peut être désactivé via l'environnement (très utile en local / hors de PlanetHoster)
+        self.disable_s3 = os.environ.get("DISABLE_S3", "false").lower() in ("true", "1")
+        
+        if self.disable_s3 or not endpoint_url or not access_key:
+            self.disable_s3 = True
+            self.s3_client = None
+            logger.info("Stockage S3 désactivé. Mode cache local uniquement actif.")
+        else:
+            # Configuration du client S3
+            try:
+                self.s3_client = boto3.client(
+                    "s3",
+                    endpoint_url=endpoint_url,
+                    aws_access_key_id=access_key,
+                    aws_secret_access_key=secret_key,
+                    config=Config(
+                        signature_version="s3v4",
+                        s3={"addressing_style": "path"},
+                        connect_timeout=3,
+                        retries={"max_attempts": 1},
+                    ),
+                )
+            except Exception as exc:
+                logger.warning("Échec initialisation client S3: %s. Bascule en cache local.", exc)
+                self.disable_s3 = True
+                self.s3_client = None
     
     def get_s3_object_key(self, filename: str) -> str:
         """Génère la clé S3 pour un fichier."""
@@ -151,7 +178,7 @@ class ImageCacheService:
         """
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-            "Referer": "https://demonicscans.org/",
+            "Referer": "https://www.mangabats.com/",
         }
         
         async with httpx.AsyncClient(timeout=15) as client:
@@ -314,6 +341,20 @@ class ImageCacheService:
         
         filename, ext = get_cache_filename(url)
         object_key = self.get_s3_object_key(filename)
+        
+        # Si S3 est désactivé (développement local hors PlanetHoster)
+        if self.disable_s3:
+            local_data = self.get_from_local_cache(filename)
+            if local_data:
+                return local_data, f"image/{ext}", "local"
+                
+            # Image absente du cache local : téléchargement
+            try:
+                image_data, content_type = await self.download_image_streaming(url)
+                self.save_to_local_cache(filename, image_data)
+                return image_data, content_type, "download"
+            except Exception as exc:
+                raise ImageCacheError(f"Échec téléchargement local: {exc}") from exc
         
         # Tentative GET S3 direct (optimisé)
         s3_data = self.get_from_s3(object_key)
