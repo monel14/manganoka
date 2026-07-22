@@ -26,11 +26,17 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Lola Manga Reader", lifespan=lifespan)
 
-# 2. Configuration des dossiers statiques et templates
+# Définition du dossier de base absolu
 BASE_DIR = Path(__file__).resolve().parent
+
+# Créer automatiquement le dossier static s'il n'existe pas pour éviter les plantages de Starlette
+static_dir = BASE_DIR / "static"
+static_dir.mkdir(parents=True, exist_ok=True)
+
+# 2. Configuration des dossiers statiques et templates
 app.mount(
     "/static",
-    StaticFiles(directory=BASE_DIR / "static"),
+    StaticFiles(directory=static_dir),
     name="static",
 )
 templates = Jinja2Templates(directory=BASE_DIR / "templates")
