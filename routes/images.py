@@ -180,7 +180,7 @@ async def chapter_image_semantic(request: Request, slug: str, chapter_num: str, 
     # Récupération et service de l'image directement (sans redirection) via le cache service
     service = get_image_cache_service()
     try:
-        image_data, content_type, source = await service.get_or_cache_image(target_url)
+        image_data, content_type, source = await service.get_or_cache_image(target_url, bypass_validation=True)
         return Response(
             content=image_data,
             media_type=content_type,
@@ -223,7 +223,7 @@ async def chapter_image(request: Request, slug: str, chapter: str, page_num: int
     
     service = get_image_cache_service()
     try:
-        image_data, content_type, source = await service.get_or_cache_image(target_url)
+        image_data, content_type, source = await service.get_or_cache_image(target_url, bypass_validation=True)
         return Response(
             content=image_data,
             media_type=content_type,

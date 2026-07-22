@@ -285,7 +285,7 @@ class ImageCacheService:
             logger.warning("Erreur lecture cache local pour %s: %s", filename, exc)
         return None
     
-    async def get_or_cache_image(self, url: str) -> tuple[bytes, str, str]:
+    async def get_or_cache_image(self, url: str, bypass_validation: bool = False) -> tuple[bytes, str, str]:
         """
         Récupère une image (depuis S3, cache local, ou source).
         
@@ -302,7 +302,15 @@ class ImageCacheService:
             ImageCacheError: Si impossible de récupérer l'image
         """
         # Validation de l'URL
-        validate_url(url)
+        if bypass_validation:
+            try:
+                parsed = urlsplit(url)
+                if parsed.scheme not in {"http", "https"}:
+                    raise ImageCacheError("Protocole non supporté")
+            except Exception as exc:
+                raise ImageCacheError("Format d'URL invalide") from exc
+        else:
+            validate_url(url)
         
         filename, ext = get_cache_filename(url)
         object_key = self.get_s3_object_key(filename)
