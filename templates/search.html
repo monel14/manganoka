@@ -46,15 +46,15 @@
                         {% endif %}
                     </h1>
                     {% if mangas %}
-                        <div class="pagination">
-                            {% if previous_page %}
-                                <a href="/search?q={{ query }}&p={{ previous_page }}">Previous</a>
-                            {% endif %}
-                            <span>Page {{ current_page }}</span>
-                            {% if next_page %}
-                                <a href="/search?q={{ query }}&p={{ next_page }}">Next</a>
-                            {% endif %}
-                        </div>
+                    <div class="pagination">
+                        {% if previous_page_url %}
+                            <a href="{{ previous_page_url }}">Previous</a>
+                        {% endif %}
+                        <span>Page {{ current_page }}</span>
+                        {% if next_page_url %}
+                            <a href="{{ next_page_url }}">Next</a>
+                        {% endif %}
+                    </div>
                     {% endif %}
                 </div>
 
@@ -91,12 +91,12 @@
 
                 {% if mangas %}
                     <nav class="pagination pagination-bottom" aria-label="Pagination">
-                        {% if previous_page %}
-                            <a href="/search?q={{ query }}&p={{ previous_page }}">Previous</a>
+                        {% if previous_page_url %}
+                            <a href="{{ previous_page_url }}">Previous</a>
                         {% endif %}
                         <span>Page {{ current_page }}</span>
-                        {% if next_page %}
-                            <a href="/search?q={{ query }}&p={{ next_page }}">Next</a>
+                        {% if next_page_url %}
+                            <a href="{{ next_page_url }}">Next</a>
                         {% endif %}
                     </nav>
                 {% endif %}
@@ -240,5 +240,5 @@
         </div>
     </footer>
 
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1f47418f8e74fb3',t:'MTc4NDc0NDM2NA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1f47418f8e74fb3',t:'MTc4NDc0NDM2NA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1f66dd8a8c81512',t:'MTc4NDc2NTA4MA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

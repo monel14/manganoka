@@ -38,6 +38,8 @@ async def index(request: Request, list_page: int = Query(default=1, ge=1, alias=
         error = "Unable to load latest releases at the moment."
 
     has_next_page = bool(mangas)
+    previous_page_url = f"/?list={list_page - 1}" if list_page > 1 else None
+    next_page_url = f"/?list={list_page + 1}" if has_next_page else None
 
     return templates.TemplateResponse(
         request,
@@ -49,8 +51,9 @@ async def index(request: Request, list_page: int = Query(default=1, ge=1, alias=
             "popular_sidebar": popular_sidebar,
             "error": error,
             "current_page": list_page,
-            "previous_page": list_page - 1 if list_page > 1 else None,
-            "next_page": list_page + 1 if has_next_page else None,
+            "previous_page_url": previous_page_url,
+            "next_page_url": next_page_url,
+            "is_home": True, # Indique qu'on est sur la page d'accueil d'updates
         },
     )
 
@@ -149,6 +152,8 @@ async def list_mangas_page(
         popular_sidebar = []
 
     has_next_page = len(mangas) >= 20
+    previous_page_url = f"/manga-list/{list_type}?page={page - 1}" if page > 1 else None
+    next_page_url = f"/manga-list/{list_type}?page={page + 1}" if has_next_page else None
 
     # Formatage propre du titre (ex: completed-manga -> Completed Manga)
     title_parts = [word.capitalize() for word in list_type.split("-")]
@@ -163,9 +168,10 @@ async def list_mangas_page(
             "popular": [],  # Pas de carrousel populaire sur les pages de liste
             "popular_sidebar": popular_sidebar,
             "current_page": page,
-            "previous_page": page - 1 if page > 1 else None,
-            "next_page": page + 1 if has_next_page else None,
+            "previous_page_url": previous_page_url,
+            "next_page_url": next_page_url,
             "page_title": page_title,
+            "is_home": False,
         },
     )
 
@@ -191,6 +197,8 @@ async def genre_mangas_page(
         popular_sidebar = []
 
     has_next_page = len(mangas) >= 20
+    previous_page_url = f"/genre/{genre_slug}?page={page - 1}" if page > 1 else None
+    next_page_url = f"/genre/{genre_slug}?page={page + 1}" if has_next_page else None
     page_title = f"{genre_slug.capitalize()} Manga"
 
     return templates.TemplateResponse(
@@ -202,8 +210,9 @@ async def genre_mangas_page(
             "popular": [],
             "popular_sidebar": popular_sidebar,
             "current_page": page,
-            "previous_page": page - 1 if page > 1 else None,
-            "next_page": page + 1 if has_next_page else None,
+            "previous_page_url": previous_page_url,
+            "next_page_url": next_page_url,
             "page_title": page_title,
+            "is_home": False,
         },
     )

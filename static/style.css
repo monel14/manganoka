@@ -255,7 +255,10 @@ img {
     border-top: 0;
     background: transparent;
 }
-
+.side-column{
+        background: var(--paper);
+        border-top: 4px solid var(--paper-deep);
+}
 .section-bar {
     display: flex;
     align-items: center;
@@ -699,6 +702,7 @@ img {
 
     .side-column {
         display: none;
+        
     }
 }
 
@@ -877,4 +881,59 @@ footer {
 
 .footer-links a {
     color: var(--ink);
+}
+
+/* Pagination MangaBats Style */
+.panel_page_number {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--line);
+    padding: 14px 12px;
+    background: var(--paper-deep);
+    margin: 20px 0;
+    border-radius: 4px;
+}
+
+.group_page {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.group_page a {
+    display: inline-flex;
+    min-height: 28px;
+    align-items: center;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 0 10px;
+    background: var(--paper-soft);
+    color: var(--muted);
+    font-size: 0.86rem;
+    font-weight: 500;
+}
+
+.group_page a:hover {
+    border-color: var(--brand);
+    color: var(--brand);
+}
+
+.group_page a.page_select {
+    background: var(--brand);
+    color: #fff;
+    border-color: var(--brand);
+    font-weight: bold;
+}
+
+.group_page a.page_blue {
+    background: var(--nav);
+    color: #fff;
+    border-color: var(--nav);
+    font-weight: bold;
+}
+
+.group_page a.page_blue:hover {
+    background: var(--nav-dark);
+    border-color: var(--nav-dark);
 }

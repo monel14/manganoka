@@ -85,16 +85,57 @@
                         <i class="fas fa-arrow-circle-right" style="color: #ff530d; font-size: 1.15rem;"></i>
                         {% if page_title %}{{ page_title }}{% else %}Latest Manga Releases{% endif %}
                     </h1>
-                    <div class="pagination">
-                        {% if previous_page %}
-                            <a href="/?list={{ previous_page }}">Previous</a>
-                        {% endif %}
-                        <span>Page {{ current_page }}</span>
-                        {% if next_page %}
-                            <a href="/?list={{ next_page }}">Next</a>
-                        {% endif %}
-                    </div>
+                    {% if not is_home %}
+                        <div class="pagination">
+                            {% if previous_page_url %}
+                                <a href="{{ previous_page_url }}">Previous</a>
+                            {% endif %}
+                            <span>Page {{ current_page }}</span>
+                            {% if next_page_url %}
+                                <a href="{{ next_page_url }}">Next</a>
+                            {% endif %}
+                        </div>
+                    {% endif %}
                 </div>
+
+                {% if not is_home %}
+                <!-- Manga Filter Accordion (MangaBats Style) -->
+                <details class="tag manga-filter-details" style="margin: 15px; border: 1px solid var(--line); border-radius: 4px; background: var(--paper-deep); color: var(--text-color); overflow: hidden;">
+                    <summary class="manga-filter-summary" style="cursor: pointer; padding: 12px 15px; background: var(--paper-soft); font-weight: bold; list-style: none; display: flex; justify-content: space-between; align-items: center;">
+                        <h5 style="margin: 0; padding: 0; display: inline-block; color: inherit; font-size: 14px;"><i class="fas fa-filter" style="margin-right: 6px; color: #ff530d;"></i> Filter </h5>
+                        <span style="font-size: 12px; color: #888;"><i class="fas fa-chevron-down toggle-icon"></i></span>
+                    </summary>
+                    
+                    <div class="manga-filter-content" style="padding: 15px; display: flex; flex-direction: column; gap: 15px;">
+                        <h6 class="filter-header" style="font-size: 13px; font-weight: bold; margin: 0; color: #ff530d; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 5px;">Genres</h6>
+                        <ul class="tag-name" style="list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 8px; font-size: 12px;">
+                            <li><a href="/genre/action" style="display: inline-block; padding: 4px 10px; background: var(--paper-soft); border-radius: 3px; color: var(--text-color); text-decoration: none;">Action</a></li>
+                            <li><a href="/genre/adventure" style="display: inline-block; padding: 4px 10px; background: var(--paper-soft); border-radius: 3px; color: var(--text-color); text-decoration: none;">Adventure</a></li>
+                            <li><a href="/genre/comedy" style="display: inline-block; padding: 4px 10px; background: var(--paper-soft); border-radius: 3px; color: var(--text-color); text-decoration: none;">Comedy</a></li>
+                            <li><a href="/genre/drama" style="display: inline-block; padding: 4px 10px; background: var(--paper-soft); border-radius: 3px; color: var(--text-color); text-decoration: none;">Drama</a></li>
+                            <li><a href="/genre/fantasy" style="display: inline-block; padding: 4px 10px; background: var(--paper-soft); border-radius: 3px; color: var(--text-color); text-decoration: none;">Fantasy</a></li>
+                            <li><a href="/genre/romance" style="display: inline-block; padding: 4px 10px; background: var(--paper-soft); border-radius: 3px; color: var(--text-color); text-decoration: none;">Romance</a></li>
+                            <li><a href="/genre/shounen" style="display: inline-block; padding: 4px 10px; background: var(--paper-soft); border-radius: 3px; color: var(--text-color); text-decoration: none;">Shounen</a></td>
+                            <li><a href="/genre/shoujo" style="display: inline-block; padding: 4px 10px; background: var(--paper-soft); border-radius: 3px; color: var(--text-color); text-decoration: none;">Shoujo</a></td>
+                            <li><a href="/genre/slice-of-life" style="display: inline-block; padding: 4px 10px; background: var(--paper-soft); border-radius: 3px; color: var(--text-color); text-decoration: none;">Slice of Life</a></td>
+                        </ul>
+                        
+                        <h6 class="filter-header filter-separator" style="font-size: 13px; font-weight: bold; margin: 0; color: #ff530d; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 5px; margin-top: 10px;">Type</h6>
+                        <ul class="spec-tag" style="list-style: none; padding: 0; margin: 0; display: flex; gap: 10px; font-size: 12px;">
+                            <li><a href="/manga-list/new-manga" style="display: inline-block; padding: 5px 12px; background: var(--paper-soft); border-radius: 3px; color: var(--text-color); text-decoration: none;">Newest</a></li>
+                            <li><a href="/manga-list/latest-manga" style="display: inline-block; padding: 5px 12px; background: var(--brand); border-radius: 3px; color: #fff; font-weight: bold; text-decoration: none;">Latest</a></li>
+                            <li><a href="/manga-list/hot-manga" style="display: inline-block; padding: 5px 12px; background: var(--paper-soft); border-radius: 3px; color: var(--text-color); text-decoration: none;">Top read</a></li>
+                        </ul>
+
+                        <h6 class="filter-header filter-separator" style="font-size: 13px; font-weight: bold; margin: 0; color: #ff530d; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 5px; margin-top: 10px;">Status</h6>
+                        <ul class="spec-tag" style="list-style: none; padding: 0; margin: 0; display: flex; gap: 10px; font-size: 12px;">
+                            <li><a href="/manga-list/latest-manga" style="display: inline-block; padding: 5px 12px; background: var(--brand); border-radius: 3px; color: #fff; font-weight: bold; text-decoration: none;">All</a></li>
+                            <li><a href="/manga-list/completed-manga" style="display: inline-block; padding: 5px 12px; background: var(--paper-soft); border-radius: 3px; color: var(--text-color); text-decoration: none;">Completed</a></li>
+                            <li><a href="/manga-list/ongoing-manga" style="display: inline-block; padding: 5px 12px; background: var(--paper-soft); border-radius: 3px; color: var(--text-color); text-decoration: none;">Ongoing</a></li>
+                        </ul>
+                    </div>
+                </details>
+                {% endif %}
 
                 {% if error %}
                     <p class="notice">{{ error }}</p>
@@ -131,15 +172,29 @@
                     {% endfor %}
                 </div>
 
-                <nav class="pagination pagination-bottom" aria-label="Pagination">
-                    {% if previous_page %}
-                        <a href="/?list={{ previous_page }}">Previous</a>
-                    {% endif %}
-                    <span>Page {{ current_page }}</span>
-                    {% if next_page %}
-                        <a href="/?list={{ next_page }}">Next</a>
-                    {% endif %}
-                </nav>
+                {% if is_home %}
+                    <!-- "VIEW MORE" button at the bottom of the home page -->
+                    <div id="loadpage" style="text-align: center; margin: 30px 0;">
+                        <a href="/manga-list/latest-manga" title="View all manga releases" class="xem-them" style="display: inline-block; padding: 12px 45px; background: var(--brand); color: #fff; font-weight: bold; border-radius: 4px; font-size: 15px; text-decoration: none;">VIEW MORE</a>
+                    </div>
+                {% else %}
+                    <!-- MangaBats style page list pagination -->
+                    <div class="panel_page_number" style="margin-top: 25px; margin-bottom: 25px;">
+                        <div class="group_page">
+                            {% if previous_page_url %}
+                                <a class="page_blue" href="{{ previous_page_url }}">First(1)</a>
+                                <a href="{{ previous_page_url }}">Prev</a>
+                            {% endif %}
+                            
+                            <a class="page_select" href="#">{{ current_page }}</a>
+                            
+                            {% if next_page_url %}
+                                <a href="{{ next_page_url }}">{{ current_page + 1 }}</a>
+                                <a class="page_blue page_last" href="{{ next_page_url }}">Last</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
             </section>
 
             <aside class="side-column">
@@ -153,7 +208,7 @@
 
                 <!-- 2. Most Popular Manga Widget -->
                 <div class="xem-nhieu">
-                    <h2 class="title all-title">Most Popular Manga</h2>
+                    <h2 class="title all-title section-bar">Most Popular Manga</h2>
                     <div class="all" style="display: flex; flex-direction: column; gap: 8px;">
                         {% for item in popular_sidebar %}
                             <div class="xem-nhieu-item" style="text-align: left; padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.05);">
@@ -464,5 +519,5 @@ $(document).ready(function() {
         </div>
     </footer>
 
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1f62775ee83da48',t:'MTc4NDc2MjE5Nw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1f62775ee83da48',t:'MTc4NDc2MjE5Nw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1f6a7cf6d134396',t:'MTc4NDc2NzQ1NA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
