@@ -24,7 +24,7 @@ async def lifespan(app: FastAPI):
     await close_http_client()
 
 
-app = FastAPI(title="Lola Manga Reader", lifespan=lifespan)
+app = FastAPI(title="MangaNoka", lifespan=lifespan)
 
 # Définition du dossier de base absolu
 BASE_DIR = Path(__file__).resolve().parent

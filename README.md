@@ -1,4 +1,4 @@
-# Manga Reader FastAPI
+# MangaNoka FastAPI
 
 Application FastAPI qui récupère les données depuis `https://demonicscans.org` uniquement lorsqu'un utilisateur consulte une page. Les données sont conservées dans un cache mémoire temporaire avec expiration.
 
