@@ -9,8 +9,10 @@
     <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}">
     <link rel="icon" href="{{ url_for('static', path='/noka_logo.svg') }}" type="image/svg+xml">
     {% set current_title = manga.title if manga and manga.title else page_title %}
-    {% set og_title = 'Read ' ~ current_title ~ ' Online' if current_title else 'MangaNoka - Read Manga Online Free. Fast, responsive, and ad-free experience.' %}
-    {% set og_description = 'Read ' ~ current_title ~ ' online for free with MangaNoka.' if current_title else 'Read manga online for free. Enjoy a fast, responsive, and ad-free experience with MangaNoka.' %}
+    {% set og_title = 'Read ' ~ current_title ~ ' Online' if current_title else 'MangaNoka - Read Manga Online Free.
+    Fast, responsive, and ad-free experience.' %}
+    {% set og_description = 'Read ' ~ current_title ~ ' online for free with MangaNoka.' if current_title else 'Read
+    manga online for free. Enjoy a fast, responsive, and ad-free experience with MangaNoka.' %}
     <meta name="description" content="{{ og_description }}">
     <meta property="og:site_name" content="MangaNoka">
     <meta property="og:type" content="website">
@@ -18,7 +20,8 @@
     <meta property="og:description" content="{{ og_description }}">
     {% set og_image = manga.cover if manga and manga.cover else url_for('static', path='/og_image.png') %}
     {% set og_image_str = og_image|string %}
-    {% set og_image_abs = og_image_str if og_image_str.startswith('http://') or og_image_str.startswith('https://') else request.url.scheme ~ '://' ~ request.url.netloc ~ og_image_str %}
+    {% set og_image_abs = og_image_str if og_image_str.startswith('http://') or og_image_str.startswith('https://') else
+    request.url.scheme ~ '://' ~ request.url.netloc ~ og_image_str %}
     <meta property="og:image" content="{{ og_image_abs }}">
     <meta name="twitter:card" content="summary_large_image">
     <link rel="apple-touch-icon" href="{{ url_for('static', path='/apple-touch-icon.png') }}">
@@ -67,9 +70,46 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.theme.default.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js" defer></script>
-</head>
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.theme.default.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js" defer></script>    <style>
+        .popular-carousel-wrap .item {
+            position: relative;
+            overflow: hidden;
+            border-radius: 8px;
+            isolation: isolate;
+            height: 220px;
+            margin-right: 10px;
+            background: #4A4A4A;
+        }
+
+        .popular-carousel-wrap .item::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image: var(--bg);
+            background-size: cover;
+            background-position: center;
+            filter: blur(12px);
+            transform: scale(1.2);
+            z-index: 0;
+        }
+
+        .popular-carousel-wrap .item > a,
+        .popular-carousel-wrap .item .overlay {
+            position: relative;
+            z-index: 2;
+        }
+
+        .popular-carousel-wrap .item img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+            position: relative;
+            z-index: 2;
+        }
+    </style></head>
 
 <body>
     <header class="site-top">
@@ -131,47 +171,27 @@
                 <i class="fas fa-thumbs-up" style="color: var(--brand);"></i> POPULAR MANGA
             </h3>
             <div class="popular-carousel-wrap">
-                <div id="owl-demo" class="owl-carousel"
-                    style=" gap:15px;  padding-bottom:10px;">
+                <div id="owl-demo" class="owl-carousel" style=" gap:15px;  padding-bottom:10px;">
                     {% for item in popular %}
-                    <div class="item" style="
-                        position:relative;
-                        border-radius:8px;
-                        overflow:hidden;
-                        background:#4A4A4A;
-                        height:220px;
-                        margin-right: 10px;
-                    ">
+                    <div class="item" style="--bg: url('/img-proxy?url={{ item.cover }}');">
 
-                        <a href="/manga/{{ item.slug }}" aria-label="{{ item.title }}" style="display:block; width:100%; height:100%;">
-                            <img src="/img-proxy?url={{ item.cover }}" alt="{{ item.title }}" 
-        width:100%;
+                        <a href="/manga/{{ item.slug }}" aria-label="{{ item.title }}"
+                            style="display:block; width:100%; height:100%;">
+                            <img src="/img-proxy?url={{ item.cover }}" alt="{{ item.title }}" style="width:100%;
         height:220px;
-        object-fit:cover;
+        object-fit:contain;
         display:block;
-        opacity:.85;
+        opacity:.95;
         transition:.3s;
-     ">
+      ">
 
                         </a>
 
-                        <div style="
-                    position:absolute;
-                    bottom:0;
-                    left:0;
-                    right:0;
-                    background:linear-gradient(to top, rgba(0,0,0,.95), transparent);
-                    padding:10px;
-                    color:#fff;
-                ">
-                            <h3 style="
-                        font-size:12px;
-                        margin:0 0 5px;
-                        overflow:hidden;
-                        text-overflow:ellipsis;
-                        white-space:nowrap;
-                    ">
-                                <a href="/manga/{{ item.slug }}" title="{{ item.title }}"
+                        <div class="overlay" style=" position:absolute; bottom:0; left:0; right:0; background:linear-gradient(to top,
+                                rgba(0,0,0,.95), transparent); padding:10px; color:#fff; ">
+                            <h3 style=" font-size:12px; margin:0 0 5px; overflow:hidden; text-overflow:ellipsis;
+                                white-space:nowrap; ">
+                                <a href=" /manga/{{ item.slug }}" title="{{ item.title }}"
                                     style="color:#fff;text-decoration:none;">
                                     {{ item.title }}
                                 </a>
@@ -249,14 +269,17 @@
                         <h6 class="filter-header filter-separator">Type</h6>
                         <ul class="spec-tag filter-list filter-list--inline">
                             <li tabindex="0"><a class="filter-chip" href="/manga-list/new-manga">Newest</a></li>
-                            <li tabindex="0"><a class="filter-chip filter-chip--active" href="/manga-list/latest-manga">Latest</a></li>
+                            <li tabindex="0"><a class="filter-chip filter-chip--active"
+                                    href="/manga-list/latest-manga">Latest</a></li>
                             <li tabindex="0"><a class="filter-chip" href="/manga-list/hot-manga">Top read</a></li>
                         </ul>
 
                         <h6 class="filter-header filter-separator">Status</h6>
                         <ul class="spec-tag filter-list filter-list--inline">
-                            <li tabindex="0"><a class="filter-chip filter-chip--active" href="/manga-list/latest-manga">All</a></li>
-                            <li tabindex="0"><a class="filter-chip" href="/manga-list/completed-manga">Completed</a></li>
+                            <li tabindex="0"><a class="filter-chip filter-chip--active"
+                                    href="/manga-list/latest-manga">All</a></li>
+                            <li tabindex="0"><a class="filter-chip" href="/manga-list/completed-manga">Completed</a>
+                            </li>
                             <li tabindex="0"><a class="filter-chip" href="/manga-list/ongoing-manga">Ongoing</a></li>
                         </ul>
                     </div>
@@ -272,8 +295,8 @@
                     <article class="release-item">
                         <a href="/manga/{{ manga.slug }}" class="release-cover" aria-label="{{ manga.title }}">
                             {% if manga.cover %}
-                            <img src="/img-proxy?url={{ manga.cover }}" alt="{{ manga.title }}" loading="lazy" decoding="async"
->
+                            <img src="/img-proxy?url={{ manga.cover }}" alt="{{ manga.title }}" loading="lazy"
+                                decoding="async">
                             {% else %}
                             <span>{{ manga.title[:1] }}</span>
                             {% endif %}
@@ -302,7 +325,8 @@
                 {% if is_home %}
                 <!-- "VIEW MORE" button at the bottom of the home page -->
                 <div id="loadpage" class="view-more-wrapper">
-                    <a href="/manga-list/latest-manga" title="View all manga releases" class="xem-them view-more-link">VIEW MORE</a>
+                    <a href="/manga-list/latest-manga" title="View all manga releases"
+                        class="xem-them view-more-link">VIEW MORE</a>
                 </div>
                 {% else %}
                 <!-- MangaBats style page list pagination -->
