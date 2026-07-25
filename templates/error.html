@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ error_title }} - MangaNoka</title>
+    <meta name="robots" content="noindex">
+    <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}">
+    <link rel="icon" href="{{ url_for('static', path='/noka_logo.svg') }}" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="{{ url_for('static', path='/apple-touch-icon.png') }}">
+    <link rel="manifest" href="{{ url_for('static', path='/manifest.json') }}">
+    <script src="{{ url_for('static', path='/theme.js') }}"></script>
+    <script src="{{ url_for('static', path='/noka-loader.js') }}" defer></script>
+    <style>
+        .error-page {
+            min-height: 70vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 48px 24px;
+            gap: 8px;
+        }
+        .error-page img.noka {
+            width: 180px;
+            height: auto;
+            margin-bottom: 24px;
+            animation: noka-float 3s ease-in-out infinite;
+        }
+        @keyframes noka-float {
+            0%, 100% { transform: translateY(0) rotate(-2deg); }
+            50%      { transform: translateY(-10px) rotate(2deg); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .error-page img.noka { animation: none; }
+        }
+        .error-page .code {
+            font-family: 'Space Grotesk', 'Outfit', sans-serif;
+            font-size: 64px;
+            font-weight: 700;
+            color: var(--brand);
+            line-height: 1;
+            margin: 0;
+        }
+        .error-page h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 24px;
+            margin: 8px 0 4px;
+            color: var(--ink);
+        }
+        .error-page .brush {
+            width: 180px;
+            height: 10px;
+            margin: 4px auto 12px;
+        }
+        .error-page p {
+            color: var(--muted);
+            max-width: 440px;
+            margin: 0 0 24px;
+        }
+        .error-page .btn-home {
+            display: inline-block;
+            background: var(--brand);
+            color: #fff;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 12px 28px;
+            border-radius: var(--radius-md);
+            transition: background 150ms ease, transform 150ms ease;
+        }
+        .error-page .btn-home:hover {
+            background: var(--brand-dark);
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+    <header class="site-top">
+        <div class="topbar">
+            <a class="brand" href="/">
+                <img class="brand-logo" src="{{ url_for('static', path='/noka_logo.svg') }}" alt="MangaNoka logo">
+                <span>Manga<b>Noka</b></span>
+            </a>
+        </div>
+    </header>
+
+    <main class="shell">
+        <div class="error-page">
+            <img class="noka" src="{{ url_for('static', path=noka_image) }}" alt="Noka {{ error_title }}">
+            <p class="code">{{ status_code }}</p>
+            <h1>{{ error_title }}</h1>
+            <img class="brush" src="{{ url_for('static', path='/brushstroke.svg') }}" alt="">
+            <p>{{ error_message }}</p>
+            <a class="btn-home" href="/">🏮 Retour à l'accueil</a>
+        </div>
+    </main>
+</body>
+</html>

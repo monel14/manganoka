@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240">
+<g fill="none" stroke="#B51E3B" stroke-width="2.5" opacity="0.13" stroke-linecap="round">
+  <!-- lanterne -->
+  <g transform="translate(38,30)">
+    <path d="M0 6 h24 M12 0 v6"/>
+    <rect x="-2" y="8" width="28" height="36" rx="12"/>
+    <path d="M6 8 c-2 12 -2 24 0 36 M18 8 c2 12 2 24 0 36"/>
+    <path d="M8 48 h8 M12 44 v4"/>
+  </g>
+  <!-- oeil -->
+  <g transform="translate(150,60)">
+    <circle cx="0" cy="0" r="14"/>
+    <circle cx="0" cy="0" r="6" fill="#B51E3B" stroke="none"/>
+  </g>
+  <!-- livre ouvert -->
+  <g transform="translate(60,150)">
+    <path d="M0 0 c10 -6 20 -6 24 -2 c4 -4 14 -4 24 2 v30 c-10 -6 -20 -6 -24 -2 c-4 -4 -14 -4 -24 2 z"/>
+    <path d="M24 -2 v30"/>
+  </g>
+  <!-- etoiles -->
+  <g fill="#B51E3B" stroke="none">
+    <path d="M196 150 l3 7 7 3 -7 3 -3 7 -3 -7 -7 -3 7 -3 z"/>
+    <path d="M120 16 l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2 z"/>
+    <path d="M20 110 l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2 z"/>
+  </g>
+  <!-- speed lines -->
+  <g stroke-width="2">
+    <path d="M170 205 h34 M176 213 h22 M182 221 h12"/>
+    <path d="M8 200 h26 M14 208 h16"/>
+  </g>
+</g>
+</svg>

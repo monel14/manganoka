@@ -8,7 +8,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from cache import MANGA_TTL_SECONDS, cache
-from scraper.client import FetchError, get_html, get_http_client
+from scraper.client import FetchError, NotFoundError, get_html, get_http_client
 from scraper.parser import MangaDetail, parse_manga
 
 logger = logging.getLogger(__name__)
@@ -31,6 +31,8 @@ async def manga_detail(request: Request, slug: str) -> HTMLResponse:
             MANGA_TTL_SECONDS,
             lambda: _load_manga(slug),
         )
+    except NotFoundError as exc:
+        raise HTTPException(status_code=404, detail="Manga not found") from exc
     except FetchError as exc:
         logger.warning("Unable to load manga %s: %s", slug, exc)
         raise HTTPException(status_code=502, detail="Source unavailable") from exc

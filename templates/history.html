@@ -1,18 +1,29 @@
 <!doctype html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Your Reading History - Track Your Manga Adventures</title>
+    <title>Ton historique de lecture — MangaNoka</title>
     <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}">
     <link rel="icon" href="{{ url_for('static', path='/noka_logo.svg') }}" type="image/svg+xml">
+    <meta name="description" content="📚 Retrouve tous les mangas que tu as lus, Noka s'en souvient pour toi.">
+    <meta property="og:site_name" content="MangaNoka">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Ton historique de lecture — MangaNoka">
+    <meta property="og:description" content="📚 Retrouve tous les mangas que tu as lus, Noka s'en souvient pour toi.">
+    <meta property="og:image" content="{{ url_for('static', path='/og_image.png') }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="apple-touch-icon" href="{{ url_for('static', path='/apple-touch-icon.png') }}">
+    <link rel="manifest" href="{{ url_for('static', path='/manifest.json') }}">
+    <meta name="theme-color" content="#B51E3B">
     <script src="{{ url_for('static', path='/theme.js') }}"></script>
+    <script src="{{ url_for('static', path='/noka-loader.js') }}" defer></script>
 </head>
 <body>
     <header class="site-top">
         <div class="topbar">
-            <a class="brand" href="/" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text-color); font-weight: 700;">
-                <img src="{{ url_for('static', path='/noka_logo.svg') }}" alt="MangaNoka logo" style="width: 34px; height: 34px; object-fit: contain;">
+            <a class="brand" href="/">
+                <img class="brand-logo" src="{{ url_for('static', path='/noka_logo.svg') }}" alt="MangaNoka logo">
                 <span>Manga<b>Noka</b></span>
             </a>
             <form class="search-bar" action="/search" method="get" id="search-form">
@@ -20,15 +31,15 @@
                     type="text"
                     name="q"
                     id="search-input"
-                    placeholder="Search manga..."
+                    placeholder="Chercher un manga…"
                     autocomplete="off"
                     required>
                 <button type="submit">🔍</button>
                 <div id="search-dropdown" class="search-dropdown" hidden></div>
             </form>
             <nav class="quick-links" aria-label="Main navigation">
-                <a href="/">Home</a>
-                <a href="/?list=2">Latest Releases</a>
+                <a href="/">Accueil</a>
+                <a href="/?list=2">Derniers chapitres</a>
                 <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle Theme" title="Toggle Theme (Lanterne Noka)">
                     <svg class="lantern-icon" viewBox="0 0 24 24">
                         <!-- Crochet / Sommet de la lanterne -->
@@ -77,8 +88,8 @@
                     <div id="user-history-account" class="user-history-account" style="display: none; padding: 25px; background: rgba(255,255,255,0.02); border-radius: 6px; border: 1px dashed rgba(255,255,255,0.1);">
                         <p style="margin: 0; line-height: 1.6; color: var(--text-color); font-size: 14px;">
                             Your history is saved in your browser and could disappear if you update it or clear your web history. 
-                            <a href="#" style="color: #ff530d; text-decoration: none; font-weight: bold; margin-left: 4px; margin-right: 4px;">Register</a> or 
-                            <a href="#" style="color: #ff530d; text-decoration: none; font-weight: bold;">log in</a> to securely store your history!
+                            <a href="#" style="color: var(--brand); text-decoration: none; font-weight: bold; margin-left: 4px; margin-right: 4px;">Register</a> or 
+                            <a href="#" style="color: var(--brand); text-decoration: none; font-weight: bold;">log in</a> to securely store your history!
                         </p>
                     </div>
                 </div>
@@ -199,14 +210,14 @@ document.addEventListener("DOMContentLoaded", () => {
         historyList.innerHTML = history.map(item => `
             <div class="user-history-item" style="display: flex; gap: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; align-items: flex-start; text-align: left;">
                 <a href="/manga/${item.slug}">
-                    <img src="/img-proxy?url=${item.cover}" alt="${item.title}" style="width: 65px; height: 85px; object-fit: cover; border-radius: 4px;" onerror="this.src='/static/style.css';">
+                    <img src="/img-proxy?url=${item.cover}" alt="${item.title}" style="width: 65px; height: 85px; object-fit: cover; border-radius: 4px;" onerror="this.onerror=null;this.src='/static/cover_placeholder.svg';">
                 </a>
                 <div class="user-history-item-right" style="display: flex; flex-direction: column; gap: 6px; flex-grow: 1;">
                     <span class="bm-title" style="font-size: 15px; font-weight: bold;">
                         <a href="/manga/${item.slug}" style="color: var(--text-color); text-decoration: none;">${item.title}</a>
                     </span>
                     <span style="font-size: 13px; color: #aaa;">Read continue:
-                        <a href="/read/${item.slug}/${item.chapter}" style="color: #ff530d; text-decoration: none; font-weight: bold; margin-left: 4px;">Chapter ${item.chapter}</a>
+                        <a href="/read/${item.slug}/${item.chapter}" style="color: var(--brand); text-decoration: none; font-weight: bold; margin-left: 4px;">Chapter ${item.chapter}</a>
                     </span>
                     <a href="javascript:void(0);" class="btn-remove-history" data-slug="${item.slug}" style="font-size: 12px; color: #e06c75; text-decoration: none; align-self: flex-start; margin-top: 4px;">Remove</a>
                 </div>
@@ -265,5 +276,5 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
     </footer>
 
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1f4729aabda4fb3',t:'MTc4NDc0NDMwMw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1fe208a2e6f5e68',t:'MTc4NDg0NTgwMA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a20446996ace0f3a',t:'MTc4NDkxMDI3Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>

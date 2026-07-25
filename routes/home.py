@@ -35,7 +35,7 @@ async def index(request: Request, list_page: int = Query(default=1, ge=1, alias=
         mangas = []
         popular = []
         popular_sidebar = []
-        error = "Unable to load latest releases at the moment."
+        error = "😴 Noka n'arrive pas à joindre la bibliothèque… Réessaie dans un instant !"
 
     has_next_page = bool(mangas)
     previous_page_url = f"/?list={list_page - 1}" if list_page > 1 else None
@@ -109,6 +109,50 @@ def sitemap() -> Response:
     
     return Response(content=xml_content, media_type="application/xml")
 
+@router.get("/robots.txt", include_in_schema=False)
+def robots() -> Response:
+    base_url = os.getenv("BASE_URL", "https://manganoka.xyz").rstrip("/")
+
+    robots = f"""# Global
+User-agent: *
+Allow: /
+
+Disallow: /api/
+Disallow: /admin/
+Disallow: /login/
+Disallow: /register/
+Disallow: /settings/
+Disallow: /search/
+
+# AI Crawlers
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+Sitemap: {base_url}/sitemap.xml
+"""
+
+    return Response(
+        content=robots,
+        media_type="text/plain; charset=utf-8",
+    )
 
 @router.get("/history", response_class=HTMLResponse)
 def history_page(request: Request) -> HTMLResponse:

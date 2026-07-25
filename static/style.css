@@ -1206,3 +1206,145 @@ footer {
     opacity: 0.8 !important;
 }
 
+
+/* ==========================================
+   BRANDING NOKA — WORDMARK, BRUSHSTROKE, LOADER
+   ========================================== */
+
+/* Wordmark : Outfit Bold, "Noka" en rouge marque */
+.brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: var(--text-color);
+}
+.brand-logo {
+    height: 100px;
+    width: auto;
+    object-fit: contain;
+    transition: transform 200ms ease;
+}
+.brand:hover .brand-logo {
+    transform: rotate(-6deg);
+}
+.brand span {
+    font-family: 'Outfit', 'Space Grotesk', sans-serif;
+    font-weight: 800;
+    font-size: 22px;
+    letter-spacing: -0.5px;
+    color: #fff; /* header sombre */
+}
+.brand span b {
+    color: var(--brand);
+    font-weight: 800;
+}
+[data-theme="dark"] .brand span { color: var(--ink); }
+
+/* Titres de section avec coup de pinceau */
+.section-title {
+    position: relative;
+    display: inline-block;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    padding-bottom: 10px;
+}
+.section-title::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    max-width: 160px;
+    height: 8px;
+    background: url('/static/brushstroke.svg') no-repeat left center / 100% 100%;
+}
+
+/* Loader Noka : overlay plein écran */
+.noka-loader-overlay {
+    position: fixed;
+    inset: 0;
+    background: color-mix(in srgb, var(--page) 82%, transparent);
+    backdrop-filter: blur(3px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    z-index: 9999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 200ms ease;
+}
+.noka-loader-overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+.noka-loader-overlay img {
+    width: 110px;
+    height: auto;
+}
+.noka-loader-overlay .loader-text {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+}
+.noka-loader-overlay .loader-text::after {
+    content: '';
+    animation: noka-dots 1.4s steps(4, end) infinite;
+}
+@keyframes noka-dots {
+    0% { content: ''; }
+    25% { content: '.'; }
+    50% { content: '..'; }
+    75% { content: '...'; }
+}
+
+/* Loader inline (petits espaces : carousels, recherche) */
+.noka-loader-inline {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+.noka-loader-inline img {
+    width: 64px;
+    height: auto;
+}
+
+/* État vide (recherche sans résultat, etc.) */
+.noka-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 48px 24px;
+    gap: 12px;
+}
+.noka-empty-state img {
+    width: 140px;
+    height: auto;
+}
+.noka-empty-state h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    margin: 0;
+    color: var(--ink);
+}
+.noka-empty-state p {
+    color: var(--muted);
+    margin: 0;
+    max-width: 380px;
+}
+
+/* Pattern de marque (footer, écrans vides, pages login) */
+.noka-pattern-bg {
+    background-image: url('/static/noka_pattern.svg');
+    background-size: 240px 240px;
+}
+footer {
+    background-image: url('/static/noka_pattern.svg');
+    background-size: 240px 240px;
+}

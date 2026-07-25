@@ -8,7 +8,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from cache import CHAPTER_TTL_SECONDS, MANGA_TTL_SECONDS, cache
-from scraper.client import FetchError, get_html
+from scraper.client import FetchError, NotFoundError, get_html
 from scraper.parser import ChapterLink, ChapterPage, MangaDetail, parse_chapter, parse_manga
 
 logger = logging.getLogger(__name__)
@@ -59,6 +59,8 @@ async def read_chapter(request: Request, slug: str, chapter: str) -> HTMLRespons
         )
         # Passer le manga déjà chargé pour éviter un double fetch
         page = await get_chapter_page(slug, chapter, manga=manga)
+    except NotFoundError as exc:
+        raise HTTPException(status_code=404, detail="Chapter not found") from exc
     except FetchError as exc:
         logger.warning("Unable to load chapter %s/%s: %s", slug, chapter, exc)
         raise HTTPException(status_code=502, detail="Source unavailable") from exc

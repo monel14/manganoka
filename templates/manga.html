@@ -1,18 +1,29 @@
 <!doctype html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ manga.title }} - MangaNoka</title>
+    <title>{{ manga.title }} — MangaNoka</title>
     <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}">
     <link rel="icon" href="{{ url_for('static', path='/noka_logo.svg') }}" type="image/svg+xml">
+    <meta name="description" content="👀 Lis {{ manga.title }} sur MangaNoka. Une nouvelle aventure t'attend !">
+    <meta property="og:site_name" content="MangaNoka">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{{ manga.title }} — MangaNoka">
+    <meta property="og:description" content="👀 Lis {{ manga.title }} sur MangaNoka. Une nouvelle aventure t'attend !">
+    <meta property="og:image" content="{{ manga.cover }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="apple-touch-icon" href="{{ url_for('static', path='/apple-touch-icon.png') }}">
+    <link rel="manifest" href="{{ url_for('static', path='/manifest.json') }}">
+    <meta name="theme-color" content="#B51E3B">
     <script src="{{ url_for('static', path='/theme.js') }}"></script>
+    <script src="{{ url_for('static', path='/noka-loader.js') }}" defer></script>
 </head>
 <body>
     <header class="site-top">
         <div class="topbar">
-            <a class="brand" href="/" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text-color); font-weight: 700;">
-                <img src="{{ url_for('static', path='/noka_logo.svg') }}" alt="MangaNoka logo" style="width: 34px; height: 34px; object-fit: contain;">
+            <a class="brand" href="/">
+                <img class="brand-logo" src="{{ url_for('static', path='/noka_logo.svg') }}" alt="MangaNoka logo">
                 <span>Manga<b>Noka</b></span>
             </a>
             <form class="search-bar" action="/search" method="get" id="search-form">
@@ -20,15 +31,15 @@
                     type="text"
                     name="q"
                     id="search-input"
-                    placeholder="Search manga..."
+                    placeholder="Chercher un manga…"
                     autocomplete="off"
                     required>
                 <button type="submit">🔍</button>
                 <div id="search-dropdown" class="search-dropdown" hidden></div>
             </form>
             <nav class="quick-links" aria-label="Main navigation">
-                <a href="/">Home</a>
-                <a href="/?list=2">Latest Releases</a>
+                <a href="/">Accueil</a>
+                <a href="/?list=2">Derniers chapitres</a>
                 <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle Theme" title="Toggle Theme (Lanterne Noka)">
                     <svg class="lantern-icon" viewBox="0 0 24 24">
                         <!-- Crochet / Sommet de la lanterne -->
@@ -129,11 +140,11 @@
         str += results.map((r, i) => `
             <a href="/manga/${r.slug}">
                 <li id="${i}" class="option ${i === activeIndex ? 'selected' : ''}" style="display: flex; gap: 10px; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 8px 12px; text-align: left;">
-                    <img class="search_result_img" src="/img-proxy?url=${r.cover}" style="width: 45px; height: 60px; object-fit: cover; border-radius: 4px;" onerror="this.src='/static/style.css';" />
+                    <img class="search_result_img" src="/img-proxy?url=${r.cover}" style="width: 45px; height: 60px; object-fit: cover; border-radius: 4px;" onerror="this.onerror=null;this.src='/static/cover_placeholder.svg';" />
                     <div class="search_result_item_right" style="display: flex; flex-direction: column; overflow: hidden; flex-grow: 1;">
                         <p class="search_result_row1" id="${r.slug}" style="font-size: 13.5px; font-weight: bold; margin: 0 0 4px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-color);">${r.title}</p>
                         <p class="search_result_row2" style="font-size: 11px; margin: 0 0 2px 0; color: #888; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${r.author || ''}</p>
-                        <p class="search_result_row3" style="font-size: 11px; margin: 0; color: #ff530d; font-weight: bold;">${r.latest_chapter || 'Chapter 1'}</p>
+                        <p class="search_result_row3" style="font-size: 11px; margin: 0; color: var(--brand); font-weight: bold;">${r.latest_chapter || 'Chapter 1'}</p>
                     </div>
                 </li>
             </a>
@@ -142,8 +153,8 @@
         
         str += `
             <div id="search-footer" class="searchf" style="padding: 8px 12px; background: rgba(0,0,0,0.1); text-align: center; font-size: 11.5px; color: #888;">
-                <p style="margin: 0 0 4px 0;">Display first 20 results.</p>
-                <p style="margin: 0;"><a href="/search?q=${query}" style="color: #ff530d; text-decoration: none; font-weight: bold;">Click here to view all results.</a></p>
+                <p style="margin: 0 0 4px 0;">Voici les 20 premiers résultats de Noka.</p>
+                <p style="margin: 0;"><a href="/search?q=${query}" style="color: var(--brand); text-decoration: none; font-weight: bold;">Voir tous les résultats →</a></p>
             </div>
         `;
 
@@ -233,5 +244,5 @@
         </div>
     </footer>
 
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1f628527dc5da48',t:'MTc4NDc2MjIzMg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1f656131b141512',t:'MTc4NDc2NDEwNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a20445196963c326',t:'MTc4NDkxMDIxMg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>

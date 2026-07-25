@@ -15,6 +15,11 @@ class FetchError(RuntimeError):
     pass
 
 
+class NotFoundError(FetchError):
+    """La ressource n'existe pas sur le site source (404)."""
+    pass
+
+
 # Client HTTP asynchrone réutilisable
 _http_client: httpx.AsyncClient | None = None
 
@@ -60,6 +65,10 @@ async def get_html(path_or_url: str) -> str:
     try:
         response = await client.get(url)
         response.raise_for_status()
+    except httpx.HTTPStatusError as exc:
+        if exc.response.status_code == 404:
+            raise NotFoundError(f"Ressource introuvable: {url}") from exc
+        raise FetchError(f"Erreur HTTP pour {url}: {exc}") from exc
     except httpx.HTTPError as exc:
         raise FetchError(f"Erreur HTTP pour {url}: {exc}") from exc
 
