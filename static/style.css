@@ -381,6 +381,161 @@ img {
     color: var(--muted);
 }
 
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.05rem;
+}
+
+.section-title-icon {
+    color: var(--brand);
+    font-size: 1.15rem;
+}
+
+.manga-filter-details {
+    margin: 15px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: var(--paper-deep);
+    color: var(--text-color);
+    overflow: hidden;
+}
+
+.manga-filter-summary {
+    cursor: pointer;
+    padding: 12px 15px;
+    background: var(--paper-soft);
+    font-weight: 700;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.manga-filter-summary h5 {
+    margin: 0;
+    padding: 0;
+    display: inline-block;
+    color: inherit;
+    font-size: 14px;
+}
+
+.manga-filter-summary .fas.fa-filter {
+    margin-right: 6px;
+    color: var(--brand);
+}
+
+.filter-toggle {
+    font-size: 12px;
+    color: #888;
+}
+
+.manga-filter-content {
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.filter-header {
+    font-size: 13px;
+    font-weight: 700;
+    margin: 0;
+    color: var(--brand);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding-bottom: 5px;
+}
+
+.filter-separator {
+    margin-top: 10px;
+}
+
+.filter-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 12px;
+}
+
+.filter-list--inline {
+    gap: 10px;
+}
+
+.filter-chip {
+    display: inline-block;
+    padding: 4px 10px;
+    background: var(--paper-soft);
+    border-radius: 3px;
+    color: var(--text-color);
+    text-decoration: none;
+}
+
+.filter-chip--active {
+    background: var(--brand);
+    color: #fff;
+    font-weight: 700;
+}
+
+.filter-chip:hover,
+.filter-chip:focus-visible {
+    color: inherit;
+    text-decoration: none;
+}
+
+.chapter-list {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.chapter-link {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-decoration: none;
+    font-size: 13px;
+    padding: 2px 0;
+}
+
+.chapter-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #696969;
+}
+
+.chapter-date {
+    font-size: 11px;
+    color: #888;
+    flex-shrink: 0;
+    margin-left: 8px;
+}
+
+.view-more-wrapper {
+    text-align: center;
+    margin: 30px 0;
+}
+
+.view-more-link {
+    display: inline-block;
+    padding: 12px 45px;
+    background: var(--brand);
+    color: #fff;
+    font-weight: 700;
+    border-radius: 4px;
+    font-size: 15px;
+    text-decoration: none;
+}
+
+.pagination-panel {
+    margin-top: 25px;
+    margin-bottom: 25px;
+}
+
 .release-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -446,6 +601,12 @@ img {
 
 .release-meta h2 a {
     color: var(--ink);
+    display: block;
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
 }
 
 .chapter-list {
@@ -1351,4 +1512,88 @@ footer {
 footer {
     background-image: url('/static/noka_pattern.svg');
     background-size: 240px 240px;
+} 
+.popular-carousel-wrap{
+    position:relative;
+}
+
+/* cache les flèches tant qu'on ne survole pas */
+.popular-carousel-wrap .owl-controls{
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:220px; /* même hauteur que tes cartes */
+    z-index:50;
+    pointer-events:none;
+}
+
+.popular-carousel-wrap .owl-buttons{
+    width:100%;
+    height:100%;
+}
+
+/* Boutons */
+.popular-carousel-wrap .owl-prev,
+.popular-carousel-wrap .owl-next{
+    position:absolute;
+    top:50%;
+    transform:translateY(-50%);
+
+    width:48px;
+    height:70px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    cursor:pointer;
+    pointer-events:auto;
+
+    border-radius:6px;
+
+    opacity:0;
+    transition:.25s;
+
+    color:#fff;
+    font-size:0;
+}
+
+/* apparition au hover */
+.popular-carousel-wrap:hover .owl-prev,
+.popular-carousel-wrap:hover .owl-next{
+    opacity:1;
+}
+
+/* gauche */
+.popular-carousel-wrap .owl-prev{
+    left:8px;
+    background:rgba(0,0,0,.45);
+}
+
+/* droite */
+.popular-carousel-wrap .owl-next{
+    right:8px;
+    background:rgba(0,0,0,.45);
+}
+
+/* hover */
+.popular-carousel-wrap .owl-prev:hover,
+.popular-carousel-wrap .owl-next:hover{
+    background:rgba(181,30,58,.9);
+}
+
+/* icônes FontAwesome */
+.popular-carousel-wrap .owl-prev::before{
+    content:"\f104";
+    font-family:"Font Awesome 5 Free";
+    font-weight:900;
+    font-size:30px;
+}
+
+.popular-carousel-wrap .owl-next::before{
+    content:"\f105";
+    font-family:"Font Awesome 5 Free";
+    font-weight:900;
+    font-size:30px;
 }

@@ -1,29 +1,76 @@
 <!doctype html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% if page_title %}Read {{ page_title }} Online Free - MangaNoka{% else %}MangaNoka - Read Manga Online Free. Fast, responsive, and ad-free experience.{% endif %}</title>
+    <title>{% if page_title %}Read {{ page_title }} Online Free - MangaNoka{% else %}MangaNoka - Read Manga Online Free.
+        Fast, responsive, and ad-free experience.{% endif %}</title>
     <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}">
     <link rel="icon" href="{{ url_for('static', path='/noka_logo.svg') }}" type="image/svg+xml">
-    <meta name="description" content="Read manga online for free. Enjoy a fast, responsive, and ad-free experience with MangaNoka. Your guide to the next manga adventure!">
+    {% set current_title = manga.title if manga and manga.title else page_title %}
+    {% set og_title = 'Read ' ~ current_title ~ ' Online' if current_title else 'MangaNoka - Read Manga Online Free. Fast, responsive, and ad-free experience.' %}
+    {% set og_description = 'Read ' ~ current_title ~ ' online for free with MangaNoka.' if current_title else 'Read manga online for free. Enjoy a fast, responsive, and ad-free experience with MangaNoka.' %}
+    <meta name="description" content="{{ og_description }}">
     <meta property="og:site_name" content="MangaNoka">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="MangaNoka - Read Manga Online Free. Fast, responsive, and ad-free experience.">
-    <meta property="og:description" content="Read manga online for free. Enjoy a fast, responsive, and ad-free experience with MangaNoka.">
-    <meta property="og:image" content="{{ url_for('static', path='/og_image.png') }}">
+    <meta property="og:title" content="{{ og_title }}">
+    <meta property="og:description" content="{{ og_description }}">
+    {% set og_image = manga.cover if manga and manga.cover else url_for('static', path='/og_image.png') %}
+    {% set og_image_str = og_image|string %}
+    {% set og_image_abs = og_image_str if og_image_str.startswith('http://') or og_image_str.startswith('https://') else request.url.scheme ~ '://' ~ request.url.netloc ~ og_image_str %}
+    <meta property="og:image" content="{{ og_image_abs }}">
     <meta name="twitter:card" content="summary_large_image">
     <link rel="apple-touch-icon" href="{{ url_for('static', path='/apple-touch-icon.png') }}">
     <link rel="manifest" href="{{ url_for('static', path='/manifest.json') }}">
+    {% set canonical_url = request.url.scheme ~ '://' ~ request.url.netloc ~ request.url.path %}
+    <link rel="canonical" href="{{ canonical_url }}">
     <meta name="theme-color" content="#B51E3B">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "{{ canonical_url }}#organization",
+          "name": "MangaNoka",
+          "url": "{{ canonical_url }}",
+          "logo": "{{ request.url.scheme }}://{{ request.url.netloc }}{{ url_for('static', path='/noka_logo.svg') }}"
+        },
+        {
+          "@type": "WebSite",
+          "@id": "{{ canonical_url }}#website",
+          "name": "MangaNoka",
+          "url": "{{ canonical_url }}",
+          "publisher": {
+            "@id": "{{ canonical_url }}#organization"
+          },
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": "{{ request.url.scheme }}://{{ request.url.netloc }}/search?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+          }
+        },
+        {
+          "@type": "WebPage",
+          "@id": "{{ canonical_url }}#webpage",
+          "url": "{{ canonical_url }}",
+          "name": {{ og_title|tojson }},
+          "description": {{ og_description|tojson }}
+        }
+      ]
+    }
+    </script>
     <script src="{{ url_for('static', path='/theme.js') }}"></script>
     <script src="{{ url_for('static', path='/noka-loader.js') }}" defer></script>
     <!-- Chargement prioritaire de jQuery et Owl Carousel via CDN (résout les erreurs de chargement) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/owl-carousel/1.3.3/owl.carousel.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/owl-carousel/1.3.3/owl.theme.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/owl-carousel/1.3.3/owl.carousel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.theme.default.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js" defer></script>
 </head>
+
 <body>
     <header class="site-top">
         <div class="topbar">
@@ -32,33 +79,29 @@
                 <span>Manga<b>Noka</b></span>
             </a>
             <form class="search-bar" action="/search" method="get" id="search-form">
-                <input
-                    type="text"
-                    name="q"
-                    id="search-input"
-                    placeholder="Search manga..."
-                    autocomplete="off"
-                    required>
+                <input type="text" name="q" id="search-input" placeholder="Search manga..." autocomplete="off" required>
                 <button type="submit">🔍</button>
                 <div id="search-dropdown" class="search-dropdown" hidden></div>
             </form>
             <nav class="quick-links" aria-label="Main navigation">
                 <a href="/">Home</a>
                 <a href="/?list=2">Latest Releases</a>
-                <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle Theme" title="Toggle Theme (Lanterne Noka)">
+                <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle Theme"
+                    title="Toggle Theme (Lanterne Noka)">
                     <svg class="lantern-icon" viewBox="0 0 24 24">
                         <!-- Crochet / Sommet de la lanterne -->
-                        <path d="M12 2v3M9 5h6" stroke-linecap="round"/>
+                        <path d="M12 2v3M9 5h6" stroke-linecap="round" />
                         <!-- Corps de la Lanterne -->
-                        <rect x="7" y="8" width="10" height="10" rx="3"/>
+                        <rect x="7" y="8" width="10" height="10" rx="3" />
                         <!-- Chapeaux haut et bas -->
-                        <path d="M8 8c0-2 1.5-3 4-3s4 1 4 3M8 18c0 2 1.5 3 4 3s4-1 4-3" stroke-linecap="round"/>
+                        <path d="M8 8c0-2 1.5-3 4-3s4 1 4 3M8 18c0 2 1.5 3 4 3s4-1 4-3" stroke-linecap="round" />
                         <!-- Rainures/Nervures de la lanterne -->
-                        <path d="M10 8c-.5 2.5-.5 7.5 0 10M14 8c.5 2.5.5 7.5 0 10" stroke-width="1.2" stroke-dasharray="1 1"/>
+                        <path d="M10 8c-.5 2.5-.5 7.5 0 10M14 8c.5 2.5.5 7.5 0 10" stroke-width="1.2"
+                            stroke-dasharray="1 1" />
                         <!-- Lueur intérieure ambrée -->
-                        <circle cx="12" cy="13" r="4" class="lantern-glow"/>
+                        <circle cx="12" cy="13" r="4" class="lantern-glow" />
                         <!-- L'œil emblématique rouge de Noka -->
-                        <circle cx="12" cy="13" r="1.5" class="lantern-eye"/>
+                        <circle cx="12" cy="13" r="1.5" class="lantern-eye" />
                     </svg>
                 </button>
             </nav>
@@ -70,7 +113,8 @@
             <div class="notification-header-content">
                 <span class="text highlight">📢 Important Notice!</span>
                 <span class="notification-content-pc text">
-                    To ensure you always have easy access to our site, we highly recommend bookmarking our website by pressing <strong>Ctrl + D</strong> (on Windows) or <strong>Command + D</strong> (on Mac).
+                    To ensure you always have easy access to our site, we highly recommend bookmarking our website by
+                    pressing <strong>Ctrl + D</strong> (on Windows) or <strong>Command + D</strong> (on Mac).
                 </span>
             </div>
         </div>
@@ -82,185 +126,244 @@
 
         {% if popular %}
         <section class="slide" style="margin-bottom: 20px;">
-            <h3 class="title update-slide section-title" style="font-size: 18px; margin-bottom: 12px; font-weight: bold; color: var(--text-color); display: flex; align-items: center; gap: 8px;">
+            <h3 class="title update-slide section-title"
+                style="font-size: 18px; margin-bottom: 12px; font-weight: bold; color: var(--text-color); display: flex; align-items: center; gap: 8px;">
                 <i class="fas fa-thumbs-up" style="color: var(--brand);"></i> POPULAR MANGA
             </h3>
             <div class="popular-carousel-wrap">
-                <div id="owl-demo" class="owl-carousel" style="display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px;">
+                <div id="owl-demo" class="owl-carousel"
+                    style=" gap:15px;  padding-bottom:10px;">
                     {% for item in popular %}
-                        <div class="item" style="flex: 0 0 150px; position: relative; border-radius: 6px; overflow: hidden; background: #4A4A4A;">
-                            <a href="/manga/{{ item.slug }}">
-                                <img src="/img-proxy?url={{ item.cover }}" alt="{{ item.title }}" style="width: 150px; height: 200px; object-fit: cover; opacity: 0.8; transition: opacity 0.3s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.8">
-                            </a>
-                            <div class="slide-caption" style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.95)); padding: 10px; color: #fff;">
-                                <h3 style="font-size: 12px; margin: 0 0 5px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                    <a href="/manga/{{ item.slug }}" title="{{ item.title }}" style="color: #fff; text-decoration: none;">{{ item.title }}</a>
-                                </h3>
-                                {% if item.chapter.title %}
-                                    <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-                                        <a href="/read/{{ item.slug }}/{{ item.chapter.number }}" title="{{ item.chapter.title }}" style="font-size: 11px; color: var(--brand); text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ item.chapter.title }}</a>
-                                        <i class="fas fa-arrow-circle-right" style="color: #fff; opacity: 0.7; font-size: 11px; margin-left: 5px; flex-shrink: 0;"></i>
-                                    </div>
-                                {% endif %}
+                    <div class="item" style="
+                        position:relative;
+                        border-radius:8px;
+                        overflow:hidden;
+                        background:#4A4A4A;
+                        height:220px;
+                        margin-right: 10px;
+                    ">
+
+                        <a href="/manga/{{ item.slug }}" aria-label="{{ item.title }}" style="display:block; width:100%; height:100%;">
+                            <img src="/img-proxy?url={{ item.cover }}" alt="{{ item.title }}" 
+        width:100%;
+        height:220px;
+        object-fit:cover;
+        display:block;
+        opacity:.85;
+        transition:.3s;
+     ">
+
+                        </a>
+
+                        <div style="
+                    position:absolute;
+                    bottom:0;
+                    left:0;
+                    right:0;
+                    background:linear-gradient(to top, rgba(0,0,0,.95), transparent);
+                    padding:10px;
+                    color:#fff;
+                ">
+                            <h3 style="
+                        font-size:12px;
+                        margin:0 0 5px;
+                        overflow:hidden;
+                        text-overflow:ellipsis;
+                        white-space:nowrap;
+                    ">
+                                <a href="/manga/{{ item.slug }}" title="{{ item.title }}"
+                                    style="color:#fff;text-decoration:none;">
+                                    {{ item.title }}
+                                </a>
+                            </h3>
+
+                            {% if item.chapter.title %}
+                            <div style="display:flex;align-items:center;justify-content:space-between;">
+                                <a href="/read/{{ item.slug }}/{{ item.chapter.number }}"
+                                    title="{{ item.chapter.title }}" style="
+                                font-size:11px;
+                                color:var(--brand);
+                                text-decoration:none;
+                                overflow:hidden;
+                                text-overflow:ellipsis;
+                                white-space:nowrap;
+                           ">
+                                    {{ item.chapter.title }}
+                                </a>
+
+                                <i class="fas fa-arrow-circle-right"
+                                    style="color:#fff;opacity:.7;font-size:11px;margin-left:5px;"></i>
                             </div>
+                            {% endif %}
                         </div>
+                    </div>
                     {% endfor %}
                 </div>
             </div>
+
         </section>
         {% endif %}
 
         <div class="content-layout">
             <section class="main-column">
                 <div class="section-bar">
-                    <h1 style="display: flex; align-items: center; gap: 8px; font-size: 1.05rem;">
-                        <i class="fas fa-arrow-circle-right" style="color: var(--brand); font-size: 1.15rem;"></i>
+                    <h2 class="section-title">
+                        <i class="fas fa-arrow-circle-right section-title-icon"></i>
                         {% if page_title %}{{ page_title }}{% else %}Latest Manga Releases{% endif %}
-                    </h1>
+                    </h2>
                     {% if not is_home %}
-                        <div class="pagination">
-                            {% if previous_page_url %}
-                                <a href="{{ previous_page_url }}">Précédent</a>
-                            {% endif %}
-                            <span>Page {{ current_page }}</span>
-                            {% if next_page_url %}
-                                <a href="{{ next_page_url }}">Suivant</a>
-                            {% endif %}
-                        </div>
+                    <div class="pagination">
+                        {% if previous_page_url %}
+                        <a href="{{ previous_page_url }}">Précédent</a>
+                        {% endif %}
+                        <span>Page {{ current_page }}</span>
+                        {% if next_page_url %}
+                        <a href="{{ next_page_url }}">Suivant</a>
+                        {% endif %}
+                    </div>
                     {% endif %}
                 </div>
 
                 {% if not is_home %}
                 <!-- Manga Filter Accordion (MangaBats Style) -->
-                <details class="tag manga-filter-details" style="margin: 15px; border: 1px solid var(--line); border-radius: 4px; background: var(--paper-deep); color: var(--text-color); overflow: hidden;">
-                    <summary class="manga-filter-summary" style="cursor: pointer; padding: 12px 15px; background: var(--paper-soft); font-weight: bold; list-style: none; display: flex; justify-content: space-between; align-items: center;">
-                        <h5 style="margin: 0; padding: 0; display: inline-block; color: inherit; font-size: 14px;"><i class="fas fa-filter" style="margin-right: 6px; color: var(--brand);"></i> Filter </h5>
-                        <span style="font-size: 12px; color: #888;"><i class="fas fa-chevron-down toggle-icon"></i></span>
+                <details class="tag manga-filter-details">
+                    <summary class="manga-filter-summary">
+                        <h5><i class="fas fa-filter"></i> Filter</h5>
+                        <span class="filter-toggle"><i class="fas fa-chevron-down toggle-icon"></i></span>
                     </summary>
-                    
-                    <div class="manga-filter-content" style="padding: 15px; display: flex; flex-direction: column; gap: 15px;">
-                        <h6 class="filter-header" style="font-size: 13px; font-weight: bold; margin: 0; color: var(--brand); border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 5px;">Genres</h6>
-                        <ul class="tag-name" style="list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 8px; font-size: 12px;">
-                            <li><a href="/genre/action" style="display: inline-block; padding: 4px 10px; background: var(--paper-soft); border-radius: 3px; color: var(--text-color); text-decoration: none;">Action</a></li>
-                            <li><a href="/genre/adventure" style="display: inline-block; padding: 4px 10px; background: var(--paper-soft); border-radius: 3px; color: var(--text-color); text-decoration: none;">Adventure</a></li>
-                            <li><a href="/genre/comedy" style="display: inline-block; padding: 4px 10px; background: var(--paper-soft); border-radius: 3px; color: var(--text-color); text-decoration: none;">Comedy</a></li>
-                            <li><a href="/genre/drama" style="display: inline-block; padding: 4px 10px; background: var(--paper-soft); border-radius: 3px; color: var(--text-color); text-decoration: none;">Drama</a></li>
-                            <li><a href="/genre/fantasy" style="display: inline-block; padding: 4px 10px; background: var(--paper-soft); border-radius: 3px; color: var(--text-color); text-decoration: none;">Fantasy</a></li>
-                            <li><a href="/genre/romance" style="display: inline-block; padding: 4px 10px; background: var(--paper-soft); border-radius: 3px; color: var(--text-color); text-decoration: none;">Romance</a></li>
-                            <li><a href="/genre/shounen" style="display: inline-block; padding: 4px 10px; background: var(--paper-soft); border-radius: 3px; color: var(--text-color); text-decoration: none;">Shounen</a></td>
-                            <li><a href="/genre/shoujo" style="display: inline-block; padding: 4px 10px; background: var(--paper-soft); border-radius: 3px; color: var(--text-color); text-decoration: none;">Shoujo</a></td>
-                            <li><a href="/genre/slice-of-life" style="display: inline-block; padding: 4px 10px; background: var(--paper-soft); border-radius: 3px; color: var(--text-color); text-decoration: none;">Slice of Life</a></td>
-                        </ul>
-                        
-                        <h6 class="filter-header filter-separator" style="font-size: 13px; font-weight: bold; margin: 0; color: var(--brand); border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 5px; margin-top: 10px;">Type</h6>
-                        <ul class="spec-tag" style="list-style: none; padding: 0; margin: 0; display: flex; gap: 10px; font-size: 12px;">
-                            <li><a href="/manga-list/new-manga" style="display: inline-block; padding: 5px 12px; background: var(--paper-soft); border-radius: 3px; color: var(--text-color); text-decoration: none;">Newest</a></li>
-                            <li><a href="/manga-list/latest-manga" style="display: inline-block; padding: 5px 12px; background: var(--brand); border-radius: 3px; color: #fff; font-weight: bold; text-decoration: none;">Latest</a></li>
-                            <li><a href="/manga-list/hot-manga" style="display: inline-block; padding: 5px 12px; background: var(--paper-soft); border-radius: 3px; color: var(--text-color); text-decoration: none;">Top read</a></li>
+
+                    <div class="manga-filter-content">
+                        <h6 class="filter-header">Genres</h6>
+                        <ul class="tag-name filter-list">
+                            <li tabindex="0"><a class="filter-chip" href="/genre/action">Action</a></li>
+                            <li tabindex="0"><a class="filter-chip" href="/genre/adventure">Adventure</a></li>
+                            <li tabindex="0"><a class="filter-chip" href="/genre/comedy">Comedy</a></li>
+                            <li tabindex="0"><a class="filter-chip" href="/genre/drama">Drama</a></li>
+                            <li tabindex="0"><a class="filter-chip" href="/genre/fantasy">Fantasy</a></li>
+                            <li tabindex="0"><a class="filter-chip" href="/genre/romance">Romance</a></li>
+                            <li tabindex="0"><a class="filter-chip" href="/genre/shounen">Shounen</a></li>
+                            <li tabindex="0"><a class="filter-chip" href="/genre/shoujo">Shoujo</a></li>
+                            <li tabindex="0"><a class="filter-chip" href="/genre/slice-of-life">Slice of Life</a></li>
                         </ul>
 
-                        <h6 class="filter-header filter-separator" style="font-size: 13px; font-weight: bold; margin: 0; color: var(--brand); border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 5px; margin-top: 10px;">Status</h6>
-                        <ul class="spec-tag" style="list-style: none; padding: 0; margin: 0; display: flex; gap: 10px; font-size: 12px;">
-                            <li><a href="/manga-list/latest-manga" style="display: inline-block; padding: 5px 12px; background: var(--brand); border-radius: 3px; color: #fff; font-weight: bold; text-decoration: none;">All</a></li>
-                            <li><a href="/manga-list/completed-manga" style="display: inline-block; padding: 5px 12px; background: var(--paper-soft); border-radius: 3px; color: var(--text-color); text-decoration: none;">Completed</a></li>
-                            <li><a href="/manga-list/ongoing-manga" style="display: inline-block; padding: 5px 12px; background: var(--paper-soft); border-radius: 3px; color: var(--text-color); text-decoration: none;">Ongoing</a></li>
+                        <h6 class="filter-header filter-separator">Type</h6>
+                        <ul class="spec-tag filter-list filter-list--inline">
+                            <li tabindex="0"><a class="filter-chip" href="/manga-list/new-manga">Newest</a></li>
+                            <li tabindex="0"><a class="filter-chip filter-chip--active" href="/manga-list/latest-manga">Latest</a></li>
+                            <li tabindex="0"><a class="filter-chip" href="/manga-list/hot-manga">Top read</a></li>
+                        </ul>
+
+                        <h6 class="filter-header filter-separator">Status</h6>
+                        <ul class="spec-tag filter-list filter-list--inline">
+                            <li tabindex="0"><a class="filter-chip filter-chip--active" href="/manga-list/latest-manga">All</a></li>
+                            <li tabindex="0"><a class="filter-chip" href="/manga-list/completed-manga">Completed</a></li>
+                            <li tabindex="0"><a class="filter-chip" href="/manga-list/ongoing-manga">Ongoing</a></li>
                         </ul>
                     </div>
                 </details>
                 {% endif %}
 
                 {% if error %}
-                    <p class="notice">{{ error }}</p>
+                <p class="notice">{{ error }}</p>
                 {% endif %}
 
                 <div class="release-grid">
                     {% for manga in mangas %}
-                        <article class="release-item">
-                            <a href="/manga/{{ manga.slug }}" class="release-cover">
-                                {% if manga.cover %}
-                                    <img src="/img-proxy?url={{ manga.cover }}" alt="{{ manga.title }}" loading="lazy">
-                                {% else %}
-                                    <span>{{ manga.title[:1] }}</span>
-                                {% endif %}
-                            </a>
-                            <div class="release-meta">
-                                <h2>
-                                    <a href="/manga/{{ manga.slug }}">{{ manga.title }}</a>
-                                </h2>
-                                <div class="chapter-list" style="display: flex; flex-direction: column; gap: 5px;">
-                                    {% for chapter in manga.chapters[:3] %}
-                                        <a href="/read/{{ manga.slug }}/{{ chapter.number }}" style="display: flex; justify-content: space-between; align-items: center; text-decoration: none; font-size: 13px; padding: 2px 0;">
-                                            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #696969;">» {{ chapter.title }}</span>
-                                            {% if chapter.date %}
-                                                <time style="font-size: 11px; color: #888; flex-shrink: 0; margin-left: 8px;">{{ chapter.date }}</time>
-                                            {% endif %}
-                                        </a>
-                                    {% endfor %}
-                                </div>
+                    <article class="release-item">
+                        <a href="/manga/{{ manga.slug }}" class="release-cover" aria-label="{{ manga.title }}">
+                            {% if manga.cover %}
+                            <img src="/img-proxy?url={{ manga.cover }}" alt="{{ manga.title }}" loading="lazy" decoding="async"
+>
+                            {% else %}
+                            <span>{{ manga.title[:1] }}</span>
+                            {% endif %}
+                        </a>
+                        <div class="release-meta">
+                            <h2>
+                                <a href="/manga/{{ manga.slug }}">{{ manga.title }}</a>
+                            </h2>
+                            <div class="chapter-list">
+                                {% for chapter in manga.chapters[:3] %}
+                                <a class="chapter-link" href="/read/{{ manga.slug }}/{{ chapter.number }}">
+                                    <span class="chapter-title">» {{ chapter.title }}</span>
+                                    {% if chapter.date %}
+                                    <time class="chapter-date">{{ chapter.date }}</time>
+                                    {% endif %}
+                                </a>
+                                {% endfor %}
                             </div>
-                        </article>
+                        </div>
+                    </article>
                     {% else %}
-                        <p class="empty">No manga found.</p>
+                    <p class="empty">No manga found.</p>
                     {% endfor %}
                 </div>
 
                 {% if is_home %}
-                    <!-- "VIEW MORE" button at the bottom of the home page -->
-                    <div id="loadpage" style="text-align: center; margin: 30px 0;">
-                        <a href="/manga-list/latest-manga" title="View all manga releases" class="xem-them" style="display: inline-block; padding: 12px 45px; background: var(--brand); color: #fff; font-weight: bold; border-radius: 4px; font-size: 15px; text-decoration: none;">VIEW MORE</a>
-                    </div>
+                <!-- "VIEW MORE" button at the bottom of the home page -->
+                <div id="loadpage" class="view-more-wrapper">
+                    <a href="/manga-list/latest-manga" title="View all manga releases" class="xem-them view-more-link">VIEW MORE</a>
+                </div>
                 {% else %}
-                    <!-- MangaBats style page list pagination -->
-                    <div class="panel_page_number" style="margin-top: 25px; margin-bottom: 25px;">
-                        <div class="group_page">
-                            {% if previous_page_url %}
-                                <a class="page_blue" href="{{ previous_page_url }}">First(1)</a>
-                                <a href="{{ previous_page_url }}">Prev</a>
-                            {% endif %}
-                            
-                            <a class="page_select" href="#">{{ current_page }}</a>
-                            
-                            {% if next_page_url %}
-                                <a href="{{ next_page_url }}">{{ current_page + 1 }}</a>
-                                <a class="page_blue page_last" href="{{ next_page_url }}">Last</a>
-                            {% endif %}
-                        </div>
+                <!-- MangaBats style page list pagination -->
+                <div class="panel_page_number pagination-panel">
+                    <div class="group_page">
+                        {% if previous_page_url %}
+                        <a class="page_blue" href="{{ previous_page_url }}">First(1)</a>
+                        <a href="{{ previous_page_url }}">Prev</a>
+                        {% endif %}
+
+                        <a class="page_select" href="#">{{ current_page }}</a>
+
+                        {% if next_page_url %}
+                        <a href="{{ next_page_url }}">{{ current_page + 1 }}</a>
+                        <a class="page_blue page_last" href="{{ next_page_url }}">Last</a>
+                        {% endif %}
                     </div>
+                </div>
                 {% endif %}
             </section>
 
             <aside class="side-column">
                 <!-- 1. History Sidebar Widget -->
-                <div id="history-sidebar" class="history-container only-pc" style="display: none; margin-bottom: 20px;">
+                <div id="history-sidebar-content" class="history-container only-pc"
+                    style="display: none; margin-bottom: 20px;">
                     <div id="history-sidebar-header" class="history-sidebar-header">
                         <h3 class="history-title history-title-bold">History</h3>
-                        <a href="/history" class="history-title history-title-viewmore">View More <i class="fas fa-angle-double-right"></i></a>
+                        <a href="/history" class="history-title history-title-viewmore">View More <i
+                                class="fas fa-angle-double-right"></i></a>
                     </div>
-                                    </div>
+                </div>
 
                 <!-- 2. Most Popular Manga Widget -->
                 <div class="xem-nhieu">
                     <h2 class="title all-title section-bar">Most Popular Manga</h2>
                     <div class="all" style="display: flex; flex-direction: column; gap: 8px;">
                         {% for item in popular_sidebar %}
-                            <div class="xem-nhieu-item" style="text-align: left; padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                <h3 style="font-size: 13px; margin: 0; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                    <a href="/manga/{{ item.slug }}" title="{{ item.title }}" style="color: var(--text-color); text-decoration: none;">
-                                        {{ item.title }}
-                                    </a>
-                                </h3>
-                            </div>
+                        <div class="xem-nhieu-item"
+                            style="text-align: left; padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <h3
+                                style="font-size: 13px; margin: 0; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <a href="/manga/{{ item.slug }}" title="{{ item.title }}"
+                                    style="color: var(--text-color); text-decoration: none;">
+                                    {{ item.title }}
+                                </a>
+                            </h3>
+                        </div>
                         {% else %}
-                            <!-- Fallback si vide -->
-                            {% for manga in mangas[:10] %}
-                                <div class="xem-nhieu-item" style="text-align: left; padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                    <h3 style="font-size: 13px; margin: 0; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                        <a href="/manga/{{ manga.slug }}" title="{{ manga.title }}" style="color: var(--text-color); text-decoration: none;">
-                                            {{ manga.title }}
-                                        </a>
-                                    </h3>
-                                </div>
-                            {% endfor %}
+                        <!-- Fallback si vide -->
+                        {% for manga in mangas[:10] %}
+                        <div class="xem-nhieu-item"
+                            style="text-align: left; padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <h3
+                                style="font-size: 13px; margin: 0; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <a href="/manga/{{ manga.slug }}" title="{{ manga.title }}"
+                                    style="color: var(--text-color); text-decoration: none;">
+                                    {{ manga.title }}
+                                </a>
+                            </h3>
+                        </div>
+                        {% endfor %}
                         {% endfor %}
                     </div>
                 </div>
@@ -269,114 +372,152 @@
 
                 <!-- 3. GENRES Table Widget (MangaBats complete set) -->
                 <div class="panel-category" style="margin-top: 25px; text-align: left;">
-                    <h3 class="panel-category-title" style="font-size: 14px; font-weight: bold; border-bottom: 2px solid var(--brand); padding-bottom: 8px; margin-bottom: 15px; color: var(--text-color);">GENRES</h3>
+                    <h3 class="panel-category-title"
+                        style="font-size: 14px; font-weight: bold; border-bottom: 2px solid var(--brand); padding-bottom: 8px; margin-bottom: 15px; color: var(--text-color);">
+                        GENRES</h3>
                     <table style="width: 100%; border-collapse: collapse; font-size: 12px; line-height: 1.4;">
                         <tbody>
                             <tr>
-                                <td style="padding: 5px 3px;"><a rel="nofollow" href="/manga-list/new-manga" style="color: var(--brand); font-weight: bold; text-decoration: none;">Newest</a></td>
-                                <td style="padding: 5px 3px;"><a rel="nofollow" href="/manga-list/latest-manga" style="color: var(--text-color); text-decoration: none;">Latest</a></td>
-                                <td style="padding: 5px 3px;"><a rel="nofollow" href="/manga-list/hot-manga" style="color: var(--text-color); text-decoration: none;">Top read</a></td>
+                                <td style="padding: 5px 3px;"><a rel="nofollow" href="/manga-list/new-manga"
+                                        style="color: var(--brand); font-weight: bold; text-decoration: none;">Newest</a>
+
+                                <td style="padding: 5px 3px;"><a rel="nofollow" href="/manga-list/latest-manga"
+                                        style="color: var(--text-color); text-decoration: none;">Latest</a>
+                                <td style="padding: 5px 3px;"><a rel="nofollow" href="/manga-list/hot-manga"
+                                        style="color: var(--text-color); text-decoration: none;">Top read</a>
                             </tr>
                             <tr style="border-top: 1px solid rgba(255,255,255,0.05);">
-                                <td style="padding: 5px 3px;"><a rel="nofollow" href="/genre/all" style="color: var(--brand); font-weight: bold; text-decoration: none;">All</a></td>
-                                <td style="padding: 5px 3px;"><a rel="nofollow" href="/manga-list/completed-manga" style="color: var(--text-color); text-decoration: none;">Completed</a></td>
-                                <td style="padding: 5px 3px;"><a rel="nofollow" href="/manga-list/ongoing-manga" style="color: var(--text-color); text-decoration: none;">Ongoing</a></td>
+                                <td style="padding: 5px 3px;"><a rel="nofollow" href="/genre/all"
+                                        style="color: var(--brand); font-weight: bold; text-decoration: none;">All</a>
+
+                                <td style="padding: 5px 3px;"><a rel="nofollow" href="/manga-list/completed-manga"
+                                        style="color: var(--text-color); text-decoration: none;">Completed</a>
+                                <td style="padding: 5px 3px;"><a rel="nofollow" href="/manga-list/ongoing-manga"
+                                        style="color: var(--text-color); text-decoration: none;">Ongoing</a>
                             </tr>
-                            
+
                             <tr style="border-top: 1px solid rgba(255,255,255,0.05);">
-                                <td style="padding: 5px 3px;"><a href="/genre/action" title="Action">Action</a></td>
-                                <td style="padding: 5px 3px;"><a href="/genre/adaptation" title="Adaptation">Adaptation</a></td>
-                                <td style="padding: 5px 3px;"><a href="/genre/adult" title="Adult">Adult</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/action" title="Action">Action</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/adaptation"
+                                        title="Adaptation">Adaptation</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/adult" title="Adult">Adult</a>
                             </tr>
                             <tr>
-                                <td style="padding: 5px 3px;"><a href="/genre/adventure" title="Adventure">Adventure</a></td>
-                                <td style="padding: 5px 3px;"><a href="/genre/boys-love" title="Boys Love">Boys Love</a></td>
-                                <td style="padding: 5px 3px;"><a href="/genre/childhood-friends" title="Childhood_friends">Childhood_friends</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/adventure" title="Adventure">Adventure</a>
+
+                                <td style="padding: 5px 3px;"><a href="/genre/boys-love" title="Boys Love">Boys Love</a>
+
+                                <td style="padding: 5px 3px;"><a href="/genre/childhood-friends"
+                                        title="Childhood_friends">Childhood_friends</a>
                             </tr>
                             <tr>
-                                <td style="padding: 5px 3px;"><a href="/genre/comedy" title="Comedy">Comedy</a></td>
-                                <td style="padding: 5px 3px;"><a href="/genre/demons" title="Demons">Demons</a></td>
-                                <td style="padding: 5px 3px;"><a href="/genre/doujinshi" title="Doujinshi">Doujinshi</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/comedy" title="Comedy">Comedy</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/demons" title="Demons">Demons</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/doujinshi" title="Doujinshi">Doujinshi</a>
+
                             </tr>
                             <tr>
-                                <td style="padding: 5px 3px;"><a href="/genre/drama" title="Drama">Drama</a></td>
-                                <td style="padding: 5px 3px;"><a href="/genre/ecchi" title="Ecchi">Ecchi</a></td>
-                                <td style="padding: 5px 3px;"><a href="/genre/erotica" title="Erotica">Erotica</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/drama" title="Drama">Drama</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/ecchi" title="Ecchi">Ecchi</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/erotica" title="Erotica">Erotica</a>
                             </tr>
                             <tr>
-                                <td style="padding: 5px 3px;"><a href="/genre/fantasy" title="Fantasy">Fantasy</a></td>
-                                <td style="padding: 5px 3px;"><a href="/genre/full-color" title="Full Color">Full Color</a></td>
-                                <td style="padding: 5px 3px;"><a href="/genre/gender-bender" title="Gender bender">Gender bender</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/fantasy" title="Fantasy">Fantasy</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/full-color" title="Full Color">Full
+                                        Color</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/gender-bender"
+                                        title="Gender bender">Gender bender</a>
                             </tr>
                             <tr>
-                                <td style="padding: 5px 3px;"><a href="/genre/harem" title="Harem">Harem</a></td>
-                                <td style="padding: 5px 3px;"><a href="/genre/heartwarming" title="Heartwarming">Heartwarming</a></td>
-                                <td style="padding: 5px 3px;"><a href="/genre/hentai" title="Hentai">Hentai</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/harem" title="Harem">Harem</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/heartwarming"
+                                        title="Heartwarming">Heartwarming</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/hentai" title="Hentai">Hentai</a>
                             </tr>
                             <tr>
-                                <td style="padding: 5px 3px;"><a href="/genre/historical" title="Historical">Historical</a></td>
-                                <td style="padding: 5px 3px;"><a href="/genre/isekai" title="Isekai">Isekai</a></td>
-                                <td style="padding: 5px 3px;"><a href="/genre/josei" title="Josei">Josei</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/historical"
+                                        title="Historical">Historical</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/isekai" title="Isekai">Isekai</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/josei" title="Josei">Josei</a>
                             </tr>
                             <tr>
-                                <td style="padding: 5px 3px;"><a href="/genre/long-strip" title="Long Strip">Long Strip</a></td>
-                                <td style="padding: 5px 3px;"><a href="/genre/magic" title="Magic">Magic</a></td>
-                                <td style="padding: 5px 3px;"><a href="/genre/manga" title="Manga">Manga</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/long-strip" title="Long Strip">Long
+                                        Strip</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/magic" title="Magic">Magic</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/manga" title="Manga">Manga</a>
                             </tr>
                             <tr>
-                                <td style="padding: 5px 3px;"><a href="/genre/manhua" title="Manhua">Manhua</a></td>
-                                <td style="padding: 5px 3px;"><a href="/genre/manhwa" title="Manhwa">Manhwa</a></td>
-                                <td style="padding: 5px 3px;"><a href="/genre/martial-arts" title="Martial arts">Martial arts</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/manhua" title="Manhua">Manhua</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/manhwa" title="Manhwa">Manhwa</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/martial-arts" title="Martial arts">Martial
+                                        arts</a>
                             </tr>
                             <tr>
-                                <td style="padding: 5px 3px;"><a href="/genre/mature" title="Mature">Mature</a></td>
-                                <td style="padding: 5px 3px;"><a href="/genre/mecha" title="Mecha">Mecha</a></td>
-                                <td style="padding: 5px 3px;"><a href="/genre/monsters" title="Monsters">Monsters</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/mature" title="Mature">Mature</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/mecha" title="Mecha">Mecha</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/monsters" title="Monsters">Monsters</a>
+
                             </tr>
                             <tr>
-                                <td style="padding: 5px 3px;"><a href="/genre/mystery" title="Mystery">Mystery</a></td>
-                                <td style="padding: 5px 3px;"><a href="/genre/netorare" title="Netorare">Netorare</a></td>
-                                <td style="padding: 5px 3px;"><a href="/genre/office-workers" title="Office Workers">Office Workers</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/mystery" title="Mystery">Mystery</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/netorare" title="Netorare">Netorare</a>
+
+                                <td style="padding: 5px 3px;"><a href="/genre/office-workers"
+                                        title="Office Workers">Office Workers</a>
                             </tr>
                             <tr>
-                                <td style="padding: 5px 3px;"><a href="/genre/one-shot" title="One shot">One shot</a></td>
-                                <td style="padding: 5px 3px;"><a href="/genre/pornographic" title="Pornographic">Pornographic</a></td>
-                                <td style="padding: 5px 3px;"><a href="/genre/psychological" title="Psychological">Psychological</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/one-shot" title="One shot">One shot</a>
+
+                                <td style="padding: 5px 3px;"><a href="/genre/pornographic"
+                                        title="Pornographic">Pornographic</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/psychological"
+                                        title="Psychological">Psychological</a>
                             </tr>
                             <tr>
-                                <td style="padding: 5px 3px;"><a href="/genre/reincarnation" title="Reincarnation">Reincarnation</a></td>
-                                <td style="padding: 5px 3px;"><a href="/genre/revenge" title="Revenge">Revenge</a></td>
-                                <td style="padding: 5px 3px;"><a href="/genre/romance" title="Romance">Romance</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/reincarnation"
+                                        title="Reincarnation">Reincarnation</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/revenge" title="Revenge">Revenge</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/romance" title="Romance">Romance</a>
                             </tr>
                             <tr>
-                                <td style="padding: 5px 3px;"><a href="/genre/school-life" title="School life">School life</a></td>
-                                <td style="padding: 5px 3px;"><a href="/genre/shoujo" title="Shoujo">Shoujo</a></td>
-                                <td style="padding: 5px 3px;"><a href="/genre/shounen" title="Shounen">Shounen</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/school-life" title="School life">School
+                                        life</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/shoujo" title="Shoujo">Shoujo</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/shounen" title="Shounen">Shounen</a>
                             </tr>
                             <tr>
-                                <td style="padding: 5px 3px;"><a href="/genre/slice-of-life" title="Slice of life">Slice of Life</a></td>
-                                <td style="padding: 5px 3px;"><a href="/genre/smut" title="Smut">Smut</a></td>
-                                <td style="padding: 5px 3px;"><a href="/genre/sm-bdsm" title="Sm_bdsm">Sm_bdsm</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/slice-of-life" title="Slice of life">Slice
+                                        of Life</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/smut" title="Smut">Smut</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/sm-bdsm" title="Sm_bdsm">Sm_bdsm</a>
                             </tr>
                             <tr>
-                                <td style="padding: 5px 3px;"><a href="/genre/super-power" title="Super Power">Super Power</a></td>
-                                <td style="padding: 5px 3px;"><a href="/genre/supernatural" title="Supernatural">Supernatural</a></td>
-                                <td style="padding: 5px 3px;"><a href="/genre/survival" title="Survival">Survival</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/super-power" title="Super Power">Super
+                                        Power</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/supernatural"
+                                        title="Supernatural">Supernatural</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/survival" title="Survival">Survival</a>
+
                             </tr>
                             <tr>
-                                <td style="padding: 5px 3px;"><a href="/genre/time-travel" title="Time Travel">Time Travel</a></td>
-                                <td style="padding: 5px 3px;"><a href="/genre/tragedy" title="Tragedy">Tragedy</a></td>
-                                <td style="padding: 5px 3px;"><a href="/genre/transmigration" title="Transmigration">Transmigration</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/time-travel" title="Time Travel">Time
+                                        Travel</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/tragedy" title="Tragedy">Tragedy</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/transmigration"
+                                        title="Transmigration">Transmigration</a>
                             </tr>
                             <tr>
-                                <td style="padding: 5px 3px;"><a href="/genre/vampires" title="Vampires">Vampires</a></td>
-                                <td style="padding: 5px 3px;"><a href="/genre/villainess" title="Villainess">Villainess</a></td>
-                                <td style="padding: 5px 3px;"><a href="/genre/webtoons" title="Webtoons">Webtoons</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/vampires" title="Vampires">Vampires</a>
+
+                                <td style="padding: 5px 3px;"><a href="/genre/villainess"
+                                        title="Villainess">Villainess</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/webtoons" title="Webtoons">Webtoons</a>
+
                             </tr>
                             <tr>
-                                <td style="padding: 5px 3px;"><a href="/genre/yaoi" title="Yaoi">Yaoi</a></td>
-                                <td style="padding: 5px 3px;"><a href="/genre/yuri" title="Yuri">Yuri</a></td>
-                                <td style="padding: 5px 3px;"></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/yaoi" title="Yaoi">Yaoi</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/yuri" title="Yuri">Yuri</a>
+                                <td style="padding: 5px 3px;">
                             </tr>
                         </tbody>
                     </table>
@@ -384,20 +525,20 @@
             </aside>
         </div>
     </main>
-<script>
-(function () {
-    const input = document.getElementById('search-input');
-    const dropdown = document.getElementById('search-dropdown');
-    let debounceTimer = null;
-    let activeIndex = -1;
+    <script>
+        (function () {
+            const input = document.getElementById('search-input');
+            const dropdown = document.getElementById('search-dropdown');
+            let debounceTimer = null;
+            let activeIndex = -1;
 
-    function renderDropdown(results) {
-        if (!results.length) { dropdown.hidden = true; return; }
+            function renderDropdown(results) {
+                if (!results.length) { dropdown.hidden = true; return; }
 
-        const query = encodeURIComponent(input.value.trim());
-        
-        let str = "<ul>";
-        str += results.map((r, i) => `
+                const query = encodeURIComponent(input.value.trim());
+
+                let str = "<ul>";
+                str += results.map((r, i) => `
             <a href="/manga/${r.slug}">
                 <li id="${i}" class="option ${i === activeIndex ? 'selected' : ''}" style="display: flex; gap: 10px; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 8px 12px; text-align: left;">
                     <img class="search_result_img" src="/img-proxy?url=${r.cover}" style="width: 45px; height: 60px; object-fit: cover; border-radius: 4px;" onerror="this.onerror=null;this.src='/static/noka_lost.svg';" />
@@ -409,82 +550,96 @@
                 </li>
             </a>
         `).join('');
-        str += "</ul>";
-        
-        str += `
+                str += "</ul>";
+
+                str += `
             <div id="search-footer" class="searchf" style="padding: 8px 12px; background: rgba(0,0,0,0.1); text-align: center; font-size: 11.5px; color: #888;">
                 <p style="margin: 0 0 4px 0;">Voici les 20 premiers résultats de Noka.</p>
                 <p style="margin: 0;"><a href="/search?q=${query}" style="color: var(--brand); text-decoration: none; font-weight: bold;">Voir tous les résultats →</a></p>
             </div>
         `;
 
-        dropdown.innerHTML = str;
-        activeIndex = -1;
-        dropdown.hidden = false;
-    }
-
-    function fetchResults(q) {
-        fetch(`/api/search?q=${encodeURIComponent(q)}`)
-            .then(r => r.json())
-            .then(data => renderDropdown(data.results || []))
-            .catch(() => { dropdown.hidden = true; });
-    }
-
-    input.addEventListener('input', function () {
-        clearTimeout(debounceTimer);
-        const q = this.value.trim();
-        if (q.length < 2) { dropdown.hidden = true; return; }
-        debounceTimer = setTimeout(() => fetchResults(q), 300);
-    });
-
-    // Keyboard navigation
-    input.addEventListener('keydown', function (e) {
-        const items = dropdown.querySelectorAll('.option');
-        if (!items.length) return;
-        if (e.key === 'ArrowDown') {
-            e.preventDefault();
-            activeIndex = Math.min(activeIndex + 1, items.length - 1);
-        } else if (e.key === 'ArrowUp') {
-            e.preventDefault();
-            activeIndex = Math.max(activeIndex - 1, -1);
-        } else if (e.key === 'Escape') {
-            dropdown.hidden = true; return;
-        } else { return; }
-        
-        items.forEach((el, i) => {
-            if (i === activeIndex) {
-                el.classList.add('selected');
-                el.style.background = 'rgba(255,255,255,0.05)';
-            } else {
-                el.classList.remove('selected');
-                el.style.background = 'transparent';
+                dropdown.innerHTML = str;
+                activeIndex = -1;
+                dropdown.hidden = false;
             }
-        });
-        if (activeIndex >= 0) items[activeIndex].focus();
-    });
 
-    // Close on outside click
-    document.addEventListener('click', function (e) {
-        if (!document.getElementById('search-form').contains(e.target)) {
-            dropdown.hidden = true;
-        }
-    });
-})();
-</script>
+            function fetchResults(q) {
+                fetch(`/api/search?q=${encodeURIComponent(q)}`)
+                    .then(r => r.json())
+                    .then(data => renderDropdown(data.results || []))
+                    .catch(() => { dropdown.hidden = true; });
+            }
 
-<script>
-// Initialisation du carrousel populaire et chargement de l'historique
-$(document).ready(function() {
-    // 1. Peuplement de l'historique de lecture depuis localStorage
-    const historyList = document.getElementById("history-sidebar-content");
-    const historyPanel = document.getElementById("history-sidebar");
-    const history = JSON.parse(localStorage.getItem("manga_history") || "[]");
-    
-    if (historyList && historyPanel && history.length > 0) {
-        historyPanel.style.display = "block";
-        historyList.innerHTML = history.map(item => `
+            input.addEventListener('input', function () {
+                clearTimeout(debounceTimer);
+                const q = this.value.trim();
+                if (q.length < 2) { dropdown.hidden = true; return; }
+                debounceTimer = setTimeout(() => fetchResults(q), 300);
+            });
+
+            // Keyboard navigation
+            input.addEventListener('keydown', function (e) {
+                const items = dropdown.querySelectorAll('.option');
+                if (!items.length) return;
+
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    activeIndex = Math.min(activeIndex + 1, items.length - 1);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    activeIndex = Math.max(activeIndex - 1, -1);
+                } else if (e.key === 'Escape') {
+                    dropdown.hidden = true;
+                    return;
+                } else if (e.key === 'Enter') {
+                    if (activeIndex >= 0) {
+                        e.preventDefault();
+                        items[activeIndex].closest('a').click();
+                    }
+                    return;
+                } else {
+                    return;
+                }
+
+                items.forEach((el, i) => {
+                    if (i === activeIndex) {
+                        el.classList.add('selected');
+                        el.style.background = 'rgba(255,255,255,0.05)';
+                    } else {
+                        el.classList.remove('selected');
+                        el.style.background = 'transparent';
+                    }
+                });
+
+                if (activeIndex >= 0) {
+                    items[activeIndex].focus();
+                }
+            });
+
+            // Close on outside click
+            document.addEventListener('click', function (e) {
+                if (!document.getElementById('search-form').contains(e.target)) {
+                    dropdown.hidden = true;
+                }
+            });
+        })();
+    </script>
+
+    <script>
+        // Initialisation du carrousel populaire et chargement de l'historique
+        $(document).ready(function () {
+            // 1. Peuplement de l'historique de lecture depuis localStorage
+            const historyList = document.getElementById("history-sidebar-content");
+            const historyPanel = document.getElementById("history-sidebar-content");
+            const history = JSON.parse(localStorage.getItem("manga_history") || "[]");
+
+            if (historyList && historyPanel && history.length > 0) {
+                historyPanel.style.display = "block";
+                const header = historyList.querySelector("#history-sidebar-header");
+                const itemsMarkup = history.map(item => `
             <div class="history-sidebar-content-item" style="display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
-                <a rel="nofollow" href="/manga/${item.slug}" class="comic-link">
+                <a rel="nofollow" href="/manga/${item.slug}" class="comic-link" aria-label="${item.title}">
                     <img src="/img-proxy?url=${item.cover}" alt="${item.title}" class="lazy" width="36" height="48" style="border-radius: 4px; object-fit: cover;" onerror="this.onerror=null;this.src='/static/noka_lost.svg';">
                 </a>
                 <div style="display: flex; flex-direction: column; overflow: hidden; text-align: left; flex-grow: 1;">
@@ -497,24 +652,35 @@ $(document).ready(function() {
                 </div>
             </div>
         `).join('');
-    }
 
-    // 2. Initialisation d'Owl Carousel si disponible
-    if ($.fn.owlCarousel && $("#owl-demo").length) {
-        $("#owl-demo").owlCarousel({
-            autoPlay: 4000,
-            items : 5,
-            itemsDesktop : [1199,4],
-            itemsDesktopSmall : [979,3],
-            itemsTablet: [768,2],
-            itemsMobile : [479,1],
-            stopOnHover : true,
-            pagination : false,
-            navigation : true
+                historyList.innerHTML = header ? header.outerHTML + itemsMarkup : itemsMarkup;
+            }
+
+            // 2. Initialisation d'Owl Carousel si disponible
+            if ($.fn.owlCarousel && $("#owl-demo").length) {
+                $("#owl-demo").owlCarousel({
+                    autoplay: 4000,
+                    loop: true,
+                    items: 8,
+                    responsive: {
+                        0: { items: 1 },
+                        479: { items: 1 },
+                        768: { items: 2 },
+                        979: { items: 3 },
+                        1199: { items: 4 }
+                    },
+                    autoplayHoverPause: true,
+                    dots: false,
+                    nav: true,
+                    navText: [
+                        '<i class="fas fa-chevron-left"></i>',
+                        '<i class="fas fa-chevron-right"></i>'
+                    ]
+                });
+
+            }
         });
-    }
-});
-</script>
+    </script>
 
     <!-- Footer (MangaBats Style) -->
     <footer>
@@ -524,11 +690,21 @@ $(document).ready(function() {
                 <span style="color: var(--line);">--</span>
                 <a href="#" rel="nofollow" style="color: var(--brand); font-weight: bold;">Terms Conditions</a>
             </div>
-            <p>Why You Should <a href="/" style="color: var(--brand); font-weight: bold;">Read Manga</a> Online at MangaNoka ?</p>
+            <p>Why You Should <a href="/" style="color: var(--brand); font-weight: bold;">Read Manga</a> Online at
+                MangaNoka ?</p>
             <p style="max-width: 800px; margin: 0 auto; font-size: 12px; color: var(--faint);">
-                There are many reasons you should read Manga online, and if you are a fan of this unique storytelling style then learning about them is a must. One of the biggest reasons why you should read Manga online is the money it can save you. While there's nothing like actually holding a book in your hands, there's also no denying that the cost of those books can add up quickly. So why not join the digital age and read Manga online? Another big reason to read Manga online is the huge amount of material that is available. When you go to a comic store or other book store their shelves are limited by the space that they have. When you go to an online site to read Manga those limitations don't exist. So if you want the best selection and you also want to save money then reading Manga online should be an obvious choice for you.
+                There are many reasons you should read Manga online, and if you are a fan of this unique storytelling
+                style then learning about them is a must. One of the biggest reasons why you should read Manga online is
+                the money it can save you. While there's nothing like actually holding a book in your hands, there's
+                also no denying that the cost of those books can add up quickly. So why not join the digital age and
+                read Manga online? Another big reason to read Manga online is the huge amount of material that is
+                available. When you go to a comic store or other book store their shelves are limited by the space that
+                they have. When you go to an online site to read Manga those limitations don't exist. So if you want the
+                best selection and you also want to save money then reading Manga online should be an obvious choice for
+                you.
             </p>
-            <p style="margin-top: 15px; font-weight: bold; font-size: 12.5px; color: var(--ink);">© 2026 MangaNoka, all rights reserved. Top speed, completely free.</p>
+            <p style="margin-top: 15px; font-weight: bold; font-size: 12.5px; color: var(--ink);">© 2026 MangaNoka, all
+                rights reserved. Top speed, completely free.</p>
             <p style="font-size: 11.5px; color: var(--faint);">Current Time is <span id="current-time"></span></p>
             <script>
                 function updateTime() {
@@ -551,5 +727,6 @@ $(document).ready(function() {
         </div>
     </footer>
 
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a20a09ce495870a4',t:'MTc4NDk3MDY5Nw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
+
 </html>
