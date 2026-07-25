@@ -3,13 +3,14 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, BackgroundTasks
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from cache import MANGA_TTL_SECONDS, cache
 from scraper.client import FetchError, NotFoundError, get_html, get_http_client
 from scraper.parser import MangaDetail, parse_manga
+from services.indexnow import ping_indexnow
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -17,7 +18,7 @@ templates = Jinja2Templates(directory=str(Path(__file__).resolve().parent.parent
 
 
 @router.get("/manga/{slug}", response_class=HTMLResponse)
-async def manga_detail(request: Request, slug: str) -> HTMLResponse:
+async def manga_detail(request: Request, slug: str, background_tasks: BackgroundTasks) -> HTMLResponse:
     # Récupérer le slug brut non-décodé (double encodage d'origine) depuis la socket HTTP pour le site source
     raw_path_bytes = request.scope.get("raw_path")
     if raw_path_bytes:
@@ -39,6 +40,9 @@ async def manga_detail(request: Request, slug: str) -> HTMLResponse:
 
     if not manga["title"]:
         raise HTTPException(status_code=404, detail="Manga not found")
+
+    # Déclencher l'indexation instantanée sur Bing/Yandex via IndexNow en arrière-plan
+    background_tasks.add_task(ping_indexnow, [f"/manga/{slug}"])
 
     return templates.TemplateResponse(
         request,

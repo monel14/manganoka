@@ -1,16 +1,16 @@
 <!doctype html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% if page_title %}{{ page_title }}{% else %}Derniers chapitres{% endif %} — MangaNoka</title>
+    <title>{% if page_title %}Read {{ page_title }} Online Free - MangaNoka{% else %}MangaNoka - Read Manga Online Free. Fast, responsive, and ad-free experience.{% endif %}</title>
     <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}">
     <link rel="icon" href="{{ url_for('static', path='/noka_logo.svg') }}" type="image/svg+xml">
-    <meta name="description" content="📚 Des milliers de mangas à lire gratuitement. Noka te guide vers ta prochaine aventure !">
+    <meta name="description" content="Read manga online for free. Enjoy a fast, responsive, and ad-free experience with MangaNoka. Your guide to the next manga adventure!">
     <meta property="og:site_name" content="MangaNoka">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="MangaNoka — Lis tes mangas préférés en ligne">
-    <meta property="og:description" content="📚 Des milliers de mangas à lire gratuitement. Noka te guide vers ta prochaine aventure !">
+    <meta property="og:title" content="MangaNoka - Read Manga Online Free. Fast, responsive, and ad-free experience.">
+    <meta property="og:description" content="Read manga online for free. Enjoy a fast, responsive, and ad-free experience with MangaNoka.">
     <meta property="og:image" content="{{ url_for('static', path='/og_image.png') }}">
     <meta name="twitter:card" content="summary_large_image">
     <link rel="apple-touch-icon" href="{{ url_for('static', path='/apple-touch-icon.png') }}">
@@ -36,15 +36,15 @@
                     type="text"
                     name="q"
                     id="search-input"
-                    placeholder="Chercher un manga…"
+                    placeholder="Search manga..."
                     autocomplete="off"
                     required>
                 <button type="submit">🔍</button>
                 <div id="search-dropdown" class="search-dropdown" hidden></div>
             </form>
             <nav class="quick-links" aria-label="Main navigation">
-                <a href="/">Accueil</a>
-                <a href="/?list=2">Derniers chapitres</a>
+                <a href="/">Home</a>
+                <a href="/?list=2">Latest Releases</a>
                 <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle Theme" title="Toggle Theme (Lanterne Noka)">
                     <svg class="lantern-icon" viewBox="0 0 24 24">
                         <!-- Crochet / Sommet de la lanterne -->
@@ -76,19 +76,19 @@
         </div>
 
         <section class="notice-strip">
-            <strong>Nouveautés</strong>
-            <span>📚 Noka a déniché les derniers chapitres et nouvelles séries</span>
+            <strong>Updates</strong>
+            <span>📚 Noka has found the latest chapters and new series</span>
         </section>
 
         {% if popular %}
         <section class="slide" style="margin-bottom: 20px;">
             <h3 class="title update-slide section-title" style="font-size: 18px; margin-bottom: 12px; font-weight: bold; color: var(--text-color); display: flex; align-items: center; gap: 8px;">
-                <i class="fas fa-thumbs-up" style="color: var(--brand);"></i> MANGAS POPULAIRES
+                <i class="fas fa-thumbs-up" style="color: var(--brand);"></i> POPULAR MANGA
             </h3>
             <div class="popular-carousel-wrap">
                 <div id="owl-demo" class="owl-carousel" style="display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px;">
                     {% for item in popular %}
-                        <div class="item" style="flex: 0 0 150px; position: relative; border-radius: 6px; overflow: hidden; background: #000;">
+                        <div class="item" style="flex: 0 0 150px; position: relative; border-radius: 6px; overflow: hidden; background: #4A4A4A;">
                             <a href="/manga/{{ item.slug }}">
                                 <img src="/img-proxy?url={{ item.cover }}" alt="{{ item.title }}" style="width: 150px; height: 200px; object-fit: cover; opacity: 0.8; transition: opacity 0.3s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.8">
                             </a>
@@ -190,7 +190,7 @@
                                 <div class="chapter-list" style="display: flex; flex-direction: column; gap: 5px;">
                                     {% for chapter in manga.chapters[:3] %}
                                         <a href="/read/{{ manga.slug }}/{{ chapter.number }}" style="display: flex; justify-content: space-between; align-items: center; text-decoration: none; font-size: 13px; padding: 2px 0;">
-                                            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #b7b7b7;">» {{ chapter.title }}</span>
+                                            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #696969;">» {{ chapter.title }}</span>
                                             {% if chapter.date %}
                                                 <time style="font-size: 11px; color: #888; flex-shrink: 0; margin-left: 8px;">{{ chapter.date }}</time>
                                             {% endif %}
@@ -400,7 +400,7 @@
         str += results.map((r, i) => `
             <a href="/manga/${r.slug}">
                 <li id="${i}" class="option ${i === activeIndex ? 'selected' : ''}" style="display: flex; gap: 10px; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 8px 12px; text-align: left;">
-                    <img class="search_result_img" src="/img-proxy?url=${r.cover}" style="width: 45px; height: 60px; object-fit: cover; border-radius: 4px;" onerror="this.onerror=null;this.src='/static/cover_placeholder.svg';" />
+                    <img class="search_result_img" src="/img-proxy?url=${r.cover}" style="width: 45px; height: 60px; object-fit: cover; border-radius: 4px;" onerror="this.onerror=null;this.src='/static/noka_lost.svg';" />
                     <div class="search_result_item_right" style="display: flex; flex-direction: column; overflow: hidden; flex-grow: 1;">
                         <p class="search_result_row1" id="${r.slug}" style="font-size: 13.5px; font-weight: bold; margin: 0 0 4px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-color);">${r.title}</p>
                         <p class="search_result_row2" style="font-size: 11px; margin: 0 0 2px 0; color: #888; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${r.author || ''}</p>
@@ -485,7 +485,7 @@ $(document).ready(function() {
         historyList.innerHTML = history.map(item => `
             <div class="history-sidebar-content-item" style="display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
                 <a rel="nofollow" href="/manga/${item.slug}" class="comic-link">
-                    <img src="/img-proxy?url=${item.cover}" alt="${item.title}" class="lazy" width="36" height="48" style="border-radius: 4px; object-fit: cover;" onerror="this.onerror=null;this.src='/static/cover_placeholder.svg';">
+                    <img src="/img-proxy?url=${item.cover}" alt="${item.title}" class="lazy" width="36" height="48" style="border-radius: 4px; object-fit: cover;" onerror="this.onerror=null;this.src='/static/noka_lost.svg';">
                 </a>
                 <div style="display: flex; flex-direction: column; overflow: hidden; text-align: left; flex-grow: 1;">
                     <span class="history-sidebar-content-text comic-name" style="font-size: 13px; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; width: 100%;">
@@ -551,5 +551,5 @@ $(document).ready(function() {
         </div>
     </footer>
 
-</body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a20a09ce495870a4',t:'MTc4NDk3MDY5Nw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

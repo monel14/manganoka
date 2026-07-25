@@ -1,16 +1,17 @@
 <!doctype html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Recherche : {{ query }} — MangaNoka</title>
+    <title>Search Results for: {{ query }} - MangaNoka - Fast, responsive, and ad-free experience.</title>
     <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}">
     <link rel="icon" href="{{ url_for('static', path='/noka_logo.svg') }}" type="image/svg+xml">
-    <meta name="description" content="🔎 Noka fouille la bibliothèque pour « {{ query }} » sur MangaNoka.">
+    <script src="{{ url_for('static', path='/theme.js') }}"></script>
+    <meta name="description" content="Search results for '{{ query }}' on MangaNoka. Enjoy a fast, responsive, and ad-free experience.">
     <meta property="og:site_name" content="MangaNoka">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="Recherche : {{ query }} — MangaNoka">
-    <meta property="og:description" content="🔎 Noka fouille la bibliothèque pour « {{ query }} » sur MangaNoka.">
+    <meta property="og:title" content="Search Results for: {{ query }} - MangaNoka">
+    <meta property="og:description" content="Search results for '{{ query }}' on MangaNoka. Enjoy a fast, responsive, and ad-free experience.">
     <meta property="og:image" content="{{ url_for('static', path='/og_image.png') }}">
     <meta name="twitter:card" content="summary_large_image">
     <link rel="apple-touch-icon" href="{{ url_for('static', path='/apple-touch-icon.png') }}">
@@ -31,7 +32,11 @@
                     type="text"
                     name="q"
                     id="search-input"
-                    placeholder="Chercher un manga…"
+                <input
+                    type="text"
+                    name="q"
+                    id="search-input"
+                    placeholder="Search manga..."
                     autocomplete="off"
                     value="{{ query }}"
                     required>
@@ -39,8 +44,8 @@
                 <div id="search-dropdown" class="search-dropdown" hidden></div>
             </form>
             <nav class="quick-links" aria-label="Main navigation">
-                <a href="/">Accueil</a>
-                <a href="/?list=2">Derniers chapitres</a>
+                <a href="/">Home</a>
+                <a href="/?list=2">Latest Releases</a>
                 <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle Theme" title="Toggle Theme (Lanterne Noka)">
                     <svg class="lantern-icon" viewBox="0 0 24 24">
                         <!-- Crochet / Sommet de la lanterne -->
@@ -109,7 +114,7 @@
                                     <a href="/manga/{{ manga.slug }}">{{ manga.title }}</a>
                                 </h2>
                                 {% if manga.latest_chapter %}
-                                    <p class="result-latest">Dernier chapitre : {{ manga.latest_chapter }}</p>
+                                    <p class="result-latest">Latest Chapter: {{ manga.latest_chapter }}</p>
                                 {% endif %}
                                 {% if manga.views %}
                                     <p class="result-views">{{ manga.views }}</p>
@@ -169,7 +174,7 @@
         str += results.map((r, i) => `
             <a href="/manga/${r.slug}">
                 <li id="${i}" class="option ${i === activeIndex ? 'selected' : ''}" style="display: flex; gap: 10px; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 8px 12px; text-align: left;">
-                    <img class="search_result_img" src="/img-proxy?url=${r.cover}" style="width: 45px; height: 60px; object-fit: cover; border-radius: 4px;" onerror="this.onerror=null;this.src='/static/cover_placeholder.svg';" />
+                    <img class="search_result_img" src="/img-proxy?url=${r.cover}" style="width: 45px; height: 60px; object-fit: cover; border-radius: 4px;" onerror="this.onerror=null;this.src='/static/noka_lost.svg';" />
                     <div class="search_result_item_right" style="display: flex; flex-direction: column; overflow: hidden; flex-grow: 1;">
                         <p class="search_result_row1" id="${r.slug}" style="font-size: 13.5px; font-weight: bold; margin: 0 0 4px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-color);">${r.title}</p>
                         <p class="search_result_row2" style="font-size: 11px; margin: 0 0 2px 0; color: #888; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${r.author || ''}</p>
@@ -276,5 +281,5 @@
         </div>
     </footer>
 
-</body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a20a3a2cfb4e14ed',t:'MTc4NDk3MjY3OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

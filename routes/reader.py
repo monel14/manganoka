@@ -3,13 +3,14 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, BackgroundTasks
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
-from cache import CHAPTER_TTL_SECONDS, MANGA_TTL_SECONDS, cache
+from cache import CHAPTER_TTL_SECONDS, CHAPTER_TTL_SECONDS, MANGA_TTL_SECONDS, cache
 from scraper.client import FetchError, NotFoundError, get_html
 from scraper.parser import ChapterLink, ChapterPage, MangaDetail, parse_chapter, parse_manga
+from services.indexnow import ping_indexnow
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -40,7 +41,7 @@ async def get_chapter_page(slug: str, chapter: str, manga: MangaDetail | None = 
 
 
 @router.get("/read/{slug}/{chapter}", response_class=HTMLResponse)
-async def read_chapter(request: Request, slug: str, chapter: str) -> HTMLResponse:
+async def read_chapter(request: Request, slug: str, chapter: str, background_tasks: BackgroundTasks) -> HTMLResponse:
     # Récupérer le slug et le chapitre bruts non-décodés (double encodage) depuis la socket HTTP pour le site source
     raw_path_bytes = request.scope.get("raw_path")
     if raw_path_bytes:
@@ -69,6 +70,9 @@ async def read_chapter(request: Request, slug: str, chapter: str) -> HTMLRespons
         raise HTTPException(status_code=404, detail="Chapter not found")
 
     previous_chapter, next_chapter = _chapter_neighbors(manga["chapters"], chapter)
+
+    # Déclencher l'indexation instantanée sur Bing/Yandex via IndexNow en arrière-plan
+    background_tasks.add_task(ping_indexnow, [f"/read/{slug}/{chapter}"])
 
     return templates.TemplateResponse(
         request,

@@ -154,6 +154,14 @@ Sitemap: {base_url}/sitemap.xml
         media_type="text/plain; charset=utf-8",
     )
 
+@router.get("/{key_file}.txt", include_in_schema=False)
+def indexnow_key(key_file: str) -> Response:
+    """Sert dynamiquement le fichier texte de vérification requis par IndexNow (Bing/Yandex)."""
+    indexnow_key = os.environ.get("INDEXNOW_KEY", "7a8e8b2fcd104ef9ac332a018af03324")
+    if key_file == indexnow_key:
+        return Response(content=indexnow_key, media_type="text/plain; charset=utf-8")
+    return Response(content="Not Found", status_code=404, media_type="text/plain; charset=utf-8")
+
 @router.get("/history", response_class=HTMLResponse)
 def history_page(request: Request) -> HTMLResponse:
     """Sert la page d'historique de lecture dédiée."""

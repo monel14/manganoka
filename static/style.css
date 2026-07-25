@@ -13,8 +13,8 @@
     --muted: #666666;      /* Texte secondaire */
     --faint: #888888;      /* Texte très atténué */
     --line: #D9D9D9;       /* Bordures */
-    --nav: #171717;        /* Header sombre premium */
-    --nav-dark: #000000;
+    --nav: #3e3e3e!important;        /* Header sombre premium */
+    --nav-dark: #3f3f3f;
     --radius-sm: 8px;
     --radius-md: 12px;     /* Boutons et inputs */
     --radius-lg: 16px;     /* Cartes Manga */
@@ -28,10 +28,10 @@
     color-scheme: dark;
     --brand: #D63A58;      /* Rouge principal dark */
     --brand-dark: #E44A68; /* Rouge au survol dark */
-    --page: #0D0D0F;       /* Fond sombre et enveloppant */
-    --paper: #17171A;      /* Surfaces de panneau et barres latérales */
-    --paper-deep: #0D0D0F; /* Arrière-plans sombres */
-    --paper-soft: #222227; /* Arrière-plan pour les cartes mangas */
+    --page: #5a5454;       /* Fond sombre et enveloppant */
+    --paper: #3e3e3e!important;      /* Surfaces de panneau et barres latérales */
+    --paper-deep: #1F1F1F; /* Arrière-plans sombres */
+    --paper-soft: #4A4A4A; /* Arrière-plan pour les cartes mangas */
     --ink: #FAFAFA;        /* Texte principal blanc intense et reposant */
     --text-color: var(--ink);
     --muted: #A1A1AA;      /* Texte secondaire gris neutre de soutien */
@@ -61,11 +61,15 @@ body {
 a {
     color: inherit;
     text-decoration: none;
-    transition: color 0.15s;
+    transition: color 0.15s ease, text-decoration-color 0.15s ease;
 }
 
-a:hover {
+a:hover,
+a:focus-visible {
     color: var(--brand);
+    text-decoration: underline;
+    text-decoration-color: var(--brand);
+    text-underline-offset: 2px;
 }
 
 img {
@@ -728,7 +732,7 @@ img {
 .chapter-info p {
     width: min(700px, 100%);
     margin: 8px auto;
-    color: #b7b7b7;
+    color: #696969;
     line-height: 1.6;
 }
 
@@ -737,7 +741,7 @@ img {
     gap: 8px;
     align-items: center;
     margin-top: 12px;
-    color: #b7b7b7;
+    color: #696969;
     font-size: 0.9rem;
     font-weight: 700;
 }

@@ -5,12 +5,12 @@
    - accessible via window.NokaLoader.show() / .hide()
    ========================================== */
 (function () {
-    var MESSAGES = [
-        'Noka feuillette les pages',
-        'Noka allume sa lanterne',
-        'Noka cherche le bon rayon',
-        'Chargement'
-    ];
+     var MESSAGES = [
+        'Noka is flipping through the pages',
+        'Noka is lighting the lantern',
+        'Noka is looking for the right shelf',
+        'Loading'
+        ];
 
     function buildOverlay() {
         var overlay = document.createElement('div');
