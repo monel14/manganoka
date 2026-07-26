@@ -104,7 +104,7 @@ async def _load_manga(slug: str) -> MangaDetail:
     html = await get_html(f"/manga/{slug}")
     
     # Récupérer la liste des chapitres depuis l'API officielle de MangaBats
-    chapters_json_url = f"https://www.mangabats.com/api/manga/{slug}/chapters"
+    chapters_json_url = f"https://www.mangabats.com/api/manga/{slug}/chapters?limit=10000"
     from scraper.client import get_http_client
     client = get_http_client()
     try:

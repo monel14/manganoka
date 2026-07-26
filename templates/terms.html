@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Terms & Conditions - MangaNoka - Fast and Ad-Free Manga Reader</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}">
+    <link rel="icon" href="{{ url_for('static', path='/noka_logo.svg') }}" type="image/svg+xml">
+    <script src="{{ url_for('static', path='/theme.js') }}"></script>
+    <meta name="robots" content="noindex, follow">
+</head>
+<body>
+    <header class="site-top">
+        <div class="topbar">
+            <a class="brand" href="/">
+                <img src="/static/noka.png" alt="Noka" style="width: 36px; height: 36px; object-fit: contain; display: inline-block; vertical-align: middle; margin-right: 4px;">
+                <span>Manga<b>Noka</b></span>
+            </a>
+            <form class="search-bar" action="/search" method="get" id="search-form">
+                <input
+                    type="text"
+                    name="q"
+                    id="search-input"
+                    placeholder="Search manga..."
+                    autocomplete="off"
+                    required>
+                <button type="submit">🔍</button>
+                <div id="search-dropdown" class="search-dropdown" hidden></div>
+            </form>
+            <nav class="quick-links" aria-label="Main navigation">
+                <a href="/">Home</a>
+                <a href="/?list=2">Latest Releases</a>
+                <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle Theme" title="Toggle Theme (Lanterne Noka)">
+                    <svg class="lantern-icon" viewBox="0 0 24 24">
+                        <path d="M12 2v3M9 5h6" stroke-linecap="round"/>
+                        <rect x="7" y="8" width="10" height="10" rx="3"/>
+                        <path d="M8 8c0-2 1.5-3 4-3s4 1 4 3M8 18c0 2 1.5 3 4 3s4-1 4-3" stroke-linecap="round"/>
+                        <path d="M10 8c-.5 2.5-.5 7.5 0 10M14 8c.5 2.5.5 7.5 0 10" stroke-width="1.2" stroke-dasharray="1 1"/>
+                        <circle cx="12" cy="13" r="4" class="lantern-glow"/>
+                        <circle cx="12" cy="13" r="1.5" class="lantern-eye"/>
+                    </svg>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="shell">
+        <div class="content-layout single">
+            <section class="main-column" style="padding: 30px; border-radius: var(--radius-lg); background: var(--paper); box-shadow: var(--shadow); text-align: left; line-height: 1.8;">
+                <h1 style="font-family: 'Space Grotesk', sans-serif; font-size: 2.25rem; font-weight: 700; color: var(--brand); margin-top: 0; margin-bottom: 25px; border-bottom: 2px solid var(--line); padding-bottom: 10px;">Terms & Conditions</h1>
+                
+                <p>Welcome to <strong>MangaNoka</strong>. By accessing or using our website, you agree to comply with and be bound by the following Terms and Conditions of use. Please read them carefully.</p>
+                
+                <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; font-weight: 700; color: var(--ink); margin-top: 30px; margin-bottom: 15px;">1. Acceptance of Terms</h2>
+                <p>By using MangaNoka, you agree to these Terms and Conditions. If you do not agree to all of the terms, please do not use our services.</p>
+                
+                <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; font-weight: 700; color: var(--ink); margin-top: 30px; margin-bottom: 15px;">2. Description of Service</h2>
+                <p>MangaNoka is a high-performance web directory and interactive client designed for personal, non-commercial manga reading. Our platform dynamically queries and translates publicly accessible directories to offer a fast, responsive, and secure reading layout. We do not charge fees, nor do we host intrusive or security-endangering advertisements.</p>
+                
+                <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; font-weight: 700; color: var(--ink); margin-top: 30px; margin-bottom: 15px;">3. Intellectual Property & Fair Use Disclaimer</h2>
+                <p>All trademarks, brand names, and copyrights of manga materials displayed on MangaNoka belong to their respective authors and publishers. MangaNoka does not own or claim ownership of any content. Our service operates as an automated dynamic search and indexing engine, caching data temporarily solely for performance and loading optimization (fair use).</p>
+                
+                <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; font-weight: 700; color: var(--ink); margin-top: 30px; margin-bottom: 15px;">4. User Conduct & Abuse</h2>
+                <p>You agree to use MangaNoka only for lawful purposes. Scraping, DDoS attacks, automated spidering, or attempting to compromise server resources is strictly prohibited and will result in permanent IP bans.</p>
+                
+                <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; font-weight: 700; color: var(--ink); margin-top: 30px; margin-bottom: 15px;">5. Limitation of Liability</h2>
+                <p>MangaNoka is provided on an "as is" and "as available" basis without any warranties. We do not guarantee that the service will be uninterrupted, error-free, or entirely accurate. We shall not be held liable for any damages resulting from your use of this platform.</p>
+                
+                <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; font-weight: 700; color: var(--ink); margin-top: 30px; margin-bottom: 15px;">6. Contact Details</h2>
+                <p>For legal inquiries, copyright claims, or support, please contact us directly via our community channels.</p>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-links">
+                <a href="/privacy-policy" style="color: var(--brand); font-weight: bold;">Privacy Policy</a>
+                <span style="color: var(--line);">--</span>
+                <a href="/terms-conditions" style="color: var(--brand); font-weight: bold;">Terms Conditions</a>
+            </div>
+            <p>Why You Should <a href="/" style="color: var(--brand); font-weight: bold;">Read Manga</a> Online at MangaNoka ?</p>
+            <p style="max-width: 800px; margin: 0 auto; font-size: 12px; color: var(--faint);">
+                There are many reasons you should read Manga online, and if you are a fan of this unique storytelling style then learning about them is a must. One of the biggest reasons why you should read Manga online is the money it can save you. While there's nothing like actually holding a book in your hands, there's also no denying that the cost of those books can add up quickly. So why not join the digital age and read Manga online? Another big reason to read Manga online is the huge amount of material that is available. When you go to a comic store or other book store their shelves are limited by the space that they have. When you go to an online site to read Manga those limitations don't exist. So if you want the best selection and you also want to save money then reading Manga online should be an obvious choice for you.
+            </p>
+            <p style="margin-top: 15px; font-weight: bold; font-size: 12.5px; color: var(--ink);">© 2026 MangaNoka, all rights reserved. Top speed, completely free.</p>
+        </div>
+    </footer>
+</body>
+</html>

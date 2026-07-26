@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Privacy Policy - MangaNoka - Fast and Ad-Free Manga Reader</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}">
+    <link rel="icon" href="{{ url_for('static', path='/noka_logo.svg') }}" type="image/svg+xml">
+    <script src="{{ url_for('static', path='/theme.js') }}"></script>
+    <meta name="robots" content="noindex, follow">
+</head>
+<body>
+    <header class="site-top">
+        <div class="topbar">
+            <a class="brand" href="/">
+                <img src="/static/noka.png" alt="Noka" style="width: 36px; height: 36px; object-fit: contain; display: inline-block; vertical-align: middle; margin-right: 4px;">
+                <span>Manga<b>Noka</b></span>
+            </a>
+            <form class="search-bar" action="/search" method="get" id="search-form">
+                <input
+                    type="text"
+                    name="q"
+                    id="search-input"
+                    placeholder="Search manga..."
+                    autocomplete="off"
+                    required>
+                <button type="submit">🔍</button>
+                <div id="search-dropdown" class="search-dropdown" hidden></div>
+            </form>
+            <nav class="quick-links" aria-label="Main navigation">
+                <a href="/">Home</a>
+                <a href="/?list=2">Latest Releases</a>
+                <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle Theme" title="Toggle Theme (Lanterne Noka)">
+                    <svg class="lantern-icon" viewBox="0 0 24 24">
+                        <path d="M12 2v3M9 5h6" stroke-linecap="round"/>
+                        <rect x="7" y="8" width="10" height="10" rx="3"/>
+                        <path d="M8 8c0-2 1.5-3 4-3s4 1 4 3M8 18c0 2 1.5 3 4 3s4-1 4-3" stroke-linecap="round"/>
+                        <path d="M10 8c-.5 2.5-.5 7.5 0 10M14 8c.5 2.5.5 7.5 0 10" stroke-width="1.2" stroke-dasharray="1 1"/>
+                        <circle cx="12" cy="13" r="4" class="lantern-glow"/>
+                        <circle cx="12" cy="13" r="1.5" class="lantern-eye"/>
+                    </svg>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="shell">
+        <div class="content-layout single">
+            <section class="main-column" style="padding: 30px; border-radius: var(--radius-lg); background: var(--paper); box-shadow: var(--shadow); text-align: left; line-height: 1.8;">
+                <h1 style="font-family: 'Space Grotesk', sans-serif; font-size: 2.25rem; font-weight: 700; color: var(--brand); margin-top: 0; margin-bottom: 25px; border-bottom: 2px solid var(--line); padding-bottom: 10px;">Privacy Policy</h1>
+                
+                <p>Welcome to <strong>MangaNoka</strong>. Your privacy is critically important to us. This Privacy Policy document outlines the types of information we collect, how it is used, and your options regarding this data.</p>
+                
+                <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; font-weight: 700; color: var(--ink); margin-top: 30px; margin-bottom: 15px;">1. Information We Collect</h2>
+                <p>We do not collect any personal identification information (such as your name, email address, or phone number) unless you explicitly choose to create an account or contact us. For guest readers, all operations are completely anonymous.</p>
+                
+                <h3 style="font-family: 'Space Grotesk', sans-serif; font-size: 1.15rem; font-weight: 700; color: var(--ink); margin-top: 20px; margin-bottom: 10px;">Local Storage & Cookies</h3>
+                <p>MangaNoka uses local storage to save your guest reading history (recently read chapters) and cookie-less localStorage values for your selected UI theme (light or dark mode). This information is stored strictly on your local device and is never sent to our servers.</p>
+                
+                <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; font-weight: 700; color: var(--ink); margin-top: 30px; margin-bottom: 15px;">2. Server Logs & Scraper Usage</h2>
+                <p>Like most websites, our FastAPI servers temporarily log standard connection details (IP address, browser type, timestamp) to prevent malicious activity, DDoS attacks, and abuse. This data is rotated and automatically deleted periodically.</p>
+                
+                <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; font-weight: 700; color: var(--ink); margin-top: 30px; margin-bottom: 15px;">3. Third-Party Advertisements & Trackers</h2>
+                <p>We take pride in providing a fast, responsive, and <strong>ad-free reading experience</strong>. MangaNoka does not host intrusive third-party popups, redirect advertisements, or tracking scripts that jeopardize your browser's security or track your actions across other sites.</p>
+                
+                <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; font-weight: 700; color: var(--ink); margin-top: 30px; margin-bottom: 15px;">4. Changes to This Policy</h2>
+                <p>We reserve the right to modify this Privacy Policy at any time. Any changes will be published directly on this page. We recommend checking back periodically to stay informed.</p>
+                
+                <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; font-weight: 700; color: var(--ink); margin-top: 30px; margin-bottom: 15px;">5. Contact Us</h2>
+                <p>If you have any questions or suggestions regarding our Privacy Policy, please feel free to reach out to our team via our official channels.</p>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-links">
+                <a href="/privacy-policy" style="color: var(--brand); font-weight: bold;">Privacy Policy</a>
+                <span style="color: var(--line);">--</span>
+                <a href="/terms-conditions" style="color: var(--brand); font-weight: bold;">Terms Conditions</a>
+            </div>
+            <p>Why You Should <a href="/" style="color: var(--brand); font-weight: bold;">Read Manga</a> Online at MangaNoka ?</p>
+            <p style="max-width: 800px; margin: 0 auto; font-size: 12px; color: var(--faint);">
+                There are many reasons you should read Manga online, and if you are a fan of this unique storytelling style then learning about them is a must. One of the biggest reasons why you should read Manga online is the money it can save you. While there's nothing like actually holding a book in your hands, there's also no denying that the cost of those books can add up quickly. So why not join the digital age and read Manga online? Another big reason to read Manga online is the huge amount of material that is available. When you go to a comic store or other book store their shelves are limited by the space that they have. When you go to an online site to read Manga those limitations don't exist. So if you want the best selection and you also want to save money then reading Manga online should be an obvious choice for you.
+            </p>
+            <p style="margin-top: 15px; font-weight: bold; font-size: 12.5px; color: var(--ink);">© 2026 MangaNoka, all rights reserved. Top speed, completely free.</p>
+        </div>
+    </footer>
+</body>
+</html>

@@ -35,4 +35,13 @@
     } else {
         initToggle();
     }
+
+    // 4. Enregistrement du Service Worker pour la PWA installable sur mobile
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js')
+                .then((reg) => console.log('MangaNoka PWA: Service Worker enregistré avec succès !', reg.scope))
+                .catch((err) => console.warn('MangaNoka PWA: Échec d\'enregistrement du Service Worker:', err));
+        });
+    }
 })();

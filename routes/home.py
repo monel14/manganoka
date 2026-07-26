@@ -154,6 +154,18 @@ Sitemap: {base_url}/sitemap.xml
         media_type="text/plain; charset=utf-8",
     )
 
+@router.get("/sw.js", include_in_schema=False)
+def service_worker() -> Response:
+    """Sert le fichier du Service Worker pour la PWA à la racine du domaine."""
+    sw_path = Path(__file__).resolve().parent.parent / "static" / "sw.js"
+    try:
+        with open(sw_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        return Response(content=content, media_type="application/javascript")
+    except Exception as exc:
+        logger.warning("Failed to serve sw.js: %s", exc)
+        return Response(content="", status_code=404)
+
 @router.get("/{key_file}.txt", include_in_schema=False)
 def indexnow_key(key_file: str) -> Response:
     """Sert dynamiquement le fichier texte de vérification requis par IndexNow (Bing/Yandex)."""
@@ -172,6 +184,16 @@ def history_page(request: Request) -> HTMLResponse:
             "request": request,
         },
     )
+
+@router.get("/privacy-policy", response_class=HTMLResponse)
+def privacy_policy(request: Request) -> HTMLResponse:
+    """Sert la page Privacy Policy."""
+    return templates.TemplateResponse(request, "privacy.html", {"request": request})
+
+@router.get("/terms-conditions", response_class=HTMLResponse)
+def terms_conditions(request: Request) -> HTMLResponse:
+    """Sert la page Terms & Conditions."""
+    return templates.TemplateResponse(request, "terms.html", {"request": request})
 
 
 async def _load_generic_list(path: str) -> dict:

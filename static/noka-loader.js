@@ -20,7 +20,7 @@
 
         var img = document.createElement('img');
         img.src = '/static/noka_loader.svg';
-        img.alt = 'Chargement en cours';
+        img.alt = 'Loading...';
 
         var text = document.createElement('div');
         text.className = 'loader-text';
