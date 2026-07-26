@@ -49,24 +49,25 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 _ERROR_CONTENT = {
     404: {
-        "error_title": "Noka s'est égaré...",
-        "error_message": "😵 Cette page n'existe pas ou a été déplacée. "
-                         "Noka a fouillé tous les rayons de la bibliothèque, sans succès !",
+        "error_title": "Noka Got Lost...",
+        "error_message": "😵 This page doesn't exist or has been moved. "
+                         "Noka searched every shelf in the library, but couldn't find it!",
         "noka_image": "/noka_lost.svg",
     },
     500: {
-        "error_title": "Noka s'est endormi...",
-        "error_message": "😴 Quelque chose s'est mal passé de notre côté. "
-                         "Laisse Noka se réveiller et réessaie dans un instant.",
+        "error_title": "Noka Fell Asleep...",
+        "error_message": "😴 Something went wrong on our end. "
+                         "Give Noka a moment to wake up, then try again.",
         "noka_image": "/noka_sleep.svg",
     },
     502: {
-        "error_title": "Noka s'est endormi...",
-        "error_message": "😴 La bibliothèque ne répond pas pour le moment. "
-                         "Réessaie dans quelques instants.",
+        "error_title": "Noka Fell Asleep...",
+        "error_message": "😴 The library isn't responding right now. "
+                         "Please try again in a few moments.",
         "noka_image": "/noka_sleep.svg",
     },
 }
+
 
 
 @app.exception_handler(StarletteHTTPException)

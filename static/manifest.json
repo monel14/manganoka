@@ -1,13 +1,31 @@
 {
   "name": "MangaNoka",
-  "short_name": "MangaNoka",
-  "description": "Lis tes mangas préférés en ligne, gratuitement. Noka te guide !",
+  "short_name": "Noka",
+  "description": "MangaNoka is your online manga library. Discover, read, and follow your favorite manga for free.",
+  "lang": "en-US",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#F6F6F6",
   "theme_color": "#B51E3B",
+  "categories": [
+    "books",
+    "entertainment",
+    "manga"
+  ],
   "icons": [
-    { "src": "/static/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/static/icon-512.png", "sizes": "512x512", "type": "image/png" }
+    {
+      "src": "/static/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
   ]
 }

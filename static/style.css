@@ -13,7 +13,7 @@
     --muted: #666666;      /* Texte secondaire */
     --faint: #888888;      /* Texte très atténué */
     --line: #D9D9D9;       /* Bordures */
-    --nav: #3e3e3e!important;        /* Header sombre premium */
+    --nav: #3e3e3e;        /* Header sombre premium */
     --nav-dark: #3f3f3f;
     --radius-sm: 8px;
     --radius-md: 12px;     /* Boutons et inputs */
@@ -29,7 +29,7 @@
     --brand: #D63A58;      /* Rouge principal dark */
     --brand-dark: #E44A68; /* Rouge au survol dark */
     --page: #5a5454;       /* Fond sombre et enveloppant */
-    --paper: #3e3e3e!important;      /* Surfaces de panneau et barres latérales */
+    --paper: #3e3e3e;      /* Surfaces de panneau et barres latérales */
     --paper-deep: #1F1F1F; /* Arrière-plans sombres */
     --paper-soft: #4A4A4A; /* Arrière-plan pour les cartes mangas */
     --ink: #FAFAFA;        /* Texte principal blanc intense et reposant */
@@ -37,7 +37,7 @@
     --muted: #A1A1AA;      /* Texte secondaire gris neutre de soutien */
     --faint: #71717A;      /* Texte très atténué */
     --line: #34343A;       /* Bordures discrètes */
-    --nav: #17171A;        /* Header supérieur sombre */
+    --nav: #3e3e3e;        /* Header supérieur sombre */
     --nav-dark: #0D0D0F;   /* Éléments inférieurs profonds */
     --shadow: 0 8px 30px rgba(0,0,0,0.5); /* Ombres plus intenses dans l'obscurité */
     --accent: #F2F2F2;     /* Accentuation claire */
@@ -97,7 +97,6 @@ img {
     font-family: 'Outfit', sans-serif;
     font-size: 1.85rem;
     font-weight: 800;
-    color: #fff !important;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -486,12 +485,6 @@ img {
     text-decoration: none;
 }
 
-.chapter-list {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
 .chapter-link {
     display: flex;
     justify-content: space-between;
@@ -759,22 +752,33 @@ img {
     color: #f5f5f5;
 }
 
-.chapter-logo {
-    display: grid;
-    min-height: 76px;
-    place-items: center;
-    background: #000;
+.chapter-reader-header {
+    background: var(--nav);
     border-bottom: 4px solid var(--brand);
+    box-shadow: var(--shadow);
 }
 
-.chapter-logo a {
-    font-family: 'Outfit', sans-serif;
+.chapter-reader-topbar {
+    min-height: 80px;
+    width: min(1120px, calc(100% - 24px));
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.chapter-reader-brand {
     color: #fff;
-    font-size: 2rem;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.85rem;
     font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
 }
 
-.chapter-logo a b {
+.chapter-reader-brand b {
     color: var(--brand);
 }
 
@@ -923,14 +927,12 @@ img {
     padding: 16px 0 0;
 }
 
-.chapter-reader img {
+.chapter-reader img,
+.manga-page {
     display: block;
-    width: auto;
-    max-width: 100%;
-    min-height: 180px;
+    width: 100%;
     height: auto;
-    margin: 0 auto;
-    background: #121212;
+    margin: 0;
 }
 
 .chapter-options-bottom {
@@ -1109,7 +1111,9 @@ img {
 
 /* Footer Styles (MangaBats Dark Theme style) */
 footer {
-    background: var(--paper-deep);
+    background-color: var(--paper-deep);
+    background-image: url('/static/noka_pattern.svg');
+    background-size: 240px 240px;
     border-top: 1px solid var(--line);
     padding: 30px 0;
     margin-top: 40px;
@@ -1377,13 +1381,6 @@ footer {
    ========================================== */
 
 /* Wordmark : Outfit Bold, "Noka" en rouge marque */
-.brand {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    text-decoration: none;
-    color: var(--text-color);
-}
 .brand-logo {
     height: 100px;
     width: auto;
@@ -1429,6 +1426,7 @@ footer {
 .noka-loader-overlay {
     position: fixed;
     inset: 0;
+    background: rgba(246, 246, 246, 0.82);
     background: color-mix(in srgb, var(--page) 82%, transparent);
     backdrop-filter: blur(3px);
     display: flex;
@@ -1509,16 +1507,13 @@ footer {
     background-image: url('/static/noka_pattern.svg');
     background-size: 240px 240px;
 }
-footer {
-    background-image: url('/static/noka_pattern.svg');
-    background-size: 240px 240px;
-} 
 .popular-carousel-wrap{
     position:relative;
 }
 
 /* cache les flèches tant qu'on ne survole pas */
-.popular-carousel-wrap .owl-controls{
+.popular-carousel-wrap .owl-controls,
+.popular-carousel-wrap .owl-nav{
     position:absolute;
     top:0;
     left:0;
@@ -1528,7 +1523,8 @@ footer {
     pointer-events:none;
 }
 
-.popular-carousel-wrap .owl-buttons{
+.popular-carousel-wrap .owl-buttons,
+.popular-carousel-wrap .owl-nav{
     width:100%;
     height:100%;
 }
