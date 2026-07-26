@@ -71,7 +71,7 @@ async def _load_home(page: int) -> dict:
     }
 
 
-@router.get("/sitemap.xml")
+@router.api_route("/sitemap.xml", methods=["GET", "HEAD"])
 def sitemap() -> Response:
     """Génère un sitemap XML dynamique basé sur les mangas actuellement en cache."""
     base_url = os.environ.get("BASE_URL", "https://manganoka.xyz").rstrip("/")
