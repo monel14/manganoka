@@ -945,8 +945,24 @@ img {
 
 @media (max-width: 980px) {
     .topbar {
-        grid-template-columns: 1fr;
-        padding: 16px 0;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 0;
+    }
+
+    .topbar .brand {
+        flex: 0 0 auto;
+    }
+
+    .topbar .search-bar {
+        flex: 1 1 200px;
+        min-width: 0;
+    }
+
+    .topbar .quick-links {
+        flex: 0 0 auto;
     }
 
     .content-layout,
@@ -955,6 +971,55 @@ img {
     }
 
     .side-column {
+        display: none;
+    }
+}
+
+/* Hamburger menu for mobile — hidden links become a toggle */
+@media (max-width: 600px) {
+    .topbar {
+        gap: 8px;
+    }
+
+    .quick-links {
+        display: none;
+        width: 100%;
+        border-radius: var(--radius-md);
+    }
+
+    .quick-links.open {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .quick-links a {
+        border-left: 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.18);
+        justify-content: center;
+    }
+
+    .quick-links a:first-child {
+        border-top: 0;
+    }
+
+    .nav-toggle {
+        display: inline-flex;
+        flex: 0 0 auto;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        background: var(--brand);
+        border: 0;
+        border-radius: var(--radius-md);
+        color: #fff;
+        cursor: pointer;
+        font-size: 18px;
+    }
+}
+
+@media (min-width: 601px) {
+    .nav-toggle {
         display: none;
     }
 }
@@ -1382,7 +1447,7 @@ footer {
 
 /* Wordmark : Outfit Bold, "Noka" en rouge marque */
 .brand-logo {
-    height: 100px;
+    height: 44px;
     width: auto;
     object-fit: contain;
     transition: transform 200ms ease;
@@ -1507,28 +1572,193 @@ footer {
     background-image: url('/static/noka_pattern.svg');
     background-size: 240px 240px;
 }
-.popular-carousel-wrap{
-    position:relative;
+
+/* ==========================================
+   POPULAR CAROUSEL — CSS natif scroll-snap
+   ========================================== */
+
+.popular-section {
+    margin-bottom: 24px;
 }
 
-/* cache les flèches tant qu'on ne survole pas */
-.popular-carousel-wrap .owl-controls,
-.popular-carousel-wrap .owl-nav{
-    position:absolute;
-    top:0;
-    left:0;
-    width:100%;
-    height:220px; /* même hauteur que tes cartes */
-    z-index:50;
-    pointer-events:none;
+.popular-section-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 12px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    font-family: 'Space Grotesk', sans-serif;
+    color: var(--text-color);
+    text-transform: uppercase;
 }
 
-.popular-carousel-wrap .owl-buttons,
-.popular-carousel-wrap .owl-nav{
-    width:100%;
-    height:100%;
+.popular-section-title .fa-thumbs-up {
+    color: var(--brand);
 }
 
+/* Conteneur relatif pour positionner les boutons prev/next */
+.pop-carousel-wrap {
+    position: relative;
+}
+
+/* La piste scrollable */
+.pop-carousel {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
+    /* Masque la scrollbar mais garde le scroll */
+    scrollbar-width: none;
+}
+.pop-carousel::-webkit-scrollbar {
+    display: none;
+}
+
+/* Chaque carte */
+.pop-item {
+    position: relative;
+    flex: 0 0 160px;
+    height: 220px;
+    border-radius: 8px;
+    overflow: hidden;
+    isolation: isolate;
+    background: var(--paper-soft);
+    scroll-snap-align: start;
+}
+
+/* Fond flouté (une seule image, pas de double chargement) */
+.pop-item::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: var(--bg);
+    background-size: cover;
+    background-position: center;
+    filter: blur(12px);
+    transform: scale(1.2);
+    z-index: 0;
+}
+
+/* Le lien couvre toute la carte */
+.pop-item > a {
+    display: block;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    z-index: 1;
+}
+
+/* L'image centrée */
+.pop-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    opacity: .95;
+    transition: opacity .25s;
+}
+.pop-item:hover img {
+    opacity: 1;
+}
+
+/* Overlay gradient bas */
+.pop-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 2;
+    background: linear-gradient(to top, rgba(0,0,0,.92) 60%, transparent);
+    padding: 10px 8px 8px;
+    color: #fff;
+}
+
+.pop-title {
+    margin: 0 0 4px;
+    font-size: 11px;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.pop-title a {
+    color: #fff;
+    text-decoration: none;
+}
+.pop-title a:hover {
+    color: var(--brand);
+    text-decoration: none;
+}
+
+.pop-chapter {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+}
+
+.pop-chapter a {
+    font-size: 10px;
+    color: var(--brand);
+    text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.pop-chapter a:hover {
+    text-decoration: underline;
+}
+
+.pop-chapter .fa-arrow-circle-right {
+    flex-shrink: 0;
+    font-size: 11px;
+    color: rgba(255,255,255,.65);
+}
+
+/* Boutons prev / next */
+.pop-carousel-btn {
+    display: none; /* masqué par défaut, affiché au survol du wrap */
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    width: 34px;
+    height: 34px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(0,0,0,.55);
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    transition: background .15s;
+}
+.pop-carousel-btn:hover {
+    background: var(--brand);
+}
+.pop-carousel-prev { left: 4px; }
+.pop-carousel-next { right: 4px; }
+
+.pop-carousel-wrap:hover .pop-carousel-btn {
+    display: flex;
+}
+
+@media (max-width: 600px) {
+    .pop-item {
+        flex: 0 0 140px;
+        height: 196px;
+    }
+    /* Toujours afficher les boutons sur mobile (pas de hover) */
+    .pop-carousel-btn {
+        display: flex;
+    }
+}
 /* Boutons */
 .popular-carousel-wrap .owl-prev,
 .popular-carousel-wrap .owl-next{
