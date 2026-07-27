@@ -74,7 +74,7 @@ async def _load_home(page: int) -> dict:
 @router.api_route("/sitemap.xml", methods=["GET", "HEAD"])
 def sitemap() -> Response:
     """Génère un sitemap XML dynamique basé sur les mangas actuellement en cache."""
-    base_url = os.environ.get("BASE_URL", "https://manganoka.xyz").rstrip("/")
+    base_url = os.environ.get("BASE_URL", "https://www.manganoka.xyz").rstrip("/")
     
     # Récupérer toutes les clés de manga du cache (ex: 'manga:Dan%252C-the-Bat...')
     manga_keys = cache.get_keys_by_prefix("manga:")
@@ -111,7 +111,7 @@ def sitemap() -> Response:
 
 @router.get("/robots.txt", include_in_schema=False)
 def robots() -> Response:
-    base_url = os.getenv("BASE_URL", "https://manganoka.xyz").rstrip("/")
+    base_url = os.getenv("BASE_URL", "https://www.manganoka.xyz").rstrip("/")
 
     robots = f"""# Global
 User-agent: *
