@@ -13,6 +13,7 @@
     <title>Terms & Conditions - MangaNoka - Fast and Ad-Free Manga Reader</title>
     <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}">
     <link rel="icon" href="{{ url_for('static', path='/noka_logo.svg') }}" type="image/svg+xml">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <script src="{{ url_for('static', path='/theme.js') }}"></script>
     <meta name="robots" content="noindex, follow">
 </head>
@@ -20,21 +21,20 @@
     <header class="site-top">
         <div class="topbar">
             <a class="brand" href="/">
-                <img src="/static/noka_logo.svg" alt="Noka" style="width: 36px; height: 36px; object-fit: contain; display: inline-block; vertical-align: middle; margin-right: 4px;">
+                <img class="brand-logo" src="{{ url_for('static', path='/noka_logo.svg') }}" alt="MangaNoka logo">
                 <span>Manga<b>Noka</b></span>
             </a>
             <form class="search-bar" action="/search" method="get" id="search-form">
-                <input
-                    type="text"
-                    name="q"
-                    id="search-input"
-                    placeholder="Search manga..."
-                    autocomplete="off"
-                    required>
-                <button type="submit">🔍</button>
+                <input type="text" name="q" id="search-input" placeholder="Search manga..." autocomplete="off" required>
+                <button type="submit" aria-label="Search">
+                    <i class="fas fa-search" aria-hidden="true"></i>
+                </button>
                 <div id="search-dropdown" class="search-dropdown" hidden></div>
             </form>
-            <nav class="quick-links" aria-label="Main navigation">
+            <button class="nav-toggle" id="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="quick-links">
+                <i class="fas fa-bars" aria-hidden="true"></i>
+            </button>
+            <nav class="quick-links" id="quick-links" aria-label="Main navigation">
                 <a href="/">Home</a>
                 <a href="/?list=2">Latest Releases</a>
                 <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle Theme" title="Toggle Theme (Lanterne Noka)">
@@ -94,5 +94,23 @@
             <p style="margin-top: 15px; font-weight: bold; font-size: 12.5px; color: var(--ink);">© 2026 MangaNoka, all rights reserved. Top speed, completely free.</p>
         </div>
     </footer>
+
+    <script>
+        (function () {
+            var toggle = document.getElementById('nav-toggle');
+            var nav = document.getElementById('quick-links');
+            if (!toggle || !nav) return;
+            toggle.addEventListener('click', function () {
+                var open = nav.classList.toggle('open');
+                toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            });
+            document.addEventListener('click', function (e) {
+                if (!toggle.contains(e.target) && !nav.contains(e.target)) {
+                    nav.classList.remove('open');
+                    toggle.setAttribute('aria-expanded', 'false');
+                }
+            });
+        })();
+    </script>
 </body>
 </html>

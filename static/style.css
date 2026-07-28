@@ -492,9 +492,12 @@ img {
     text-decoration: none;
     font-size: 13px;
     padding: 2px 0;
+    gap: 6px;
 }
 
 .chapter-title {
+    flex: 1 1 0;
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -505,7 +508,7 @@ img {
     font-size: 11px;
     color: #888;
     flex-shrink: 0;
-    margin-left: 8px;
+    white-space: nowrap;
 }
 
 .view-more-wrapper {
@@ -567,10 +570,10 @@ img {
     font-weight: 800;
 }
 
-.release-cover {
+/* .release-cover {
     width: 96px;
     height: 144px;
-}
+} */
 
 .release-cover img,
 .profile-cover img {
@@ -605,19 +608,29 @@ img {
 .chapter-list {
     display: grid;
     gap: 6px;
+    /* Contraint la largeur des enfants au conteneur */
+    overflow: hidden;
+    min-width: 0;
 }
 
 .chapter-list a,
 .chapters a {
     display: flex;
     justify-content: space-between;
-    gap: 10px;
+    align-items: center;
+    gap: 6px;
     color: var(--muted);
+    /* Le lien doit se limiter à la largeur du grid cell */
+    min-width: 0;
+    width: 100%;
+    overflow: hidden;
 }
 
 .chapter-list a span,
 .chapters a span,
 .rank-list a {
+    flex: 1 1 0;
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -627,6 +640,7 @@ img {
 .chapters time,
 .rank-list span {
     flex: 0 0 auto;
+    white-space: nowrap;
     color: var(--faint);
     font-size: 0.85rem;
 }
@@ -943,6 +957,11 @@ img {
     margin-bottom: 32px;
 }
 
+/* ==========================================
+   RESPONSIVE — ordre logique : 980 → 720 → 600
+   ========================================== */
+
+/* Tablet / small desktop : sidebar disparaît, layout passe en 1 col */
 @media (max-width: 980px) {
     .topbar {
         display: flex;
@@ -952,18 +971,9 @@ img {
         padding: 12px 0;
     }
 
-    .topbar .brand {
-        flex: 0 0 auto;
-    }
-
-    .topbar .search-bar {
-        flex: 1 1 200px;
-        min-width: 0;
-    }
-
-    .topbar .quick-links {
-        flex: 0 0 auto;
-    }
+    .topbar .brand     { flex: 0 0 auto; }
+    .topbar .search-bar { flex: 1 1 200px; min-width: 0; }
+    .topbar .quick-links { flex: 0 0 auto; }
 
     .content-layout,
     .content-layout.single {
@@ -973,57 +983,21 @@ img {
     .side-column {
         display: none;
     }
-}
 
-/* Hamburger menu for mobile — hidden links become a toggle */
-@media (max-width: 600px) {
-    .topbar {
-        gap: 8px;
+    /* manga-profile : colonne unique dès 980px pour éviter l'étroitesse */
+    .manga-profile {
+        grid-template-columns: 1fr;
     }
 
-    .quick-links {
-        display: none;
-        width: 100%;
-        border-radius: var(--radius-md);
-    }
-
-    .quick-links.open {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .quick-links a {
-        border-left: 0;
-        border-top: 1px solid rgba(255, 255, 255, 0.18);
-        justify-content: center;
-    }
-
-    .quick-links a:first-child {
-        border-top: 0;
-    }
-
-    .nav-toggle {
-        display: inline-flex;
-        flex: 0 0 auto;
-        align-items: center;
-        justify-content: center;
-        width: 40px;
-        height: 40px;
-        background: var(--brand);
-        border: 0;
-        border-radius: var(--radius-md);
-        color: #fff;
-        cursor: pointer;
-        font-size: 18px;
+    .profile-cover {
+        width: min(280px, 100%);
+        min-height: 360px;
+        margin: 0 auto;
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     }
 }
 
-@media (min-width: 601px) {
-    .nav-toggle {
-        display: none;
-    }
-}
-
+/* Phablet : ajustements de densité */
 @media (max-width: 720px) {
     .shell,
     .topbar {
@@ -1040,22 +1014,34 @@ img {
         padding: 12px;
     }
 
+    /* cartes 1 colonne pleine largeur sur mobile */
     .release-grid {
         grid-template-columns: 1fr;
+        gap: 12px;
+        padding: 12px;
     }
 
-    .release-item,
-    .release-item:nth-child(2n) {
-        border-right: 0;
+    .release-item {
+        grid-template-columns: 160px minmax(0, 1fr);
+        min-height: 200px;
+        gap: 14px;
+        padding: 14px;
     }
 
-    .manga-profile {
-        grid-template-columns: 1fr;
+    .release-cover {
+        width: 160px;
+        height: 200px;
     }
 
-    .profile-cover {
-        width: min(260px, 100%);
-        min-height: 360px;
+    .release-meta h2 {
+        font-size: 1.05rem;
+        margin-bottom: 12px;
+    }
+
+    /* Sur 1 colonne pleine largeur, la meta a de la place —
+       le titre du chapitre peut être plus long avant de tronquer */
+    .chapter-list {
+        gap: 8px;
     }
 
     .info-list {
@@ -1083,6 +1069,69 @@ img {
     .chapter-info p {
         margin-left: 0;
         margin-right: 0;
+    }
+}
+
+/* Mobile : hamburger nav */
+@media (max-width: 600px) {
+    .topbar {
+        gap: 8px;
+    }
+
+    /* Le bouton hamburger est visible */
+    .nav-toggle {
+        display: inline-flex;
+        flex: 0 0 auto;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        background: var(--brand);
+        border: 0;
+        border-radius: var(--radius-md);
+        color: #fff;
+        cursor: pointer;
+        font-size: 18px;
+    }
+
+    /* Les liens se cachent jusqu'à l'ouverture */
+    .quick-links {
+        display: none;
+        width: 100%;
+        border-radius: var(--radius-md);
+    }
+
+    .quick-links.open {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .quick-links a {
+        border-left: 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.18);
+        justify-content: center;
+        min-height: 44px; /* zone de tap confortable */
+    }
+
+    .quick-links a:first-child {
+        border-top: 0;
+    }
+
+    /* Le bouton thème dans le menu mobile */
+    .quick-links .theme-toggle-btn {
+        border-left: 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.18);
+        justify-content: center;
+        width: 100%;
+        border-radius: 0;
+        min-height: 44px;
+    }
+}
+
+/* Desktop : hamburger caché */
+@media (min-width: 601px) {
+    .nav-toggle {
+        display: none;
     }
 }
 

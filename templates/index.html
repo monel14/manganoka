@@ -720,6 +720,12 @@
                 var open = nav.classList.toggle('open');
                 toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
             });
+            document.addEventListener('click', function (e) {
+                if (!toggle.contains(e.target) && !nav.contains(e.target)) {
+                    nav.classList.remove('open');
+                    toggle.setAttribute('aria-expanded', 'false');
+                }
+            });
         })();
     </script>
 
