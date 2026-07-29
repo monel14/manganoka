@@ -3,7 +3,6 @@ const ASSETS = [
     '/',
     '/static/style.css',
     '/static/theme.js',
-    '/static/noka-loader.js',
     '/static/noka_logo.svg'
 ];
 

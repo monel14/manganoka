@@ -1536,62 +1536,6 @@ footer {
     background: url('/static/brushstroke.svg') no-repeat left center / 100% 100%;
 }
 
-/* Loader Noka : overlay plein écran */
-.noka-loader-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(246, 246, 246, 0.82);
-    background: color-mix(in srgb, var(--page) 82%, transparent);
-    backdrop-filter: blur(3px);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 14px;
-    z-index: 9999;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 200ms ease;
-}
-.noka-loader-overlay.visible {
-    opacity: 1;
-    pointer-events: auto;
-}
-.noka-loader-overlay img {
-    width: 110px;
-    height: auto;
-}
-.noka-loader-overlay .loader-text {
-    font-family: 'Space Grotesk', sans-serif;
-    font-weight: 600;
-    font-size: 14px;
-    letter-spacing: 2px;
-    color: var(--muted);
-    text-transform: uppercase;
-}
-.noka-loader-overlay .loader-text::after {
-    content: '';
-    animation: noka-dots 1.4s steps(4, end) infinite;
-}
-@keyframes noka-dots {
-    0% { content: ''; }
-    25% { content: '.'; }
-    50% { content: '..'; }
-    75% { content: '...'; }
-}
-
-/* Loader inline (petits espaces : carousels, recherche) */
-.noka-loader-inline {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-}
-.noka-loader-inline img {
-    width: 64px;
-    height: auto;
-}
-
 /* État vide (recherche sans résultat, etc.) */
 .noka-empty-state {
     display: flex;
