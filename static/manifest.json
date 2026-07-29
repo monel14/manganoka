@@ -7,8 +7,8 @@
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#F6F6F6",
-  "theme_color": "#B51E3B",
+  "background_color": "#0D0D0F",
+  "theme_color": "#D63A58",
   "categories": [
     "books",
     "entertainment",
