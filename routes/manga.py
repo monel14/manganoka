@@ -11,6 +11,7 @@ from cache import MANGA_TTL_SECONDS, cache
 from scraper.client import FetchError, NotFoundError, get_html, get_http_client
 from scraper.parser import MangaDetail, parse_manga
 from services.indexnow import ping_indexnow
+from services.google_indexing import ping_google_indexing
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -43,6 +44,8 @@ async def manga_detail(request: Request, slug: str, background_tasks: Background
 
     # Déclencher l'indexation instantanée sur Bing/Yandex via IndexNow en arrière-plan
     background_tasks.add_task(ping_indexnow, [f"/manga/{slug}"])
+    # Notifier également Google via son API d'indexation officielle
+    background_tasks.add_task(ping_google_indexing, [f"/manga/{slug}"])
 
     return templates.TemplateResponse(
         request,

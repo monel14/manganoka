@@ -1,16 +1,34 @@
 from __future__ import annotations
 
+import json
 import logging
+import sqlite3
+import xml.sax.saxutils as saxutils
+from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import APIRouter, Query, Request, Response
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
-from cache import HOME_TTL_SECONDS, cache
+from cache import HOME_TTL_SECONDS, MANGA_TTL_SECONDS, cache
 import os
 from scraper.client import FetchError, get_html
 from scraper.parser import HomeManga, parse_home, parse_popular, parse_popular_sidebar, parse_manga_list
+
+_CACHE_DB = Path(__file__).resolve().parent.parent / "cache.db"
+
+
+def _cache_get(key: str) -> dict | None:
+    """Lecture directe du cache SQLite sans déclencher de scrape."""
+    try:
+        with sqlite3.connect(str(_CACHE_DB), timeout=10) as conn:
+            row = conn.execute("SELECT data FROM cache WHERE key=?", (key,)).fetchone()
+        if row:
+            return json.loads(row[0])
+    except Exception:
+        pass
+    return None
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -108,6 +126,56 @@ def sitemap() -> Response:
     xml_content = "\n".join(xml_lines)
     
     return Response(content=xml_content, media_type="application/xml")
+
+@router.get("/rss.xml", include_in_schema=False)
+async def rss_feed() -> Response:
+    """Flux RSS des 30 derniers mangas mis en cache."""
+    base_url = os.environ.get("BASE_URL", "https://www.manganoka.xyz").rstrip("/")
+    now_rfc822 = datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S +0000")
+
+    # Récupérer les slugs depuis le cache (lecture directe, sans déclencher de scrape)
+    manga_keys = cache.get_keys_by_prefix("manga:")
+    slugs = [k.split(":", 1)[1] for k in manga_keys if ":" in k][:30]
+
+    rss_items: list[str] = []
+    for slug in slugs:
+        manga = _cache_get(f"manga:{slug}")
+        if not isinstance(manga, dict) or not manga.get("title"):
+            continue
+
+        title = saxutils.escape(manga.get("title", ""))
+        desc  = saxutils.escape(manga.get("description") or "Read free online manga on MangaNoka.")
+        cover = manga.get("cover", "")
+        # Limiter la description à 300 caractères
+        if len(desc) > 300:
+            desc = desc[:297] + "..."
+
+        enclosure = f'<enclosure url="{saxutils.escape(cover)}" type="image/jpeg" />' if cover else ""
+
+        rss_items.append(f"""        <item>
+            <title>Read {title} Online Free (No Ads)</title>
+            <link>{base_url}/manga/{slug}</link>
+            <description>{desc}</description>
+            {enclosure}
+            <guid isPermaLink="true">{base_url}/manga/{slug}</guid>
+            <pubDate>{now_rfc822}</pubDate>
+        </item>""")
+
+    xml_content = f"""<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+    <channel>
+        <title>MangaNoka - Latest Manga Updates</title>
+        <link>{base_url}</link>
+        <description>Fast, responsive, and ad-free manga reader.</description>
+        <language>en-us</language>
+        <lastBuildDate>{now_rfc822}</lastBuildDate>
+        <atom:link href="{base_url}/rss.xml" rel="self" type="application/rss+xml" />
+{chr(10).join(rss_items)}
+    </channel>
+</rss>"""
+
+    return Response(content=xml_content, media_type="application/xml; charset=utf-8")
+
 
 @router.get("/robots.txt", include_in_schema=False)
 def robots() -> Response:
