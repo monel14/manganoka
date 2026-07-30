@@ -2,25 +2,28 @@
 <html lang="en">
 
 <head>
-    
+
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-EXEWN0JKT1"></script>
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){ window.dataLayer.push(arguments); }
-      gtag('js', new Date());
-      gtag('config', 'G-EXEWN0JKT1');
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { window.dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-EXEWN0JKT1');
     </script>
-    <title>{% if page_title %}Read {{ page_title }} Online Free - MangaNoka{% else %}MangaNoka - Read Manga Online Free. Fast & ad-free experience.{% endif %}</title>
+    <title>{% if page_title %}Read {{ page_title }} Online Free - MangaNoka{% else %}MangaNoka - Read Manga Online Free.
+        Fast & ad-free experience.{% endif %}</title>
     <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}">
     <link rel="icon" href="/favicon.ico" sizes="48x48" type="image/x-icon">
     <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png">
     <link rel="icon" href="{{ url_for('static', path='/noka_logo.svg') }}" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     {% set current_title = manga.title if manga and manga.title else page_title %}
-    {% set og_title = 'Read ' ~ current_title ~ ' Online' if current_title else 'MangaNoka - Read Manga Online Free. Fast & ad-free experience.' %}
-    {% set og_description = 'Read ' ~ current_title ~ ' online for free with MangaNoka.' if current_title else 'Read manga online for free. Enjoy a fast, responsive, and ad-free experience with MangaNoka.' %}
+    {% set og_title = 'Read ' ~ current_title ~ ' Online' if current_title else 'MangaNoka - Read Manga Online Free.
+    Fast & ad-free experience.' %}
+    {% set og_description = 'Read ' ~ current_title ~ ' online for free with MangaNoka.' if current_title else 'Read
+    manga online for free. Enjoy a fast, responsive, and ad-free experience with MangaNoka.' %}
     <meta name="description" content="{{ og_description }}">
     <meta property="og:site_name" content="MangaNoka">
     <meta property="og:type" content="website">
@@ -97,7 +100,8 @@
                 </button>
                 <div id="search-dropdown" class="search-dropdown" hidden></div>
             </form>
-            <button class="nav-toggle" id="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="quick-links">
+            <button class="nav-toggle" id="nav-toggle" aria-label="Open menu" aria-expanded="false"
+                aria-controls="quick-links">
                 <i class="fas fa-bars" aria-hidden="true"></i>
             </button>
             <nav class="quick-links" id="quick-links" aria-label="Main navigation">
@@ -154,12 +158,9 @@
                     {% for item in popular %}
                     <div class="pop-item" style="--bg:url('/img-proxy?url={{ item.cover }}')" role="listitem">
                         <a href="/manga/{{ item.slug }}" aria-label="Read {{ item.title }}">
-                            <img
-                                src="/img-proxy?url={{ item.cover }}"
-                                alt="{{ item.title }}"
-                                {% if loop.index <= 4 %}fetchpriority="high"{% else %}loading="lazy"{% endif %}
-                                decoding="async"
-                                width="160" height="220">
+                            <img src="/img-proxy?url={{ item.cover }}" alt="{{ item.title }}" {% if loop.index <=4
+                                %}fetchpriority="high" {% else %}loading="lazy" {% endif %} decoding="async" width="160"
+                                height="220">
                         </a>
                         <div class="pop-overlay">
                             <h3 class="pop-title">
@@ -167,7 +168,8 @@
                             </h3>
                             {% if item.chapter.title %}
                             <div class="pop-chapter">
-                                <a href="/read/{{ item.slug }}/{{ item.chapter.number }}" title="{{ item.chapter.title }}">
+                                <a href="/read/{{ item.slug }}/{{ item.chapter.number }}"
+                                    title="{{ item.chapter.title }}">
                                     {{ item.chapter.title }}
                                 </a>
                                 <i class="fas fa-arrow-circle-right" aria-hidden="true"></i>
@@ -256,7 +258,13 @@
                         <a href="/manga/{{ manga.slug }}" class="release-cover" aria-label="{{ manga.title }}">
                             {% if manga.cover %}
                             <img src="/img-proxy?url={{ manga.cover }}" alt="{{ manga.title }}" loading="lazy"
-                                decoding="async">
+                                decoding="async" style="
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+
+">
                             {% else %}
                             <span>{{ manga.title[:1] }}</span>
                             {% endif %}
@@ -643,8 +651,8 @@
             // 2. Init carousel natif (scroll-snap)
             (function () {
                 var carousel = document.getElementById('pop-carousel');
-                var btnPrev  = document.querySelector('.pop-carousel-prev');
-                var btnNext  = document.querySelector('.pop-carousel-next');
+                var btnPrev = document.querySelector('.pop-carousel-prev');
+                var btnNext = document.querySelector('.pop-carousel-next');
                 if (!carousel) return;
 
                 function itemWidth() {
@@ -733,6 +741,10 @@
         })();
     </script>
 
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a20f16ef8a79281b',t:'MTc4NTAyMzY2NA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a21a9afdff7c2dae',t:'MTc4NTE0NDQxNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a22bfb9629aa566e',t:'MTc4NTMyNjYzMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a234a66ebdd5d474',t:'MTc4NTQxNzUxNQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+    <script>(function () { function c() { var b = a.contentDocument || (a.contentWindow && a.contentWindow.document); if (b) { var d = b.createElement('script'); d.innerHTML = "window.__CF$cv$params={r:'a20f16ef8a79281b',t:'MTc4NTAyMzY2NA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);"; b.getElementsByTagName('head')[0].appendChild(d) } } if (document.body) { var a = document.createElement('iframe'); a.height = 1; a.width = 1; a.style.position = 'absolute'; a.style.top = 0; a.style.left = 0; a.style.border = 'none'; a.style.visibility = 'hidden'; document.body.appendChild(a); if ('loading' !== document.readyState) c(); else if (window.addEventListener) document.addEventListener('DOMContentLoaded', c); else { var e = document.onreadystatechange || function () { }; document.onreadystatechange = function (b) { e(b); 'loading' !== document.readyState && (document.onreadystatechange = e, c()) } } } })();</script>
+    <script>(function () { function c() { var b = a.contentDocument || (a.contentWindow && a.contentWindow.document); if (b) { var d = b.createElement('script'); d.innerHTML = "window.__CF$cv$params={r:'a21a9afdff7c2dae',t:'MTc4NTE0NDQxNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);"; b.getElementsByTagName('head')[0].appendChild(d) } } if (document.body) { var a = document.createElement('iframe'); a.height = 1; a.width = 1; a.style.position = 'absolute'; a.style.top = 0; a.style.left = 0; a.style.border = 'none'; a.style.visibility = 'hidden'; document.body.appendChild(a); if ('loading' !== document.readyState) c(); else if (window.addEventListener) document.addEventListener('DOMContentLoaded', c); else { var e = document.onreadystatechange || function () { }; document.onreadystatechange = function (b) { e(b); 'loading' !== document.readyState && (document.onreadystatechange = e, c()) } } } })();</script>
+    <script>(function () { function c() { var b = a.contentDocument || (a.contentWindow && a.contentWindow.document); if (b) { var d = b.createElement('script'); d.innerHTML = "window.__CF$cv$params={r:'a22bfb9629aa566e',t:'MTc4NTMyNjYzMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);"; b.getElementsByTagName('head')[0].appendChild(d) } } if (document.body) { var a = document.createElement('iframe'); a.height = 1; a.width = 1; a.style.position = 'absolute'; a.style.top = 0; a.style.left = 0; a.style.border = 'none'; a.style.visibility = 'hidden'; document.body.appendChild(a); if ('loading' !== document.readyState) c(); else if (window.addEventListener) document.addEventListener('DOMContentLoaded', c); else { var e = document.onreadystatechange || function () { }; document.onreadystatechange = function (b) { e(b); 'loading' !== document.readyState && (document.onreadystatechange = e, c()) } } } })();</script>
+    <script>(function () { function c() { var b = a.contentDocument || (a.contentWindow && a.contentWindow.document); if (b) { var d = b.createElement('script'); d.innerHTML = "window.__CF$cv$params={r:'a234a66ebdd5d474',t:'MTc4NTQxNzUxNQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);"; b.getElementsByTagName('head')[0].appendChild(d) } } if (document.body) { var a = document.createElement('iframe'); a.height = 1; a.width = 1; a.style.position = 'absolute'; a.style.top = 0; a.style.left = 0; a.style.border = 'none'; a.style.visibility = 'hidden'; document.body.appendChild(a); if ('loading' !== document.readyState) c(); else if (window.addEventListener) document.addEventListener('DOMContentLoaded', c); else { var e = document.onreadystatechange || function () { }; document.onreadystatechange = function (b) { e(b); 'loading' !== document.readyState && (document.onreadystatechange = e, c()) } } } })();</script>
+</body>
 
 </html>
