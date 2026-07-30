@@ -8,9 +8,8 @@ a2wsgi
 boto3==1.34.131
 Pillow
 python-dotenv
-google-api-python-client google-auth
+
 google-api-python-client
-google-auth
 google-auth
 google-auth-httplib2
 google-auth-oauthlib
