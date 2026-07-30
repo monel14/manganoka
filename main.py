@@ -108,3 +108,31 @@ app.include_router(manga.router)
 app.include_router(reader.router)
 app.include_router(search.router)
 app.include_router(images.router)  # Ta nouvelle route proxy/cache d'images
+
+# 5. Routes pour les fichiers favicon à la racine du domaine
+#    (indispensable pour que Google affiche le favicon dans les résultats)
+from fastapi.responses import FileResponse
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon_ico():
+    return FileResponse(BASE_DIR / "favicon.ico", media_type="image/x-icon")
+
+@app.get("/favicon-16x16.png", include_in_schema=False)
+async def favicon_16():
+    return FileResponse(BASE_DIR / "favicon-16x16.png", media_type="image/png")
+
+@app.get("/favicon-32x32.png", include_in_schema=False)
+async def favicon_32():
+    return FileResponse(BASE_DIR / "favicon-32x32.png", media_type="image/png")
+
+@app.get("/apple-touch-icon.png", include_in_schema=False)
+async def apple_touch_icon():
+    return FileResponse(BASE_DIR / "apple-touch-icon.png", media_type="image/png")
+
+@app.get("/android-chrome-192x192.png", include_in_schema=False)
+async def android_chrome_192():
+    return FileResponse(BASE_DIR / "android-chrome-192x192.png", media_type="image/png")
+
+@app.get("/android-chrome-512x512.png", include_in_schema=False)
+async def android_chrome_512():
+    return FileResponse(BASE_DIR / "android-chrome-512x512.png", media_type="image/png")

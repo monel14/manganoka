@@ -12,8 +12,10 @@
     </script>
     <title>Your Reading History - MangaNoka - Fast, responsive, and ad-free experience.</title>
     <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}">
-    <link rel="shortcut icon" href="{{ url_for('static', path='/icon192.png') }}" type="image/png">
-    <link rel="icon" href="{{ url_for('static', path='/icon192.png') }}" sizes="192x192" type="image/png">
+    
+    <link rel="icon" href="/favicon.ico" sizes="48x48" type="image/x-icon">
+    <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <link rel="icon" href="{{ url_for('static', path='/noka_logo.svg') }}" type="image/svg+xml">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <meta name="description" content="📚 Find all the manga you have read, Noka remembers them for you. Fast, responsive, and ad-free experience.">
@@ -23,7 +25,6 @@
     <meta property="og:description" content="📚 Find all the manga you have read, Noka remembers them for you.">
     <meta property="og:image" content="{{ url_for('static', path='/og_image.png') }}">
     <meta name="twitter:card" content="summary_large_image">
-    <link rel="apple-touch-icon" href="{{ url_for('static', path='/apple-touch-icon.png') }}">
     <link rel="manifest" href="{{ url_for('static', path='/manifest.json') }}">
     <meta name="theme-color" content="#17171A">
     <script src="{{ url_for('static', path='/theme.js') }}"></script>

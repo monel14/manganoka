@@ -15,9 +15,10 @@
     <title>{% if page_title %}Read {{ page_title }} Online Free - MangaNoka{% else %}MangaNoka - Read Manga Online Free.
         Fast, responsive, and ad-free experience.{% endif %}</title>
     <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}">
-    <link rel="shortcut icon" href="{{ url_for('static', path='/icon192.png') }}" type="image/png">
-    <link rel="icon" href="{{ url_for('static', path='/icon192.png') }}" sizes="192x192" type="image/png">
+    <link rel="icon" href="/favicon.ico" sizes="48x48" type="image/x-icon">
+    <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png">
     <link rel="icon" href="{{ url_for('static', path='/noka_logo.svg') }}" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     {% set current_title = manga.title if manga and manga.title else page_title %}
     {% set og_title = 'Read ' ~ current_title ~ ' Online' if current_title else 'MangaNoka - Read Manga Online Free.
     Fast, responsive, and ad-free experience.' %}
@@ -34,7 +35,6 @@
     request.url.scheme ~ '://' ~ request.url.netloc ~ og_image_str %}
     <meta property="og:image" content="{{ og_image_abs }}">
     <meta name="twitter:card" content="summary_large_image">
-    <link rel="apple-touch-icon" href="{{ url_for('static', path='/apple-touch-icon.png') }}">
     <link rel="manifest" href="{{ url_for('static', path='/manifest.json') }}">
     {% set canonical_url = request.url.scheme ~ '://' ~ request.url.netloc ~ request.url.path %}
     <link rel="canonical" href="{{ canonical_url }}">
@@ -45,18 +45,23 @@
       "@graph": [
         {
           "@type": "Organization",
-          "@id": "{{ canonical_url }}#organization",
+          "@id": "{{ request.url.scheme }}://{{ request.url.netloc }}/#organization",
           "name": "MangaNoka",
-          "url": "{{ canonical_url }}",
-          "logo": "{{ request.url.scheme }}://{{ request.url.netloc }}{{ url_for('static', path='/noka_logo.svg') }}"
+          "url": "{{ request.url.scheme }}://{{ request.url.netloc }}/",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "{{ request.url.scheme }}://{{ request.url.netloc }}/static/icon512.png",
+            "width": 512,
+            "height": 512
+          }
         },
         {
           "@type": "WebSite",
-          "@id": "{{ canonical_url }}#website",
+          "@id": "{{ request.url.scheme }}://{{ request.url.netloc }}/#website",
           "name": "MangaNoka",
-          "url": "{{ canonical_url }}",
+          "url": "{{ request.url.scheme }}://{{ request.url.netloc }}/",
           "publisher": {
-            "@id": "{{ canonical_url }}#organization"
+            "@id": "{{ request.url.scheme }}://{{ request.url.netloc }}/#organization"
           },
           "potentialAction": {
             "@type": "SearchAction",
@@ -69,7 +74,10 @@
           "@id": "{{ canonical_url }}#webpage",
           "url": "{{ canonical_url }}",
           "name": {{ og_title|tojson }},
-          "description": {{ og_description|tojson }}
+          "description": {{ og_description|tojson }},
+          "isPartOf": {
+            "@id": "{{ request.url.scheme }}://{{ request.url.netloc }}/#website"
+          }
         }
       ]
     }
