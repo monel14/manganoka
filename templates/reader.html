@@ -102,16 +102,15 @@
 
     <main class="chapter-reader" id="reader" style="width: min(980px, 100%); margin: 0 auto; display: flex; flex-direction: column; padding: 16px 0;">
         {% for image in page.images %}
-            <img
-                class="manga-page"
-                src="/{{ slug }}/{{ chapter }}/{{ loop.index }}.webp"
-                alt="{{ manga.title }} Chapter {{ chapter }} page {{ loop.index }}"
-                decoding="async"
-                loading="{% if loop.first %}eager{% else %}lazy{% endif %}"
-                style="opacity: 0; width: 100%; height: auto; display: block; transition: opacity 0.3s ease;"
-                onload="this.style.opacity = 1;"
-                onerror="this.onerror=null; this.src='/static/noka_lost.svg'; this.style.opacity = 1;"
-            >
+            <div class="page-wrapper" style="min-height: 300px; width: 100%; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.02); margin-bottom: 6px;">
+                <img
+                    class="manga-page"
+                    data-src="/{{ slug }}/{{ chapter }}/{{ loop.index }}.webp"
+                    alt="{{ manga.title }} Chapter {{ chapter }} page {{ loop.index }}"
+                    decoding="async"
+                    style="opacity: 0; width: 100%; height: auto; display: block; transition: opacity 0.3s ease;"
+                >
+            </div>
         {% else %}
             <p class="empty">No images found.</p>
         {% endfor %}
@@ -151,37 +150,41 @@
 
     <script>
     document.addEventListener("DOMContentLoaded", () => {
-        const pages = Array.from(document.querySelectorAll(".manga-page"));
-        if (!pages.length) return;
+        const images = Array.from(document.querySelectorAll(".manga-page"));
+        if (!images.length) return;
 
-        const preloaded = new Set();
+        let currentIndex = 0;
 
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const img = entry.target;
-                    const index = pages.indexOf(img);
-                    
-                    // Intelligent preloading of the next 2 pages
-                    for (let offset = 1; offset <= 2; offset++) {
-                        const nextImg = pages[index + offset];
-                        if (nextImg && !preloaded.has(nextImg.src)) {
-                            // Changing loading to "eager" forces the browser to load it immediately
-                            nextImg.loading = "eager";
-                            
-                            // Create virtual Image object to force browser cache in the background
-                            const tempImg = new Image();
-                            tempImg.src = nextImg.src;
-                            preloaded.add(nextImg.src);
-                        }
-                    }
-                }
-            });
-        }, {
-            rootMargin: "0px 0px 600px 0px" // Trigger observation 600px before image enters viewport
-        });
+        function loadNextImage() {
+            if (currentIndex >= images.length) return;
 
-        pages.forEach(page => observer.observe(page));
+            const img = images[currentIndex];
+            const dataSrc = img.getAttribute("data-src");
+            if (!dataSrc) {
+                currentIndex++;
+                loadNextImage();
+                return;
+            }
+
+            img.onload = () => {
+                img.style.opacity = "1";
+                if (img.parentElement) img.parentElement.style.minHeight = "auto";
+                currentIndex++;
+                loadNextImage();
+            };
+
+            img.onerror = () => {
+                img.src = "/static/noka_lost.svg";
+                img.style.opacity = "1";
+                if (img.parentElement) img.parentElement.style.minHeight = "auto";
+                currentIndex++;
+                loadNextImage();
+            };
+
+            img.src = dataSrc;
+        }
+
+        loadNextImage();
     });
     </script>
 

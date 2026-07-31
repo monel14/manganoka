@@ -143,17 +143,32 @@ async def rss_feed() -> Response:
         if not isinstance(manga, dict) or not manga.get("title"):
             continue
 
-        title = saxutils.escape(manga.get("title", ""))
-        desc  = saxutils.escape(manga.get("description") or "Read free online manga on MangaNoka.")
+        manga_title = manga.get("title", "")
+        title = saxutils.escape(manga_title)
+        
+        # 1. Générer un hashtag de titre spécifique (ex: #sololeveling)
+        clean_title_tag = "".join(c for c in manga_title.lower() if c.isalnum())
+        specific_hashtag = f"#{clean_title_tag}" if clean_title_tag else ""
+        
+        # 2. Nettoyer et limiter la description d'origine
+        raw_desc = manga.get("description") or "Discover and read your favorite manga online for free."
+        if len(raw_desc) > 180:
+            raw_desc = raw_desc[:177] + "..."
+            
+        # 3. Créer une description SEO ultra-vendeuse et riche en hashtags pour Pinterest
+        seo_desc = (
+            f"Read {manga_title} online for free. Enjoy a high-speed, mobile-responsive, and ad-free experience on MangaNoka! "
+            f"Noka is your ultimate interactive guide to your next favorite manga. "
+            f"{raw_desc} "
+            f"\n\n#manga #manhwa #webtoon #readmanga #anime #manganoka {specific_hashtag}"
+        )
+        desc = saxutils.escape(seo_desc)
         cover = manga.get("cover", "")
-        # Limiter la description à 300 caractères
-        if len(desc) > 300:
-            desc = desc[:297] + "..."
 
         enclosure = f'<enclosure url="{saxutils.escape(cover)}" type="image/jpeg" />' if cover else ""
 
         rss_items.append(f"""        <item>
-            <title>Read {title} Online Free (No Ads)</title>
+            <title>Read {title} Online Free </title>
             <link>{base_url}/manga/{slug}</link>
             <description>{desc}</description>
             {enclosure}
