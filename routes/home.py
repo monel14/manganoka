@@ -176,8 +176,19 @@ async def rss_feed() -> Response:
         )
         desc = saxutils.escape(seo_desc)
         cover = manga.get("cover", "")
+        cover_url = ""
+        if cover:
+            try:
+                from services.image_cache import get_cache_filename
+                filename, _ = get_cache_filename(cover)
+                cover_url = f"{base_url}/img/{filename}"
+            except Exception as exc:
+                logger.warning("Failed to generate proxy cover URL for RSS: %s", exc)
+                cover_url = cover
+        else:
+            cover_url = ""
 
-        enclosure = f'<enclosure url="{saxutils.escape(cover)}" type="image/jpeg" />' if cover else ""
+        enclosure = f'<enclosure url="{saxutils.escape(cover_url)}" type="image/jpeg" />' if cover_url else ""
 
         # 4. Calculer la date réelle de création de l'entrée dans le cache pour un pubDate stable
         if expires:
