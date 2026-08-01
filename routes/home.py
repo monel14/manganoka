@@ -181,7 +181,9 @@ async def rss_feed() -> Response:
             try:
                 from services.image_cache import get_cache_filename
                 filename, _ = get_cache_filename(cover)
-                cover_url = f"{base_url}/img-cdn/{filename}"
+                # Forcer l'extension en .jpg pour assurer la compatibilité universelle sur les réseaux (Pinterest, n8n, etc.)
+                filename_jpg = filename.rsplit(".", 1)[0] + ".jpg"
+                cover_url = f"{base_url}/img-cdn/{filename_jpg}"
             except Exception as exc:
                 logger.warning("Failed to generate proxy cover URL for RSS: %s", exc)
                 cover_url = cover

@@ -65,31 +65,62 @@ def get_image_cache_service() -> ImageCacheService:
 
 @router.get("/img-cdn/{filename}")
 async def serve_cached_image(filename: str):
-    """Sert l'image en cache CDN de manière robuste et directe (sans redirection)."""
+    """Sert l'image en cache CDN de manière robuste et directe (sans redirection), avec conversion JPEG optionnelle."""
     service = get_image_cache_service()
     
-    # 1. Tentative de récupération depuis le cache local
-    image_data = service.get_from_local_cache(filename)
-    if image_data:
-        ext = filename.split(".")[-1] if "." in filename else "jpg"
-        return Response(
-            content=image_data,
-            media_type=f"image/{ext}",
-            headers={"Cache-Control": "public, max-age=31536000"},
-        )
+    is_jpeg_requested = filename.lower().endswith((".jpg", ".jpeg"))
+    base_hash = filename.rsplit(".", 1)[0]
+    
+    image_data = None
+    source_ext = "webp"
+    
+    # Rechercher s'il y a un fichier cache valide avec n'importe quelle extension courante
+    for ext in ["webp", "png", "jpg", "jpeg"]:
+        cached_name = f"{base_hash}.{ext}"
         
-    # 2. Tentative depuis le stockage S3 (via nos clés API privées)
-    object_key = service.get_s3_object_key(filename)
-    image_data = service.get_from_s3(object_key)
-    if image_data:
-        ext = filename.split(".")[-1] if "." in filename else "jpg"
-        return Response(
-            content=image_data,
-            media_type=f"image/{ext}",
-            headers={"Cache-Control": "public, max-age=31536000"},
-        )
+        # 1. Tentative locale
+        image_data = service.get_from_local_cache(cached_name)
+        if image_data:
+            source_ext = ext
+            break
+            
+        # 2. Tentative S3
+        object_key = service.get_s3_object_key(cached_name)
+        image_data = service.get_from_s3(object_key)
+        if image_data:
+            source_ext = ext
+            break
+            
+    if not image_data:
+        raise HTTPException(status_code=404, detail="Image not found")
         
-    raise HTTPException(status_code=404, detail="Image not found")
+    # Si conversion en JPEG demandée pour compatibilité réseaux sociaux
+    if is_jpeg_requested and source_ext not in {"jpg", "jpeg"}:
+        try:
+            from PIL import Image
+            import io
+            
+            img = Image.open(io.BytesIO(image_data))
+            # Convertir en RGB (le JPEG ne supporte pas la transparence)
+            if img.mode in ("RGBA", "LA") or (img.mode == "P" and "transparency" in img.info):
+                background = Image.new("RGB", img.size, (255, 255, 255))
+                background.paste(img, mask=img.split()[3] if len(img.split()) >= 4 else None)
+                img = background
+            else:
+                img = img.convert("RGB")
+                
+            output = io.BytesIO()
+            img.save(output, format="JPEG", quality=85)
+            image_data = output.getvalue()
+            source_ext = "jpg"
+        except Exception as exc:
+            logger.warning("Échec de conversion d'image Pillow en JPEG pour %s: %s", filename, exc)
+            
+    return Response(
+        content=image_data,
+        media_type="image/jpeg" if is_jpeg_requested else f"image/{source_ext}",
+        headers={"Cache-Control": "public, max-age=31536000"},
+    )
 
 
 # ==============================
