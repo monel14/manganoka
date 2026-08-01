@@ -30,6 +30,18 @@ def _cache_get(key: str) -> dict | None:
         pass
     return None
 
+
+def _cache_get_with_expiry(key: str) -> tuple[dict | None, float | None]:
+    """Lecture directe du cache SQLite avec le timestamp d'expiration."""
+    try:
+        with sqlite3.connect(str(_CACHE_DB), timeout=10) as conn:
+            row = conn.execute("SELECT data, expires FROM cache WHERE key=?", (key,)).fetchone()
+        if row:
+            return json.loads(row[0]), row[1]
+    except Exception:
+        pass
+    return None, None
+
 logger = logging.getLogger(__name__)
 router = APIRouter()
 templates = Jinja2Templates(directory=str(Path(__file__).resolve().parent.parent / "templates"))
@@ -139,7 +151,7 @@ async def rss_feed() -> Response:
 
     rss_items: list[str] = []
     for slug in slugs:
-        manga = _cache_get(f"manga:{slug}")
+        manga, expires = _cache_get_with_expiry(f"manga:{slug}")
         if not isinstance(manga, dict) or not manga.get("title"):
             continue
 
@@ -167,13 +179,21 @@ async def rss_feed() -> Response:
 
         enclosure = f'<enclosure url="{saxutils.escape(cover)}" type="image/jpeg" />' if cover else ""
 
+        # 4. Calculer la date réelle de création de l'entrée dans le cache pour un pubDate stable
+        if expires:
+            creation_time = expires - MANGA_TTL_SECONDS
+            pub_date_dt = datetime.fromtimestamp(creation_time, tz=timezone.utc)
+            pub_date_rfc = pub_date_dt.strftime("%a, %d %b %Y %H:%M:%S +0000")
+        else:
+            pub_date_rfc = now_rfc822
+
         rss_items.append(f"""        <item>
-            <title>Read {title} Online Free </title>
+            <title>Read {title} Online Free - No Ads &amp; High-Speed</title>
             <link>{base_url}/manga/{slug}</link>
             <description>{desc}</description>
             {enclosure}
             <guid isPermaLink="true">{base_url}/manga/{slug}</guid>
-            <pubDate>{now_rfc822}</pubDate>
+            <pubDate>{pub_date_rfc}</pubDate>
         </item>""")
 
     xml_content = f"""<?xml version="1.0" encoding="UTF-8"?>

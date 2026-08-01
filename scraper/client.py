@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import asyncio
 from urllib.parse import urljoin
 
 import httpx
@@ -59,21 +60,43 @@ def absolute_url(path_or_url: str) -> str:
 
 async def get_html(path_or_url: str) -> str:
     url = absolute_url(path_or_url)
-    logger.info("Fetching %s", url)
-
     client = get_http_client()
-    try:
-        response = await client.get(url)
-        response.raise_for_status()
-    except httpx.HTTPStatusError as exc:
-        if exc.response.status_code == 404:
-            raise NotFoundError(f"Ressource introuvable: {url}") from exc
-        raise FetchError(f"Erreur HTTP pour {url}: {exc}") from exc
-    except httpx.HTTPError as exc:
-        raise FetchError(f"Erreur HTTP pour {url}: {exc}") from exc
-
-    content_type = response.headers.get("content-type", "")
-    if "text/html" not in content_type and "application/xhtml+xml" not in content_type:
-        logger.warning("Unexpected content type for %s: %s", url, content_type)
-
-    return response.text
+    
+    retries = 3
+    backoff = 4.0  # secondes de pause initiales
+    
+    for attempt in range(retries):
+        logger.info("Fetching %s (Attempt %d/%d)", url, attempt + 1, retries)
+        try:
+            response = await client.get(url)
+            if response.status_code == 429:
+                logger.warning("HTTP 429 Too Many Requests reçu pour %s. Retrying in %.1fs...", url, backoff)
+                await asyncio.sleep(backoff)
+                backoff *= 2.0  # Augmenter exponentiellement le délai
+                continue
+            response.raise_for_status()
+            
+            content_type = response.headers.get("content-type", "")
+            if "text/html" not in content_type and "application/xhtml+xml" not in content_type:
+                logger.warning("Unexpected content type for %s: %s", url, content_type)
+                
+            return response.text
+            
+        except httpx.HTTPStatusError as exc:
+            if exc.response.status_code == 404:
+                raise NotFoundError(f"Ressource introuvable: {url}") from exc
+            if exc.response.status_code == 429:
+                logger.warning("HTTP 429 détecté pour %s. Retrying in %.1fs...", url, backoff)
+                await asyncio.sleep(backoff)
+                backoff *= 2.0
+                continue
+            raise FetchError(f"Erreur HTTP pour {url}: {exc}") from exc
+        except httpx.HTTPError as exc:
+            if attempt < retries - 1:
+                logger.warning("Erreur de connexion pour %s. Retrying in 2.0s...", url)
+                await asyncio.sleep(2.0)
+                continue
+            raise FetchError(f"Erreur HTTP pour {url}: {exc}") from exc
+            
+    # Si tous les essais échouent avec un 429
+    raise FetchError(f"Erreur HTTP 429 permanente (Rate Limited) pour {url}")
