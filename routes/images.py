@@ -63,7 +63,7 @@ def get_image_cache_service() -> ImageCacheService:
 # Routes
 # ==============================
 
-@router.get("/img/{filename}")
+@router.get("/img-cdn/{filename}")
 async def serve_cached_image(filename: str):
     """Sert l'image en cache CDN de manière robuste et directe (sans redirection)."""
     service = get_image_cache_service()
