@@ -158,6 +158,10 @@ async def rss_feed() -> Response:
         manga_title = manga.get("title", "")
         title = saxutils.escape(manga_title)
         
+        # Récupérer le numéro du dernier chapitre s'il existe
+        chapters = manga.get("chapters", [])
+        latest_ch_num = str(chapters[0].get("number", "1")) if chapters else "1"
+        
         # 1. Générer un hashtag de titre spécifique (ex: #sololeveling)
         clean_title_tag = "".join(c for c in manga_title.lower() if c.isalnum())
         specific_hashtag = f"#{clean_title_tag}" if clean_title_tag else ""
@@ -169,7 +173,7 @@ async def rss_feed() -> Response:
             
         # 3. Créer une description SEO ultra-vendeuse et riche en hashtags pour Pinterest
         seo_desc = (
-            f"Read {manga_title} online for free. Enjoy a high-speed, mobile-responsive, and ad-free experience on MangaNoka! "
+            f"Read {manga_title} Chapter {latest_ch_num} online for free. Enjoy a high-speed, mobile-responsive, and ad-free experience on MangaNoka! "
             f"Noka is your ultimate interactive guide to your next favorite manga. "
             f"{raw_desc} "
             f"\n\n#manga #manhwa #webtoon #readmanga #anime #manganoka {specific_hashtag}"
@@ -200,12 +204,17 @@ async def rss_feed() -> Response:
         else:
             pub_date_rfc = now_rfc822
 
+        # Le GUID est désormais unique par chapitre pour forcer la publication automatique de Pinterest
+        unique_guid = f"{base_url}/manga/{slug}#ch-{latest_ch_num}"
+        # Le lien de l'article pointe directement vers le lecteur de chapitre si disponible pour maximiser le taux de conversion
+        chapter_link = f"{base_url}/read/{slug}/{latest_ch_num}" if chapters else f"{base_url}/manga/{slug}"
+
         rss_items.append(f"""        <item>
-            <title>Read {title} Online Free - No Ads &amp; High-Speed</title>
-            <link>{base_url}/manga/{slug}</link>
+            <title>Read {title} Chapter {latest_ch_num} Online Free - No Ads &amp; High-Speed</title>
+            <link>{chapter_link}</link>
             <description>{desc}</description>
             {enclosure}
-            <guid isPermaLink="true">{base_url}/manga/{slug}</guid>
+            <guid isPermaLink="false">{unique_guid}</guid>
             <pubDate>{pub_date_rfc}</pubDate>
         </item>""")
 
