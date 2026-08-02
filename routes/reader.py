@@ -115,7 +115,15 @@ async def _load_manga(slug: str) -> MangaDetail:
         logger.warning("Failed to fetch chapters JSON for %s: %s", slug, exc)
         chapters_data = {}
         
-    return parse_manga(html, slug=slug, chapters_data=chapters_data)
+    manga_detail = parse_manga(html, slug=slug, chapters_data=chapters_data)
+    try:
+        from services.mangabaka import fetch_alt_titles
+        manga_detail["alt_titles"] = await fetch_alt_titles(manga_detail["title"])
+    except Exception as exc:
+        logger.warning("Failed to enrich manga %s with MangaBaka alt titles: %s", slug, exc)
+        manga_detail["alt_titles"] = []
+        
+    return manga_detail
 
 
 def _find_chapter_url(manga: MangaDetail, chapter: str) -> str:
