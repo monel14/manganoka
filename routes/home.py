@@ -210,7 +210,7 @@ async def rss_feed() -> Response:
         chapter_link = f"{base_url}/read/{slug}/{latest_ch_num}" if chapters else f"{base_url}/manga/{slug}"
 
         rss_items.append(f"""        <item>
-            <title>Read {title} Chapter {latest_ch_num} Online Free - No Ads &amp; High-Speed</title>
+            <title>Read {title} Chapter {latest_ch_num} Online Free </title>
             <link>{chapter_link}</link>
             <description>{desc}</description>
             {enclosure}
