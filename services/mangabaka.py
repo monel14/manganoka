@@ -7,13 +7,17 @@ import httpx
 logger = logging.getLogger(__name__)
 
 
-async def fetch_alt_titles(manga_title: str) -> list[str]:
+async def fetch_mangabaka_data(manga_title: str) -> dict:
     """
-    Interroge l'API publique de MangaBaka pour récupérer tous les titres alternatifs
-    et romanisés d'un manga donnés pour le référencement croisé (SEO).
+    Interroge l'API publique de MangaBaka pour récupérer à la fois les titres alternatifs (SEO)
+    et l'URL directe de couverture JPEG haute qualité.
+    
+    Returns:
+        dict: {"alt_titles": [...], "cover_url": "https://..."}
     """
+    result = {"alt_titles": [], "cover_url": None}
     if not manga_title:
-        return []
+        return result
 
     # Enlever les numéros de chapitre éventuels pour la recherche globale
     clean_query = manga_title.split(":")[0].split("·")[0].strip()
@@ -27,13 +31,13 @@ async def fetch_alt_titles(manga_title: str) -> list[str]:
             r = await client.get(url, headers={"User-Agent": "MangaNoka/1.0 (SEO Agent)"}, timeout=8.0)
             if r.status_code != 200:
                 logger.warning("MangaBaka API returned HTTP %d for %s", r.status_code, manga_title)
-                return []
+                return result
                 
             payload = r.json()
             series_list = payload.get("data", [])
             if not series_list:
                 logger.info("MangaBaka API: No match found for '%s'", manga_title)
-                return []
+                return result
 
             # Sélectionner le premier résultat (le plus pertinent)
             series = series_list[0]
@@ -54,11 +58,25 @@ async def fetch_alt_titles(manga_title: str) -> list[str]:
                     if isinstance(t, dict) and t.get("title"):
                         alt_titles.add(t["title"])
 
-            # Retourner sous forme de liste dédoublée propre, sans le titre principal original s'il y est déjà
-            unique_list = [t for t in alt_titles if t.lower() != manga_title.lower()]
-            logger.info("MangaBaka API: Successfully retrieved %d alt titles for '%s'", len(unique_list), manga_title)
-            return unique_list
+            # Récupérer l'URL directe de couverture JPEG haute qualité (depuis le format raw)
+            cover_url = None
+            cover_data = series.get("cover", {})
+            if isinstance(cover_data, dict):
+                raw_cover = cover_data.get("raw", {})
+                if isinstance(raw_cover, dict) and raw_cover.get("url"):
+                    cover_url = raw_cover["url"]
+                else:
+                    # Fallback sur x350 si le format raw n'est pas disponible
+                    x350_cover = cover_data.get("x350", {})
+                    if isinstance(x350_cover, dict) and x350_cover.get("x1"):
+                        cover_url = x350_cover["x1"]
+
+            result["alt_titles"] = [t for t in alt_titles if t.lower() != manga_title.lower()]
+            result["cover_url"] = cover_url
+            
+            logger.info("MangaBaka API: Successfully retrieved %d alt titles and cover URL for '%s'", len(result["alt_titles"]), manga_title)
+            return result
 
         except Exception as exc:
-            logger.warning("MangaBaka API: Failed to fetch alt titles for '%s': %s", manga_title, exc)
-            return []
+            logger.warning("MangaBaka API: Failed to fetch data for '%s': %s", manga_title, exc)
+            return result

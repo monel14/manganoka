@@ -141,11 +141,11 @@ def sitemap() -> Response:
 
 @router.get("/rss.xml", include_in_schema=False)
 async def rss_feed() -> Response:
-    """Flux RSS conforme aux normes Pinterest & Media RSS."""
+    """Flux RSS des 30 derniers mangas mis en cache."""
     base_url = os.environ.get("BASE_URL", "https://www.manganoka.xyz").rstrip("/")
     now_rfc822 = datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S +0000")
 
-    # Récupérer les slugs depuis le cache (lecture directe)
+    # Récupérer les slugs depuis le cache (lecture directe, sans déclencher de scrape)
     manga_keys = cache.get_keys_by_prefix("manga:")
     slugs = [k.split(":", 1)[1] for k in manga_keys if ":" in k][:30]
 
@@ -162,7 +162,7 @@ async def rss_feed() -> Response:
         chapters = manga.get("chapters", [])
         latest_ch_num = str(chapters[0].get("number", "1")) if chapters else "1"
         
-        # 1. Générer un hashtag de titre spécifique
+        # 1. Générer un hashtag de titre spécifique (ex: #sololeveling)
         clean_title_tag = "".join(c for c in manga_title.lower() if c.isalnum())
         specific_hashtag = f"#{clean_title_tag}" if clean_title_tag else ""
         
@@ -171,7 +171,7 @@ async def rss_feed() -> Response:
         if len(raw_desc) > 180:
             raw_desc = raw_desc[:177] + "..."
             
-        # 3. Description riche pour Pinterest
+        # 3. Créer une description SEO ultra-vendeuse et riche en hashtags pour Pinterest
         seo_desc = (
             f"Read {manga_title} Chapter {latest_ch_num} online for free. Enjoy a high-speed, mobile-responsive, and ad-free experience on MangaNoka! "
             f"Noka is your ultimate interactive guide to your next favorite manga. "
@@ -179,25 +179,29 @@ async def rss_feed() -> Response:
             f"\n\n#manga #manhwa #webtoon #readmanga #anime #manganoka {specific_hashtag}"
         )
         desc = saxutils.escape(seo_desc)
-        cover = manga.get("cover", "")
-        cover_url = ""
-        if cover:
-            try:
-                from services.image_cache import get_cache_filename
-                filename, _ = get_cache_filename(cover)
-                filename_jpg = filename.rsplit(".", 1)[0] + ".jpg"
-                cover_url = f"{base_url}/img-cdn/{filename_jpg}"
-            except Exception as exc:
-                logger.warning("Failed to generate proxy cover URL for RSS: %s", exc)
-                cover_url = cover
+        # Utiliser l'URL de couverture JPEG directe et publique de MangaBaka si elle existe (optimal pour les réseaux sociaux)
+        bakacover = manga.get("bakacover")
+        if bakacover:
+            cover_url = bakacover
+        else:
+            cover = manga.get("cover", "")
+            cover_url = ""
+            if cover:
+                try:
+                    from services.image_cache import get_cache_filename
+                    filename, _ = get_cache_filename(cover)
+                    # Forcer l'extension en .jpg pour assurer la compatibilité universelle sur les réseaux (Pinterest, n8n, etc.)
+                    filename_jpg = filename.rsplit(".", 1)[0] + ".jpg"
+                    cover_url = f"{base_url}/img-cdn/{filename_jpg}"
+                except Exception as exc:
+                    logger.warning("Failed to generate proxy cover URL for RSS: %s", exc)
+                    cover_url = cover
+            else:
+                cover_url = ""
 
-        esc_cover_url = saxutils.escape(cover_url) if cover_url else ""
-        
-        # Balises d'images conformes avec length="0" et Media RSS
-        enclosure = f'<enclosure url="{esc_cover_url}" type="image/jpeg" length="0" />' if esc_cover_url else ""
-        media_content = f'<media:content url="{esc_cover_url}" medium="image" />\n            <media:thumbnail url="{esc_cover_url}" />' if esc_cover_url else ""
+        enclosure = f'<enclosure url="{saxutils.escape(cover_url)}" type="image/jpeg" />' if cover_url else ""
 
-        # 4. Calcul de la date de publication
+        # 4. Calculer la date réelle de création de l'entrée dans le cache pour un pubDate stable
         if expires:
             creation_time = expires - MANGA_TTL_SECONDS
             pub_date_dt = datetime.fromtimestamp(creation_time, tz=timezone.utc)
@@ -205,21 +209,22 @@ async def rss_feed() -> Response:
         else:
             pub_date_rfc = now_rfc822
 
-        # 5. URL unique réelle pour le chapitre (Permalink propre sans ancre #)
+        # Le GUID est désormais unique par chapitre pour forcer la publication automatique de Pinterest
+        unique_guid = f"{base_url}/manga/{slug}#ch-{latest_ch_num}"
+        # Le lien de l'article pointe directement vers le lecteur de chapitre si disponible pour maximiser le taux de conversion
         chapter_link = f"{base_url}/read/{slug}/{latest_ch_num}" if chapters else f"{base_url}/manga/{slug}"
 
         rss_items.append(f"""        <item>
-            <title>Read {title} Chapter {latest_ch_num} Online Free</title>
+            <title>Read {title} Chapter {latest_ch_num} Online Free </title>
             <link>{chapter_link}</link>
             <description>{desc}</description>
             {enclosure}
-            {media_content}
-            <guid isPermaLink="true">{chapter_link}</guid>
+            <guid isPermaLink="false">{unique_guid}</guid>
             <pubDate>{pub_date_rfc}</pubDate>
         </item>""")
 
     xml_content = f"""<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
     <channel>
         <title>MangaNoka - Latest Manga Updates</title>
         <link>{base_url}</link>

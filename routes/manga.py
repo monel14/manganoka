@@ -70,10 +70,13 @@ async def _load_manga(slug: str) -> MangaDetail:
         
     manga_detail = parse_manga(html, slug=slug, chapters_data=chapters_data)
     try:
-        from services.mangabaka import fetch_alt_titles
-        manga_detail["alt_titles"] = await fetch_alt_titles(manga_detail["title"])
+        from services.mangabaka import fetch_mangabaka_data
+        mb_data = await fetch_mangabaka_data(manga_detail["title"])
+        manga_detail["alt_titles"] = mb_data.get("alt_titles", [])
+        manga_detail["bakacover"] = mb_data.get("cover_url")
     except Exception as exc:
-        logger.warning("Failed to enrich manga %s with MangaBaka alt titles: %s", slug, exc)
+        logger.warning("Failed to enrich manga %s with MangaBaka data: %s", slug, exc)
         manga_detail["alt_titles"] = []
+        manga_detail["bakacover"] = None
         
     return manga_detail
