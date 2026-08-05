@@ -79,4 +79,20 @@ async def _load_manga(slug: str) -> MangaDetail:
         manga_detail["alt_titles"] = []
         manga_detail["bakacover"] = None
         
+    # Déclencher la publication en temps réel vers le Webhook Make.com
+    try:
+        from services.webhook_pusher import push_to_make_webhook
+        chapters = manga_detail.get("chapters", [])
+        latest_ch_num = str(chapters[0].get("number", "1")) if chapters else "1"
+        await push_to_make_webhook(
+            manga_title=manga_detail["title"],
+            slug=slug,
+            latest_ch_num=latest_ch_num,
+            raw_desc=manga_detail.get("description"),
+            cover=manga_detail.get("cover"),
+            bakacover=manga_detail.get("bakacover")
+        )
+    except Exception as exc:
+        logger.warning("Failed to trigger Make Webhook for manga %s: %s", slug, exc)
+
     return manga_detail
