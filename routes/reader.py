@@ -126,6 +126,17 @@ async def _load_manga(slug: str) -> MangaDetail:
         manga_detail["alt_titles"] = []
         manga_detail["bakacover"] = None
         
+    # Pré-charger la couverture d'image (MangaBaka ou d'origine) dans le cache pour éviter tout 404 sur Pinterest / Buffer / RSS
+    target_cover = manga_detail.get("bakacover") or manga_detail.get("cover")
+    if target_cover:
+        try:
+            from routes.images import get_image_cache_service
+            service = get_image_cache_service()
+            await service.get_or_cache_image(target_cover, bypass_validation=True)
+            logger.info("Manga Cache: Cover image pre-cached successfully for %s", slug)
+        except Exception as exc:
+            logger.warning("Manga Cache: Failed to pre-cache cover image: %s", exc)
+
     # Déclencher la publication en temps réel vers le Webhook Make.com
     try:
         from services.webhook_pusher import push_to_make_webhook
