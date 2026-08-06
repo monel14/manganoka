@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=Outfit:wght@700;800&display=swap');
 
 :root {
-    color-scheme: light;
+    color-scheme: only light;
     --brand: #B51E3B;      /* Rouge MangaNoka */
     --brand-dark: #8C1630; /* Rouge foncé Hover */
     --page: #F6F6F6;       /* Fond Gris clair */
@@ -25,7 +25,7 @@
 
 /* Variables du Thème Sombre */
 [data-theme="dark"] {
-    color-scheme: dark;
+    color-scheme: only dark;
     --brand: #D63A58;      /* Rouge principal dark */
     --brand-dark: #E44A68; /* Rouge au survol dark */
     --page: #5a5454;       /* Fond sombre et enveloppant */
