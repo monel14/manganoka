@@ -320,12 +320,22 @@
             </section>
 
             <aside class="side-column">
+                <!-- 0. Bookmarks Sidebar Widget -->
+                <div id="bookmarks-sidebar-content" class="history-container only-pc"
+                    style="display: none; margin-bottom: 20px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--paper); padding: 12px; box-shadow: var(--shadow);">
+                    <div id="bookmarks-sidebar-header" class="history-sidebar-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); padding-bottom: 8px; margin-bottom: 10px;">
+                        <h3 class="history-title history-title-bold" style="margin: 0; font-size: 14px; font-weight: bold; text-transform: uppercase; color: #28a745 !important;">Bookmarks</h3>
+                        <a href="/history?tab=bookmarks" class="history-title history-title-viewmore" style="font-size: 11.5px; color: #28a745 !important; font-weight: bold; text-decoration: none;">View All <i
+                                class="fas fa-angle-double-right"></i></a>
+                    </div>
+                </div>
+
                 <!-- 1. History Sidebar Widget -->
                 <div id="history-sidebar-content" class="history-container only-pc"
-                    style="display: none; margin-bottom: 20px;">
-                    <div id="history-sidebar-header" class="history-sidebar-header">
-                        <h3 class="history-title history-title-bold">History</h3>
-                        <a href="/history" class="history-title history-title-viewmore">View More <i
+                    style="display: none; margin-bottom: 20px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--paper); padding: 12px; box-shadow: var(--shadow);">
+                    <div id="history-sidebar-header" class="history-sidebar-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); padding-bottom: 8px; margin-bottom: 10px;">
+                        <h3 class="history-title history-title-bold" style="margin: 0; font-size: 14px; font-weight: bold; text-transform: uppercase; color: var(--ink);">History</h3>
+                        <a href="/history" class="history-title history-title-viewmore" style="font-size: 11.5px; color: var(--brand); font-weight: bold; text-decoration: none;">View More <i
                                 class="fas fa-angle-double-right"></i></a>
                     </div>
                 </div>
@@ -632,8 +642,8 @@
             if (historyList && historyPanel && history.length > 0) {
                 historyPanel.style.display = "block";
                 const header = historyList.querySelector("#history-sidebar-header");
-                const itemsMarkup = history.map(item => `
-            <div class="history-sidebar-content-item" style="display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
+                const itemsMarkup = history.slice(0, 5).map(item => `
+            <div class="history-sidebar-content-item" style="display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px; margin-top: 8px;">
                 <a rel="nofollow" href="/manga/${item.slug}" class="comic-link" aria-label="${item.title}">
                     <img src="/img-proxy?url=${item.cover}" alt="${item.title}" class="lazy" width="36" height="48" style="border-radius: 4px; object-fit: cover;" onerror="this.onerror=null;this.src='/static/noka_lost.svg';">
                 </a>
@@ -649,6 +659,33 @@
         `).join('');
 
                 historyList.innerHTML = header ? header.outerHTML + itemsMarkup : itemsMarkup;
+            }
+
+            // 1b. Peuplement des Bookmarks depuis localStorage
+            const bookmarksList = document.getElementById("bookmarks-sidebar-content");
+            const bookmarksPanel = document.getElementById("bookmarks-sidebar-content");
+            const bookmarks = JSON.parse(localStorage.getItem("manga_bookmarks") || "[]");
+
+            if (bookmarksList && bookmarksPanel && bookmarks.length > 0) {
+                bookmarksPanel.style.display = "block";
+                const header = bookmarksList.querySelector("#bookmarks-sidebar-header");
+                const itemsMarkup = bookmarks.slice(0, 5).map(item => `
+            <div class="bookmarks-sidebar-content-item" style="display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px; margin-top: 8px;">
+                <a rel="nofollow" href="/manga/${item.slug}" class="comic-link" aria-label="${item.title}">
+                    <img src="/img-proxy?url=${item.cover}" alt="${item.title}" class="lazy" width="36" height="48" style="border-radius: 4px; object-fit: cover;" onerror="this.onerror=null;this.src='/static/noka_lost.svg';">
+                </a>
+                <div style="display: flex; flex-direction: column; overflow: hidden; text-align: left; flex-grow: 1;">
+                    <span class="history-sidebar-content-text comic-name" style="font-size: 13px; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; width: 100%;">
+                        <a rel="nofollow" href="/manga/${item.slug}" class="comic-link-title" style="text-decoration: none; color: var(--text-color);">${item.title}</a>
+                    </span>
+                    <span class="history-sidebar-content-text" style="font-size: 11px; margin-top: 2px; color: var(--muted);">
+                        Saved: ${item.time || ''}
+                    </span>
+                </div>
+            </div>
+        `).join('');
+
+                bookmarksList.innerHTML = header ? header.outerHTML + itemsMarkup : itemsMarkup;
             }
 
             // 2. Init carousel natif (scroll-snap)
@@ -759,6 +796,6 @@
     <script>(function () { function c() { var b = a.contentDocument || (a.contentWindow && a.contentWindow.document); if (b) { var d = b.createElement('script'); d.innerHTML = "window.__CF$cv$params={r:'a21a9afdff7c2dae',t:'MTc4NTE0NDQxNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);"; b.getElementsByTagName('head')[0].appendChild(d) } } if (document.body) { var a = document.createElement('iframe'); a.height = 1; a.width = 1; a.style.position = 'absolute'; a.style.top = 0; a.style.left = 0; a.style.border = 'none'; a.style.visibility = 'hidden'; document.body.appendChild(a); if ('loading' !== document.readyState) c(); else if (window.addEventListener) document.addEventListener('DOMContentLoaded', c); else { var e = document.onreadystatechange || function () { }; document.onreadystatechange = function (b) { e(b); 'loading' !== document.readyState && (document.onreadystatechange = e, c()) } } } })();</script>
     <script>(function () { function c() { var b = a.contentDocument || (a.contentWindow && a.contentWindow.document); if (b) { var d = b.createElement('script'); d.innerHTML = "window.__CF$cv$params={r:'a22bfb9629aa566e',t:'MTc4NTMyNjYzMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);"; b.getElementsByTagName('head')[0].appendChild(d) } } if (document.body) { var a = document.createElement('iframe'); a.height = 1; a.width = 1; a.style.position = 'absolute'; a.style.top = 0; a.style.left = 0; a.style.border = 'none'; a.style.visibility = 'hidden'; document.body.appendChild(a); if ('loading' !== document.readyState) c(); else if (window.addEventListener) document.addEventListener('DOMContentLoaded', c); else { var e = document.onreadystatechange || function () { }; document.onreadystatechange = function (b) { e(b); 'loading' !== document.readyState && (document.onreadystatechange = e, c()) } } } })();</script>
     <script>(function () { function c() { var b = a.contentDocument || (a.contentWindow && a.contentWindow.document); if (b) { var d = b.createElement('script'); d.innerHTML = "window.__CF$cv$params={r:'a234a66ebdd5d474',t:'MTc4NTQxNzUxNQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);"; b.getElementsByTagName('head')[0].appendChild(d) } } if (document.body) { var a = document.createElement('iframe'); a.height = 1; a.width = 1; a.style.position = 'absolute'; a.style.top = 0; a.style.left = 0; a.style.border = 'none'; a.style.visibility = 'hidden'; document.body.appendChild(a); if ('loading' !== document.readyState) c(); else if (window.addEventListener) document.addEventListener('DOMContentLoaded', c); else { var e = document.onreadystatechange || function () { }; document.onreadystatechange = function (b) { e(b); 'loading' !== document.readyState && (document.onreadystatechange = e, c()) } } } })();</script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a248eba008dd58af',t:'MTc4NTYzMDA2NA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a27133cfad2f1505',t:'MTc4NjA1MjQ1MQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a248eba008dd58af',t:'MTc4NTYzMDA2NA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a272b44878185d4f',t:'MTc4NjA2ODE5OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 
 </html>

@@ -78,13 +78,21 @@
                         <span>History</span>
                     </p>
                 </div>
-                <div class="tab-buttons" style="display: flex; gap: 20px; border-bottom: 2px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-bottom: 25px;">
-                    <h3 id="btn-device-history" class="history-tab history-tab-active" style="cursor: pointer; font-size: 16px; font-weight: bold; padding: 5px 12px; border-radius: 4px; color: var(--text-color); margin: 0;">Device</h3>
+                <div class="tab-buttons" style="display: flex; gap: 20px; border-bottom: 2px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-bottom: 25px; flex-wrap: wrap;">
+                    <h3 id="btn-bookmarks-tab" class="history-tab history-tab-active" style="cursor: pointer; font-size: 16px; font-weight: bold; padding: 5px 12px; border-radius: 4px; color: var(--text-color); margin: 0;">Bookmarks</h3>
+                    <h3 id="btn-device-history" class="history-tab" style="cursor: pointer; font-size: 16px; font-weight: bold; padding: 5px 12px; border-radius: 4px; color: #888; margin: 0;">Reading History</h3>
                     <h3 id="btn-account-history" class="history-tab" style="cursor: pointer; font-size: 16px; font-weight: bold; padding: 5px 12px; border-radius: 4px; color: #888; margin: 0;">Account</h3>
                 </div>
 
                 <div class="history-content">
-                    <div id="user-history-device" class="user-history-device">
+                    <div id="user-bookmarks-device" class="user-bookmarks-device" style="display: block;">
+                        <div id="local-bookmarks-list" class="user-bookmarks-content" style="display: flex; flex-direction: column; gap: 18px;">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                        <div style="clear: both"></div>
+                    </div>
+
+                    <div id="user-history-device" class="user-history-device" style="display: none;">
                         <div id="local-reading-history" class="user-history-content" style="display: flex; flex-direction: column; gap: 18px;">
                             <!-- Populated dynamically via JS -->
                         </div>
@@ -173,28 +181,110 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
+    const bookmarksList = document.getElementById("local-bookmarks-list");
     const historyList = document.getElementById("local-reading-history");
+
+    const bookmarksTab = document.getElementById("btn-bookmarks-tab");
     const deviceTab = document.getElementById("btn-device-history");
     const accountTab = document.getElementById("btn-account-history");
+
+    const bookmarksContent = document.getElementById("user-bookmarks-device");
     const deviceContent = document.getElementById("user-history-device");
     const accountContent = document.getElementById("user-history-account");
 
-    // 1. Gestion du basculement d'onglets (Device vs Account)
-    if (deviceTab && accountTab) {
-        deviceTab.addEventListener("click", () => {
-            deviceTab.style.color = "var(--text-color)";
-            accountTab.style.color = "#888";
-            deviceContent.style.display = "block";
-            accountContent.style.display = "none";
+    function setActiveTab(activeTab, activeContent) {
+        // Reset tabs color and styles
+        [bookmarksTab, deviceTab, accountTab].forEach(t => {
+            if (t) {
+                t.style.color = "#888";
+                t.style.borderBottom = "none";
+            }
+        });
+        // Reset contents visibility
+        [bookmarksContent, deviceContent, accountContent].forEach(c => {
+            if (c) c.style.display = "none";
         });
 
-        accountTab.addEventListener("click", () => {
-            accountTab.style.color = "var(--text-color)";
-            deviceTab.style.color = "#888";
-            accountContent.style.display = "block";
-            deviceContent.style.display = "none";
-        });
+        // Set active tab styles
+        if (activeTab) {
+            activeTab.style.color = "var(--text-color)";
+            activeTab.style.borderBottom = "2px solid var(--brand)";
+        }
+        if (activeContent) {
+            activeContent.style.display = "block";
+        }
     }
+
+    if (bookmarksTab) {
+        bookmarksTab.addEventListener("click", () => setActiveTab(bookmarksTab, bookmarksContent));
+    }
+    if (deviceTab) {
+        deviceTab.addEventListener("click", () => setActiveTab(deviceTab, deviceContent));
+    }
+    if (accountTab) {
+        accountTab.addEventListener("click", () => setActiveTab(accountTab, accountContent));
+    }
+
+    // Basculement automatique basé sur l'URL
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("tab") === "bookmarks") {
+        setActiveTab(bookmarksTab, bookmarksContent);
+    } else if (urlParams.get("tab") === "history") {
+        setActiveTab(deviceTab, deviceContent);
+    } else if (urlParams.get("tab") === "account") {
+        setActiveTab(accountTab, accountContent);
+    } else {
+        // Défaut : Bookmarks
+        setActiveTab(bookmarksTab, bookmarksContent);
+    }
+
+    // Affichage des Favoris / Bookmarks locaux
+    const renderBookmarks = () => {
+        const bookmarks = JSON.parse(localStorage.getItem("manga_bookmarks") || "[]");
+        if (!bookmarksList) return;
+
+        if (bookmarks.length === 0) {
+            bookmarksList.innerHTML = `
+                <div class="empty-history-state" style="text-align: center; padding: 40px 20px; background: var(--paper); border-radius: var(--radius-lg); border: 1px solid var(--line);">
+                    <img src="{{ url_for('static', path='/noka_logo.svg') }}" alt="Noka Empty Bookmarks" style="width: 120px; height: 120px; object-fit: contain; margin-bottom: 20px; opacity: 0.95;">
+                    <h3 style="font-family: 'Space Grotesk', sans-serif; font-size: 18px; color: var(--ink); margin-bottom: 8px;">📚 Your bookmarks list is empty</h3>
+                    <p style="color: var(--muted); font-size: 13.5px; max-width: 420px; margin: 0 auto 20px; line-height: 1.6;">Bookmark your favorite manga chapters so Noka can keep track of them and notify you of new updates!</p>
+                    <a href="/" class="chapter-btn" style="background: var(--brand); color: #fff; padding: 10px 25px; border-radius: var(--radius-md); font-weight: bold; text-decoration: none; display: inline-block; font-size: 13.5px; border: 0; cursor: pointer;">Find Manga to Bookmark</a>
+                </div>
+            `;
+            return;
+        }
+
+        bookmarksList.innerHTML = bookmarks.map(item => `
+            <div class="user-bookmark-item" style="display: flex; gap: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; align-items: flex-start; text-align: left;">
+                <a href="/manga/${item.slug}">
+                    <img src="/img-proxy?url=${item.cover}" alt="${item.title}" style="width: 65px; height: 85px; object-fit: cover; border-radius: 4px;" onerror="this.onerror=null;this.src='/static/noka_lost.svg';">
+                </a>
+                <div class="user-bookmark-item-right" style="display: flex; flex-direction: column; gap: 6px; flex-grow: 1;">
+                    <span class="bm-title" style="font-size: 15px; font-weight: bold;">
+                        <a href="/manga/${item.slug}" style="color: var(--text-color); text-decoration: none;">${item.title}</a>
+                    </span>
+                    <span style="font-size: 12px; color: var(--muted);">Added on ${item.time || 'recently'}</span>
+                    <div style="display: flex; gap: 12px; margin-top: 4px;">
+                        <a href="/manga/${item.slug}" class="chapter-btn" style="background: var(--brand); color: #fff; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: bold; min-width: auto; min-height: auto; box-shadow: none;">Read Chapters</a>
+                        <a href="javascript:void(0);" class="btn-remove-bookmark" data-slug="${item.slug}" style="font-size: 12px; color: #e06c75; text-decoration: none; align-self: center;">Remove Favorite</a>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+
+        // Attacher l'action de suppression des favoris
+        const removeBms = bookmarksList.querySelectorAll(".btn-remove-bookmark");
+        removeBms.forEach(btn => {
+            btn.addEventListener("click", function() {
+                const slug = this.getAttribute("data-slug");
+                let currBookmarks = JSON.parse(localStorage.getItem("manga_bookmarks") || "[]");
+                currBookmarks = currBookmarks.filter(item => item.slug !== slug);
+                localStorage.setItem("manga_bookmarks", JSON.stringify(currBookmarks));
+                renderBookmarks();
+            });
+        });
+    };
 
     // 2. Affichage de l'historique de lecture local
     const renderHistory = () => {
@@ -243,6 +333,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     };
 
+    renderBookmarks();
     renderHistory();
 });
 </script>
@@ -311,5 +402,5 @@ document.addEventListener("DOMContentLoaded", () => {
         })();
     </script>
 
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a20a3b094f6914ed',t:'MTc4NDk3MjcxNA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a20f1677de7d281b',t:'MTc4NTAyMzY0NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a21aa3b619022dae',t:'MTc4NTE0NDc3NA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a22bfbf3499b566e',t:'MTc4NTMyNjY0Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a248eed5ae5b58af',t:'MTc4NTYzMDE5Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a27135cbaf641505',t:'MTc4NjA1MjUzMw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a20a3b094f6914ed',t:'MTc4NDk3MjcxNA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a20f1677de7d281b',t:'MTc4NTAyMzY0NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a21aa3b619022dae',t:'MTc4NTE0NDc3NA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a22bfbf3499b566e',t:'MTc4NTMyNjY0Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a248eed5ae5b58af',t:'MTc4NTYzMDE5Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a272b4d4bef85d4f',t:'MTc4NjA2ODIyMg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

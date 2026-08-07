@@ -11,6 +11,7 @@ from cache import CHAPTER_TTL_SECONDS, CHAPTER_TTL_SECONDS, MANGA_TTL_SECONDS, c
 from scraper.client import FetchError, NotFoundError, get_html
 from scraper.parser import ChapterLink, ChapterPage, MangaDetail, parse_chapter, parse_manga
 from services.indexnow import ping_indexnow
+from services.google_indexing import ping_google_indexing
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -73,6 +74,8 @@ async def read_chapter(request: Request, slug: str, chapter: str, background_tas
 
     # Déclencher l'indexation instantanée sur Bing/Yandex via IndexNow en arrière-plan
     background_tasks.add_task(ping_indexnow, [f"/read/{slug}/{chapter}"])
+    # Notifier également Google via son API d'indexation officielle
+    background_tasks.add_task(ping_google_indexing, [f"/read/{slug}/{chapter}"])
 
     return templates.TemplateResponse(
         request,
