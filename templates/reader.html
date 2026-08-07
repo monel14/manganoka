@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="color-scheme" content="only dark">
+    <meta name="color-scheme" content="dark">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-EXEWN0JKT1"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -104,7 +104,7 @@
 
     <main class="chapter-reader" id="reader" style="width: min(980px, 100%); margin: 0 auto; display: flex; flex-direction: column; padding: 16px 0;">
         {% for image in page.images %}
-            <div class="page-wrapper" style="min-height: 300px; width: 100%; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.02);  ">
+            <div class="page-wrapper" style="min-height: 300px; width: 100%; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.02);">
                 <img
                     class="manga-page"
                     data-src="/{{ slug }}/{{ chapter }}/{{ loop.index }}.webp"

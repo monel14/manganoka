@@ -19,14 +19,41 @@ logger = logging.getLogger("warm_cache")
 async def warm_cache():
     logger.info("=== [MANGAnoka] STARTING CACHE WARM-UP & SEO HARVESTING ===")
     
-    # 1. Récupérer la liste des toutes nouvelles pépites fraîchement sorties sur MangaBats
+    # 1. Récupérer la liste des mangas depuis New Manga et Latest Manga
+    all_mangas = []
+    
+    # New Manga (nouveaux titres)
     logger.info("Fetching 'Newest Manga' from MangaBats...")
     try:
         html = await get_html("/manga-list/new-manga")
-        mangas = parse_manga_list(html)
-        logger.info(f"Found {len(mangas)} new titles in the list.")
+        new_mangas = parse_manga_list(html)
+        logger.info(f"Found {len(new_mangas)} new titles.")
+        all_mangas.extend(new_mangas)
     except Exception as e:
         logger.error(f"Failed to fetch new manga list: {e}")
+    
+    # Latest Manga (derniers chapitres)
+    logger.info("Fetching 'Latest Manga' from MangaBats...")
+    try:
+        html = await get_html("/latest-manga")
+        latest_mangas = parse_manga_list(html)
+        logger.info(f"Found {len(latest_mangas)} latest releases.")
+        all_mangas.extend(latest_mangas)
+    except Exception as e:
+        logger.error(f"Failed to fetch latest manga list: {e}")
+    
+    # Dédupliquer par slug
+    seen_slugs = set()
+    mangas = []
+    for manga in all_mangas:
+        if manga["slug"] not in seen_slugs:
+            mangas.append(manga)
+            seen_slugs.add(manga["slug"])
+    
+    logger.info(f"Total unique mangas to cache: {len(mangas)}")
+    
+    if not mangas:
+        logger.warning("No mangas found to cache.")
         return
 
     # 2. Pré-charger chaque fiche technique dans cache.db pour alimenter sitemap.xml
