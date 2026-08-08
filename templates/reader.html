@@ -103,6 +103,16 @@
     </section>
 
     <main class="chapter-reader" id="reader" style="width: min(980px, 100%); margin: 0 auto; display: flex; flex-direction: column; padding: 16px 0;">
+        <!-- Noka branded first page -->
+        <div class="page-wrapper" style="min-height: 300px; width: 100%; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.02);">
+            <img
+                class="manga-page"
+                data-src="{{ url_for('static', path='/nokapage.jpg') }}"
+                alt="MangaNoka - Read {{ manga.title }} Chapter {{ chapter }}"
+                decoding="async"
+                style="opacity: 0; width: 100%; height: auto; display: block; transition: opacity 0.3s ease;"
+            >
+        </div>
         {% for image in page.images %}
             <div class="page-wrapper" style="min-height: 300px; width: 100%; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.02);">
                 <img
