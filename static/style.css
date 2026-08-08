@@ -752,6 +752,28 @@ img {
 
 .chapters {
     display: grid;
+    max-height: 600px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--brand) rgba(255, 255, 255, 0.1);
+}
+
+.chapters::-webkit-scrollbar {
+    width: 8px;
+}
+
+.chapters::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+.chapters::-webkit-scrollbar-thumb {
+    background: var(--brand);
+    border-radius: 4px;
+}
+
+.chapters::-webkit-scrollbar-thumb:hover {
+    background: #ff3344;
 }
 
 .chapters a {
