@@ -752,8 +752,9 @@ img {
 
 .chapters {
     display: grid;
-    max-height: 600px;
+    max-height: 400px;
     overflow-y: auto;
+    scroll-behavior: smooth;
     scrollbar-width: thin;
     scrollbar-color: var(--brand) rgba(255, 255, 255, 0.1);
 }
@@ -1096,6 +1097,13 @@ img {
 
 /* Mobile : hamburger nav */
 @media (max-width: 600px) {
+    .search-dropdown {
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        width: calc(100vw - 24px) !important;
+        max-width: 480px !important;
+    }
+
     .topbar {
         gap: 8px;
     }
