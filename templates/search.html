@@ -11,7 +11,8 @@
       gtag('js', new Date());
       gtag('config', 'G-EXEWN0JKT1');
     </script>
-    <title>Search Results for: {{ query }} - MangaNoka - Fast, responsive, and ad-free experience.</title>
+    <title>{{ query }} - Search Results - MangaNoka</title>
+    <link rel="canonical" href="https://www.manganoka.xyz/search?q={{ query|urlencode }}">
     <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}?v=1.2">
     <link rel="alternate" type="application/rss+xml" title="MangaNoka - Latest Manga Releases" href="https://www.manganoka.xyz/rss.xml">
     

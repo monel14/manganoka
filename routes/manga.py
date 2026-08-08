@@ -42,6 +42,9 @@ async def manga_detail(request: Request, slug: str, background_tasks: Background
     if not manga["title"]:
         raise HTTPException(status_code=404, detail="Manga not found")
 
+    # Récupérer des mangas similaires depuis le cache (Related Manga)
+    related_mangas = _get_related_mangas(slug, limit=6)
+
     # Déclencher l'indexation instantanée sur Bing/Yandex via IndexNow en arrière-plan
     background_tasks.add_task(ping_indexnow, [f"/manga/{slug}"])
     # Notifier également Google via son API d'indexation officielle
@@ -50,7 +53,7 @@ async def manga_detail(request: Request, slug: str, background_tasks: Background
     return templates.TemplateResponse(
         request,
         "manga.html",
-        {"request": request, "manga": manga, "slug": slug},
+        {"request": request, "manga": manga, "slug": slug, "related_mangas": related_mangas},
     )
 
 
@@ -74,10 +77,24 @@ async def _load_manga(slug: str) -> MangaDetail:
         mb_data = await fetch_mangabaka_data(manga_detail["title"])
         manga_detail["alt_titles"] = mb_data.get("alt_titles", [])
         manga_detail["bakacover"] = mb_data.get("cover_url")
+        manga_detail["genres"] = mb_data.get("genres", [])
+        manga_detail["baka_rating"] = mb_data.get("rating")
+        manga_detail["baka_rating_votes"] = mb_data.get("rating_votes")
+        manga_detail["baka_description"] = mb_data.get("description")
+        manga_detail["baka_authors"] = mb_data.get("authors", [])
+        manga_detail["baka_status"] = mb_data.get("status")
+        manga_detail["baka_year"] = mb_data.get("year")
     except Exception as exc:
         logger.warning("Failed to enrich manga %s with MangaBaka data: %s", slug, exc)
         manga_detail["alt_titles"] = []
         manga_detail["bakacover"] = None
+        manga_detail["genres"] = []
+        manga_detail["baka_rating"] = None
+        manga_detail["baka_rating_votes"] = None
+        manga_detail["baka_description"] = None
+        manga_detail["baka_authors"] = []
+        manga_detail["baka_status"] = None
+        manga_detail["baka_year"] = None
 
     # Pré-charger la couverture d'image (MangaBaka ou d'origine) dans le cache pour éviter tout 404 sur Pinterest / Buffer / RSS
     target_cover = manga_detail.get("bakacover") or manga_detail.get("cover")
@@ -107,3 +124,77 @@ async def _load_manga(slug: str) -> MangaDetail:
         logger.warning("Failed to trigger Make Webhook for manga %s: %s", slug, exc)
 
     return manga_detail
+
+
+def _cache_get(key: str) -> dict | None:
+    """Lecture directe du cache SQLite sans déclencher de scrape."""
+    import sqlite3
+    import json
+    from pathlib import Path
+    
+    _CACHE_DB = Path(__file__).resolve().parent.parent / "cache.db"
+    try:
+        with sqlite3.connect(str(_CACHE_DB), timeout=10) as conn:
+            row = conn.execute("SELECT data FROM cache WHERE key=?", (key,)).fetchone()
+        if row:
+            return json.loads(row[0])
+    except Exception:
+        pass
+    return None
+
+
+def _get_related_mangas(current_slug: str, limit: int = 6) -> list[dict]:
+    """Récupère des mangas similaires basés sur les genres partagés pour un maillage interne intelligent."""
+    import random
+    
+    # Récupérer le manga actuel pour obtenir ses genres
+    current_manga = _cache_get(f"manga:{current_slug}")
+    current_genres = set(current_manga.get("genres", [])) if current_manga else set()
+    
+    # Récupérer tous les slugs de mangas en cache
+    manga_keys = cache.get_keys_by_prefix("manga:")
+    all_slugs = [k.split(":", 1)[1] for k in manga_keys if ":" in k and k.split(":", 1)[1] != current_slug]
+    
+    # Scorer les mangas par genres partagés
+    scored_mangas = []
+    for slug in all_slugs:
+        manga = _cache_get(f"manga:{slug}")
+        if manga and isinstance(manga, dict):
+            manga_genres = set(manga.get("genres", []))
+            shared_genres = current_genres & manga_genres
+            score = len(shared_genres)
+            
+            # Bonus si au moins 1 genre partagé
+            if score > 0:
+                scored_mangas.append((score, slug, manga))
+    
+    # Si pas assez de mangas avec genres partagés, compléter avec des random
+    if len(scored_mangas) < limit:
+        random.shuffle(all_slugs)
+        for slug in all_slugs:
+            if len(scored_mangas) >= limit * 2:  # Pool plus large pour la sélection
+                break
+            if not any(s[1] == slug for s in scored_mangas):
+                manga = _cache_get(f"manga:{slug}")
+                if manga and isinstance(manga, dict):
+                    scored_mangas.append((0, slug, manga))
+    
+    # Trier par score décroissant, puis randomiser dans chaque groupe de score
+    scored_mangas.sort(key=lambda x: x[0], reverse=True)
+    
+    # Prendre les top {limit} avec un peu de randomisation
+    top_candidates = scored_mangas[:limit * 2] if len(scored_mangas) > limit else scored_mangas
+    random.shuffle(top_candidates)
+    selected = top_candidates[:limit]
+    
+    related = []
+    for score, slug, manga in selected:
+        related.append({
+            "title": manga.get("title", ""),
+            "slug": slug,
+            "cover": manga.get("cover", ""),
+            "latest_chapter": manga.get("chapters", [{}])[0].get("number", "1") if manga.get("chapters") else "1",
+            "genres": manga.get("genres", [])[:3]  # Montrer jusqu'à 3 genres
+        })
+            
+    return related

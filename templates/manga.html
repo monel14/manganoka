@@ -11,7 +11,8 @@
       gtag('js', new Date());
       gtag('config', 'G-EXEWN0JKT1');
     </script>
-    <title>Read {{ manga.title }} Online Free - MangaNoka - Fast, responsive, and ad-free experience.</title>
+    <title>{{ manga.title }} - Read Online Free - MangaNoka</title>
+    <link rel="canonical" href="https://www.manganoka.xyz/manga/{{ slug }}">
     <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}?v=1.2">
     <link rel="alternate" type="application/rss+xml" title="MangaNoka - Latest Manga Releases" href="https://www.manganoka.xyz/rss.xml">
     
@@ -20,14 +21,16 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <link rel="icon" href="{{ url_for('static', path='/noka_logo.svg') }}" type="image/svg+xml">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <meta name="description" content="Read {{ manga.title }} {% if manga.alt_titles %}(Alternative names: {% for alt in manga.alt_titles[:3] %}{{ alt }}{% if not loop.last %}, {% endif %}{% endfor %}){% endif %} online for free on MangaNoka. Enjoy a fast, responsive, and ad-free experience. Your next manga adventure awaits!">
+    {% set desc_text = (manga.baka_description or manga.description or "Read " ~ manga.title ~ " online for free on MangaNoka. Enjoy a fast, responsive, and ad-free manga reading experience.") %}
+    {% set short_desc = (desc_text[:152] ~ "...") if desc_text|length > 155 else desc_text %}
+    <meta name="description" content="{{ short_desc }}">
     {% if manga.alt_titles %}
     <meta name="keywords" content="read {{ manga.title }} online, {% for alt in manga.alt_titles %}{{ alt.lower() }}, {% endfor %}free manga online, read manhwa, read webtoon">
     {% endif %}
     <meta property="og:site_name" content="MangaNoka">
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="Read {{ manga.title }} Online Free - MangaNoka">
-    <meta property="og:description" content="Read {{ manga.title }} {% if manga.alt_titles %}({% for alt in manga.alt_titles[:3] %}{{ alt }}{% if not loop.last %}, {% endif %}{% endfor %}){% endif %} online for free on MangaNoka. Enjoy a fast, responsive, and ad-free experience.">
+    <meta property="og:type" content="book">
+    <meta property="og:title" content="{{ manga.title }} - MangaNoka">
+    <meta property="og:description" content="{{ short_desc }}">
     <meta property="og:image" content="{{ manga.cover }}">
     <meta name="twitter:card" content="summary_large_image">
     <link rel="manifest" href="{{ url_for('static', path='/manifest.json') }}">
@@ -41,6 +44,23 @@
       "@context": "https://schema.org",
       "@graph": [
         {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Home",
+              "item": "https://www.manganoka.xyz/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": {{ manga.title|tojson }},
+              "item": "https://www.manganoka.xyz/manga/{{ slug }}"
+            }
+          ]
+        },
+        {
           "@type": "Book",
           "@id": "https://www.manganoka.xyz/manga/{{ slug }}#book",
           "name": {{ manga.title|tojson }},
@@ -49,7 +69,28 @@
           {% endif %}
           "url": "https://www.manganoka.xyz/manga/{{ slug }}",
           "image": "{{ manga.cover }}",
-          "description": {{ manga.description|tojson }}
+          "description": {{ (manga.baka_description or manga.description)|tojson }},
+          {% if manga.author or manga.baka_authors %}
+          "author": {
+            "@type": "Person",
+            "name": {{ (manga.baka_authors[0] if manga.baka_authors else manga.author)|tojson }}
+          },
+          {% endif %}
+          {% if manga.baka_rating %}
+          "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "{{ manga.baka_rating }}",
+            "bestRating": "5",
+            "worstRating": "1",
+            "ratingCount": "{{ manga.baka_rating_votes or '1000' }}"
+          },
+          {% endif %}
+          {% if manga.genres %}
+          "genre": {{ manga.genres|tojson }},
+          {% endif %}
+          "inLanguage": "en",
+          "bookFormat": "http://schema.org/EBook",
+          "isAccessibleForFree": true
         }
       ]
     }
@@ -93,11 +134,16 @@
         <div class="content-layout single">
             <section class="main-column bare">
                 <article class="manga-profile">
-                    <div class="profile-cover">
+                    <div class="profile-cover" style="position: relative; width: 100%; height: 320px; overflow: hidden; background: linear-gradient(135deg, var(--surface) 0%, rgba(0,0,0,0.3) 100%); border-radius: var(--radius-md) var(--radius-md) 0 0;">
                         {% if manga.cover %}
-                            <img src="/img-proxy?url={{ manga.cover }}" alt="{{ manga.title }}">
+                            <img src="/img-proxy?url={{ manga.cover }}" alt="{{ manga.title }}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; opacity: 0.3; filter: blur(8px); transform: scale(1.1);">
+                            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2;">
+                                <img src="/img-proxy?url={{ manga.cover }}" alt="{{ manga.title }}" style="width: 180px; height: 260px; object-fit: cover; border-radius: var(--radius-md); box-shadow: 0 8px 24px rgba(0,0,0,0.5); border: 3px solid var(--surface);">
+                            </div>
                         {% else %}
-                            <span>{{ manga.title[:1] }}</span>
+                            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 180px; height: 260px; background: var(--brand); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 80px; font-weight: bold; color: #fff; box-shadow: 0 8px 24px rgba(0,0,0,0.5);">
+                                <span>{{ manga.title[:1] }}</span>
+                            </div>
                         {% endif %}
                     </div>
                     <div class="profile-body">
@@ -115,21 +161,59 @@
                             </div>
                         </div>
                         <dl class="info-list">
-                            {% if manga.author %}
-                                <div><dt>Author</dt><dd>{{ manga.author }}</dd></div>
+                            {% if manga.baka_authors or manga.author %}
+                                <div><dt>Author</dt><dd>{{ manga.baka_authors[0] if manga.baka_authors else manga.author }}</dd></div>
                             {% endif %}
-                            {% if manga.status %}
-                                <div><dt>Status</dt><dd>{{ manga.status }}</dd></div>
+                            {% if manga.baka_status or manga.status %}
+                                <div><dt>Status</dt><dd>
+                                    {% if manga.baka_status == 'releasing' %}
+                                        🟢 Ongoing
+                                    {% elif manga.baka_status == 'completed' %}
+                                        🔴 Completed
+                                    {% elif manga.baka_status == 'hiatus' %}
+                                        ⏸️ Hiatus
+                                    {% elif manga.baka_status == 'cancelled' %}
+                                        ❌ Cancelled
+                                    {% else %}
+                                        {{ manga.status }}
+                                    {% endif %}
+                                </dd></div>
                             {% endif %}
-                            {% if manga.rating %}
+                            {% if manga.baka_rating %}
+                                <div><dt>Rating</dt><dd style="display: flex; align-items: center; gap: 6px;">
+                                    <span style="color: #FFD700; font-size: 14px;">
+                                        {% for i in range(5) %}
+                                            {% if i < (manga.baka_rating|round|int) %}
+                                                ⭐
+                                            {% else %}
+                                                ☆
+                                            {% endif %}
+                                        {% endfor %}
+                                    </span>
+                                    <span style="font-weight: bold; color: var(--brand);">{{ manga.baka_rating }}/5</span>
+                                </dd></div>
+                            {% elif manga.rating %}
                                 <div><dt>Rating</dt><dd>{{ manga.rating }}</dd></div>
+                            {% endif %}
+                            {% if manga.baka_year %}
+                                <div><dt>Year</dt><dd>{{ manga.baka_year }}</dd></div>
+                            {% endif %}
+                            {% if manga.genres %}
+                                <div style="grid-column: span 3; border-top: 1px solid var(--line); padding: 12px 16px;">
+                                    <dt style="margin-bottom: 8px;">Genres</dt>
+                                    <dd style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                        {% for genre in manga.genres %}
+                                            <a href="/genre/{{ genre|lower }}" style="background: var(--brand); color: #fff; padding: 4px 10px; border-radius: var(--radius-sm); font-size: 12px; text-decoration: none; font-weight: bold; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">{{ genre|capitalize }}</a>
+                                        {% endfor %}
+                                    </dd>
+                                </div>
                             {% endif %}
                             {% if manga.alt_titles %}
                                 <div style="grid-column: span 3; border-top: 1px solid var(--line); padding: 12px 16px;"><dt>Alternative Titles</dt><dd style="font-weight: 500; font-size: 13px; color: var(--muted); line-height: 1.5;">{% for alt in manga.alt_titles %}{{ alt }}{% if not loop.last %} · {% endif %}{% endfor %}</dd></div>
                             {% endif %}
                         </dl>
-                        {% if manga.description %}
-                            <p class="description" style="white-space: pre-line;">{{ manga.description }}</p>
+                        {% if manga.baka_description or manga.description %}
+                            <p class="description" style="white-space: pre-line;">{{ manga.baka_description or manga.description }}</p>
                         {% endif %}
                     </div>
                 </article>
@@ -149,6 +233,34 @@
                         {% endfor %}
                     </div>
                 </section>
+
+                {% if related_mangas %}
+                <section class="related-manga-panel" style="margin-top: 32px;">
+                    <div class="section-bar compact">
+                        <h2>You May Also Like</h2>
+                    </div>
+                    <div class="related-manga-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 16px; padding: 16px;">
+                        {% for related in related_mangas %}
+                        <a href="/manga/{{ related.slug }}" class="related-manga-card" style="display: flex; flex-direction: column; text-decoration: none; border-radius: var(--radius-md); overflow: hidden; background: var(--surface); transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.3)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                            <div style="position: relative; width: 100%; padding-bottom: 140%; overflow: hidden; background: var(--line);">
+                                <img src="/img-proxy?url={{ related.cover }}" alt="{{ related.title }}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;" onerror="this.src='/static/cover_placeholder.svg';">
+                            </div>
+                            <div style="padding: 8px; flex-grow: 1;">
+                                <h3 style="font-size: 13px; font-weight: 600; margin: 0 0 4px 0; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; color: var(--text-color); line-height: 1.3;">{{ related.title }}</h3>
+                                <p style="font-size: 11px; color: var(--brand); font-weight: bold; margin: 0 0 6px 0;">Ch. {{ related.latest_chapter }}</p>
+                                {% if related.genres %}
+                                <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px;">
+                                    {% for genre in related.genres[:2] %}
+                                        <span style="background: rgba(255,255,255,0.1); color: var(--muted); padding: 2px 6px; border-radius: 3px; font-size: 9px; text-transform: uppercase; font-weight: bold;">{{ genre }}</span>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </section>
+                {% endif %}
             </section>
 
             <aside class="side-column">
@@ -358,6 +470,17 @@
                 <a href="/privacy-policy" style="color: var(--brand); font-weight: bold;">Privacy Policy</a>
                 <span style="color: var(--line);">--</span>
                 <a href="/terms-conditions" style="color: var(--brand); font-weight: bold;">Terms Conditions</a>
+            </div>
+            <div class="footer-genres" style="margin: 20px 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; font-size: 13px;">
+                <span style="color: var(--muted); font-weight: bold; width: 100%; text-align: center; margin-bottom: 8px;">Browse by Genre</span>
+                <a href="/genre/action" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Action</a>
+                <a href="/genre/adventure" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Adventure</a>
+                <a href="/genre/comedy" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Comedy</a>
+                <a href="/genre/drama" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Drama</a>
+                <a href="/genre/fantasy" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Fantasy</a>
+                <a href="/genre/romance" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Romance</a>
+                <a href="/genre/horror" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Horror</a>
+                <a href="/genre/mystery" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Mystery</a>
             </div>
             <p>Why You Should <a href="/" style="color: var(--brand); font-weight: bold;">Read Manga</a> Online at MangaNoka ?</p>
             <p style="max-width: 800px; margin: 0 auto; font-size: 12px; color: var(--faint);">

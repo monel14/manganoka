@@ -46,6 +46,25 @@
       "@context": "https://schema.org",
       "@graph": [
         {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Home",
+              "item": "{{ request.url.scheme }}://{{ request.url.netloc }}/"
+            }
+            {% if page_title %}
+            ,{
+              "@type": "ListItem",
+              "position": 2,
+              "name": {{ page_title|tojson }},
+              "item": "{{ canonical_url }}"
+            }
+            {% endif %}
+          ]
+        },
+        {
           "@type": "Organization",
           "@id": "{{ request.url.scheme }}://{{ request.url.netloc }}/#organization",
           "name": "MangaNoka",
@@ -81,6 +100,30 @@
             "@id": "{{ request.url.scheme }}://{{ request.url.netloc }}/#website"
           }
         }
+        {% if mangas %}
+        ,{
+          "@type": "ItemList",
+          "itemListElement": [
+            {% for manga in mangas[:10] %}
+            {
+              "@type": "ListItem",
+              "position": {{ loop.index }},
+              "item": {
+                "@type": "Book",
+                "@id": "{{ request.url.scheme }}://{{ request.url.netloc }}/manga/{{ manga.slug }}#book",
+                "name": {{ manga.title|tojson }},
+                "url": "{{ request.url.scheme }}://{{ request.url.netloc }}/manga/{{ manga.slug }}",
+                {% if manga.cover %}
+                "image": {{ manga.cover|tojson }},
+                {% endif %}
+                "bookFormat": "http://schema.org/EBook",
+                "isAccessibleForFree": true
+              }
+            }{% if not loop.last %},{% endif %}
+            {% endfor %}
+          ]
+        }
+        {% endif %}
       ]
     }
     </script>
@@ -741,6 +784,17 @@
                 <a href="/privacy-policy" style="color: var(--brand); font-weight: bold;">Privacy Policy</a>
                 <span style="color: var(--line);">--</span>
                 <a href="/terms-conditions" style="color: var(--brand); font-weight: bold;">Terms Conditions</a>
+            </div>
+            <div class="footer-genres" style="margin: 20px 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; font-size: 13px;">
+                <span style="color: var(--muted); font-weight: bold; width: 100%; text-align: center; margin-bottom: 8px;">Browse by Genre</span>
+                <a href="/genre/action" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Action</a>
+                <a href="/genre/adventure" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Adventure</a>
+                <a href="/genre/comedy" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Comedy</a>
+                <a href="/genre/drama" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Drama</a>
+                <a href="/genre/fantasy" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Fantasy</a>
+                <a href="/genre/romance" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Romance</a>
+                <a href="/genre/horror" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Horror</a>
+                <a href="/genre/mystery" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Mystery</a>
             </div>
             <p>Why You Should <a href="/" style="color: var(--brand); font-weight: bold;">Read Manga</a> Online at
                 MangaNoka ?</p>

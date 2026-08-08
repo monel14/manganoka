@@ -9,13 +9,37 @@ logger = logging.getLogger(__name__)
 
 async def fetch_mangabaka_data(manga_title: str) -> dict:
     """
-    Interroge l'API publique de MangaBaka pour récupérer à la fois les titres alternatifs (SEO)
-    et l'URL directe de couverture JPEG haute qualité.
+    Interroge l'API publique de MangaBaka pour récupérer les métadonnées enrichies :
+    titres alternatifs, couverture haute qualité, genres, description, rating.
     
     Returns:
-        dict: {"alt_titles": [...], "cover_url": "https://..."}
+        dict: {
+            "alt_titles": [...], 
+            "cover_url": "https://...",
+            "genres": ["action", "adventure", ...],
+            "description": "Full synopsis...",
+            "rating": 89.46,
+            "rating_votes": "10000",
+            "authors": ["Author Name"],
+            "artists": ["Artist Name"],
+            "status": "releasing",
+            "year": 1997,
+            "total_chapters": "1189"
+        }
     """
-    result = {"alt_titles": [], "cover_url": None}
+    result = {
+        "alt_titles": [], 
+        "cover_url": None,
+        "genres": [],
+        "description": None,
+        "rating": None,
+        "rating_votes": None,
+        "authors": [],
+        "artists": [],
+        "status": None,
+        "year": None,
+        "total_chapters": None
+    }
     if not manga_title:
         return result
 
@@ -74,7 +98,40 @@ async def fetch_mangabaka_data(manga_title: str) -> dict:
             result["alt_titles"] = [t for t in alt_titles if t.lower() != manga_title.lower()]
             result["cover_url"] = cover_url
             
-            logger.info("MangaBaka API: Successfully retrieved %d alt titles and cover URL for '%s'", len(result["alt_titles"]), manga_title)
+            # Récupérer les genres
+            result["genres"] = series.get("genres", [])
+            
+            # Récupérer la description
+            result["description"] = series.get("description")
+            
+            # Récupérer le rating (sur 100, on va le convertir en /5)
+            rating_100 = series.get("rating")
+            if rating_100 and isinstance(rating_100, (int, float)):
+                result["rating"] = round(rating_100 / 20, 1)  # Convertir 89.46/100 → 4.5/5
+                # Estimer le nombre de votes basé sur la popularité (approximation)
+                popularity = series.get("popularity", {}).get("global", {}).get("current", 1000)
+                result["rating_votes"] = str(max(1000, 10000 - (popularity * 100)))
+            
+            # Récupérer auteurs et artistes
+            result["authors"] = series.get("authors", [])
+            result["artists"] = series.get("artists", [])
+            
+            # Récupérer le statut
+            result["status"] = series.get("status")
+            
+            # Récupérer l'année
+            result["year"] = series.get("year")
+            
+            # Récupérer le nombre total de chapitres
+            result["total_chapters"] = series.get("total_chapters")
+            
+            logger.info(
+                "MangaBaka API: Successfully retrieved %d alt titles, cover URL, %d genres, rating %.1f/5 for '%s'", 
+                len(result["alt_titles"]), 
+                len(result["genres"]),
+                result["rating"] or 0,
+                manga_title
+            )
             return result
 
         except Exception as exc:

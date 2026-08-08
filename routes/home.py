@@ -101,6 +101,26 @@ async def _load_home(page: int) -> dict:
     }
 
 
+@router.api_route("/sitemap-index.xml", methods=["GET", "HEAD"])
+def sitemap_index() -> Response:
+    """Sitemap index principal qui référence tous les sous-sitemaps."""
+    base_url = os.environ.get("BASE_URL", "https://www.manganoka.xyz").rstrip("/")
+    
+    xml_content = f"""<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <sitemap>
+        <loc>{base_url}/sitemap.xml</loc>
+        <lastmod>{datetime.now(timezone.utc).strftime("%Y-%m-%d")}</lastmod>
+    </sitemap>
+    <sitemap>
+        <loc>{base_url}/sitemap-chapters.xml</loc>
+        <lastmod>{datetime.now(timezone.utc).strftime("%Y-%m-%d")}</lastmod>
+    </sitemap>
+</sitemapindex>"""
+    
+    return Response(content=xml_content, media_type="application/xml")
+
+
 @router.api_route("/sitemap.xml", methods=["GET", "HEAD"])
 def sitemap() -> Response:
     """Génère un sitemap XML dynamique basé sur les mangas actuellement en cache."""
@@ -134,6 +154,60 @@ def sitemap() -> Response:
         xml_lines.append("        <priority>0.8</priority>")
         xml_lines.append("    </url>")
         
+    xml_lines.append("</urlset>")
+    xml_content = "\n".join(xml_lines)
+    
+    return Response(content=xml_content, media_type="application/xml")
+
+
+@router.api_route("/sitemap-chapters.xml", methods=["GET", "HEAD"])
+def sitemap_chapters() -> Response:
+    """Génère un sitemap dédié aux 500 derniers chapitres sortis pour une indexation rapide."""
+    base_url = os.environ.get("BASE_URL", "https://www.manganoka.xyz").rstrip("/")
+    
+    # Récupérer les mangas depuis le cache
+    manga_keys = cache.get_keys_by_prefix("manga:")
+    
+    # Collecter tous les chapitres avec leur timestamp
+    chapters_with_time = []
+    for key in manga_keys:
+        if ":" not in key:
+            continue
+        slug = key.split(":", 1)[1]
+        manga, expires = _cache_get_with_expiry(f"manga:{slug}")
+        if not isinstance(manga, dict):
+            continue
+        
+        # Calculer le timestamp de création du cache
+        creation_time = (expires - MANGA_TTL_SECONDS) if expires else 0
+        
+        # Récupérer les chapitres
+        chapters = manga.get("chapters", [])
+        for chapter in chapters[:20]:  # Top 20 chapters par manga
+            ch_num = chapter.get("number")
+            if ch_num:
+                chapters_with_time.append({
+                    "url": f"{base_url}/read/{slug}/{ch_num}",
+                    "time": creation_time,
+                })
+    
+    # Trier par timestamp décroissant et garder les 500 plus récents
+    chapters_with_time.sort(key=lambda x: x["time"], reverse=True)
+    latest_chapters = chapters_with_time[:500]
+    
+    # Génération du XML
+    xml_lines = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+    ]
+    
+    for item in latest_chapters:
+        xml_lines.append("    <url>")
+        xml_lines.append(f"        <loc>{item['url']}</loc>")
+        xml_lines.append("        <changefreq>monthly</changefreq>")
+        xml_lines.append("        <priority>0.6</priority>")
+        xml_lines.append("    </url>")
+    
     xml_lines.append("</urlset>")
     xml_content = "\n".join(xml_lines)
     
@@ -276,7 +350,7 @@ Allow: /
 User-agent: Applebot
 Allow: /
 
-Sitemap: {base_url}/sitemap.xml
+Sitemap: {base_url}/sitemap-index.xml
 """
 
     return Response(
