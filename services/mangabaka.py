@@ -99,7 +99,8 @@ async def fetch_mangabaka_data(manga_title: str) -> dict:
             result["cover_url"] = cover_url
             
             # Récupérer les genres
-            result["genres"] = series.get("genres", [])
+            genres_raw = series.get("genres")
+            result["genres"] = genres_raw if isinstance(genres_raw, list) else []
             
             # Récupérer la description
             result["description"] = series.get("description")
@@ -127,8 +128,8 @@ async def fetch_mangabaka_data(manga_title: str) -> dict:
             
             logger.info(
                 "MangaBaka API: Successfully retrieved %d alt titles, cover URL, %d genres, rating %.1f/5 for '%s'", 
-                len(result["alt_titles"]), 
-                len(result["genres"]),
+                len(result["alt_titles"]) if result["alt_titles"] else 0, 
+                len(result["genres"]) if result["genres"] else 0,
                 result["rating"] or 0,
                 manga_title
             )
