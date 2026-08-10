@@ -995,7 +995,7 @@ img {
     }
 
     .topbar .brand     { flex: 0 0 auto; }
-    .topbar .search-bar { flex: 1 1 200px; min-width: 0; }
+    .topbar .search-bar { flex: 1 1 350px; min-width: 0; }
     .topbar .quick-links { flex: 0 0 auto; }
 
     .content-layout,
