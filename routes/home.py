@@ -48,7 +48,8 @@ templates = Jinja2Templates(directory=str(Path(__file__).resolve().parent.parent
 
 
 @router.get("/", response_class=HTMLResponse)
-async def index(request: Request, list_page: int = Query(default=1, ge=1, alias="list")) -> HTMLResponse:
+async def index(request: Request, list: int = Query(default=1, ge=1)) -> HTMLResponse:
+    list_page = list
     error: str | None = None
 
     try:
