@@ -157,7 +157,11 @@ def _get_related_mangas(current_slug: str, limit: int = 6) -> list[dict]:
     
     # Récupérer le manga actuel pour obtenir ses genres
     current_manga = _cache_get(f"manga:{current_slug}")
-    current_genres = set(current_manga.get("genres", [])) if current_manga else set()
+    if current_manga and isinstance(current_manga, dict):
+        genres_list = current_manga.get("genres") or []
+        current_genres = set(genres_list) if isinstance(genres_list, list) else set()
+    else:
+        current_genres = set()
     
     # Récupérer tous les slugs de mangas en cache
     manga_keys = cache.get_keys_by_prefix("manga:")
@@ -167,14 +171,17 @@ def _get_related_mangas(current_slug: str, limit: int = 6) -> list[dict]:
     scored_mangas = []
     for slug in all_slugs:
         manga = _cache_get(f"manga:{slug}")
-        if manga and isinstance(manga, dict):
-            manga_genres = set(manga.get("genres", []))
-            shared_genres = current_genres & manga_genres
-            score = len(shared_genres)
+        if not manga or not isinstance(manga, dict):
+            continue
             
-            # Bonus si au moins 1 genre partagé
-            if score > 0:
-                scored_mangas.append((score, slug, manga))
+        genres_list = manga.get("genres") or []
+        manga_genres = set(genres_list) if isinstance(genres_list, list) else set()
+        shared_genres = current_genres & manga_genres
+        score = len(shared_genres)
+        
+        # Bonus si au moins 1 genre partagé
+        if score > 0:
+            scored_mangas.append((score, slug, manga))
     
     # Si pas assez de mangas avec genres partagés, compléter avec des random
     if len(scored_mangas) < limit:
