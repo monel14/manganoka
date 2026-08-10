@@ -60,9 +60,15 @@ async def read_chapter(request: Request, slug: str, chapter: str, background_tas
             lambda: _load_manga(slug),
         )
         
-        # SÉCURITÉ : Vérification de type stricte pour éviter tout crash 'NoneType'
+        # SÉCURITÉ ACTIVE (Self-Healing) : Si la fiche manga est corrompue, on la répare et la re-scrape en direct !
         if not manga or not isinstance(manga, dict) or not manga.get("chapters"):
-            raise HTTPException(status_code=404, detail="Manga not found or has no chapters")
+            logger.warning("Manga Reader Cache: Corrupt manga cache detected for %s. Force re-scraping...", slug)
+            try:
+                manga = await _load_manga(slug)
+                await cache.get_or_set(f"manga:{slug}", MANGA_TTL_SECONDS, lambda: manga)
+            except Exception as e:
+                logger.error("Manga Reader Cache: Failed to self-heal corrupt cache for %s: %s", slug, e)
+                raise HTTPException(status_code=404, detail="Manga not found")
             
         # Passer le manga déjà chargé pour éviter un double fetch
         page = await get_chapter_page(slug, chapter, manga=manga)

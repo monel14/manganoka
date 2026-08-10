@@ -39,8 +39,16 @@ async def manga_detail(request: Request, slug: str, background_tasks: Background
         logger.warning("Unable to load manga %s: %s", slug, exc)
         raise HTTPException(status_code=502, detail="Source unavailable") from exc
 
-    if not manga["title"]:
-        raise HTTPException(status_code=404, detail="Manga not found")
+    # SÉCURITÉ ACTIVE (Self-Healing) : Si l'entrée de cache est corrompue ou None, on la répare et la re-scrape en direct !
+    if not manga or not isinstance(manga, dict) or not manga.get("title"):
+        logger.warning("Manga Cache: Corrupt cache entry detected for %s. Force re-scraping...", slug)
+        try:
+            manga = await _load_manga(slug)
+            # Enregistrer la nouvelle version saine dans le cache
+            await cache.get_or_set(f"manga:{slug}", MANGA_TTL_SECONDS, lambda: manga)
+        except Exception as e:
+            logger.error("Manga Cache: Failed to self-heal corrupt cache for %s: %s", slug, e)
+            raise HTTPException(status_code=404, detail="Manga not found")
 
     # Récupérer des mangas similaires depuis le cache (Related Manga)
     related_mangas = _get_related_mangas(slug, limit=6)
