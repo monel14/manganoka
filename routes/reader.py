@@ -59,6 +59,11 @@ async def read_chapter(request: Request, slug: str, chapter: str, background_tas
             MANGA_TTL_SECONDS,
             lambda: _load_manga(slug),
         )
+        
+        # SÉCURITÉ : Vérification de type stricte pour éviter tout crash 'NoneType'
+        if not manga or not isinstance(manga, dict) or not manga.get("chapters"):
+            raise HTTPException(status_code=404, detail="Manga not found or has no chapters")
+            
         # Passer le manga déjà chargé pour éviter un double fetch
         page = await get_chapter_page(slug, chapter, manga=manga)
     except NotFoundError as exc:
