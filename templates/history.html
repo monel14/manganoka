@@ -4,6 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light dark">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://www.googletagmanager.com">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-EXEWN0JKT1"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -12,9 +14,15 @@
       gtag('config', 'G-EXEWN0JKT1');
     </script>
     <title>Reading History - MangaNoka</title>
-    <link rel="canonical" href="https://www.manganoka.xyz/history">
-    <link rel="alternate" hreflang="en" href="https://www.manganoka.xyz/history">
-    <link rel="alternate" hreflang="x-default" href="https://www.manganoka.xyz/history">
+    {% set host = request.url.netloc %}
+    {% if not host.startswith('www.') %}
+    {% set host = 'www.' ~ host %}
+    {% endif %}
+    {% set canonical_url = request.url.scheme ~ '://' ~ host ~ request.url.path %}
+    <link rel="canonical" href="{{ canonical_url }}">
+    <link rel="alternate" hreflang="en" href="{{ canonical_url }}">
+    <link rel="alternate" hreflang="x-default" href="{{ canonical_url }}">
+    <meta name="robots" content="noindex, follow">
     <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}?v=1.2">
     <link rel="alternate" type="application/rss+xml" title="MangaNoka - Latest Manga Releases" href="https://www.manganoka.xyz/rss.xml">
     

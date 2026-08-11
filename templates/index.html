@@ -6,6 +6,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light dark">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://www.googletagmanager.com">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-EXEWN0JKT1"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
@@ -255,11 +257,11 @@
                     {% if not is_home %}
                     <div class="pagination">
                         {% if previous_page_url %}
-                        <a href="{{ previous_page_url }}">Précédent</a>
+                        <a href="{{ previous_page_url }}">Previous</a>
                         {% endif %}
                         <span>Page {{ current_page }}</span>
                         {% if next_page_url %}
-                        <a href="{{ next_page_url }}">Suivant</a>
+                        <a href="{{ next_page_url }}">Next</a>
                         {% endif %}
                     </div>
                     {% endif %}
@@ -330,7 +332,7 @@
                                 <a class="chapter-link" href="/read/{{ manga.slug }}/{{ chapter.number }}">
                                     <span class="chapter-title">» {{ chapter.title }}</span>
                                     {% if chapter.date %}
-                                    <time class="chapter-date">{{ chapter.date }}</time>
+                                    <time class="chapter-date" datetime="{{ chapter.date }}">{{ chapter.date }}</time>
                                     {% endif %}
                                 </a>
                                 {% endfor %}
@@ -432,146 +434,110 @@
                     <table style="width: 100%; border-collapse: collapse; font-size: 12px; line-height: 1.4;">
                         <tbody>
                             <tr>
-                                <td style="padding: 5px 3px;"><a rel="nofollow" href="/manga-list/new-manga"
-                                        style="color: var(--brand); font-weight: bold; text-decoration: none;">Newest</a>
-
-                                <td style="padding: 5px 3px;"><a rel="nofollow" href="/manga-list/latest-manga"
-                                        style="color: var(--text-color); text-decoration: none;">Latest</a>
-                                <td style="padding: 5px 3px;"><a rel="nofollow" href="/manga-list/hot-manga"
-                                        style="color: var(--text-color); text-decoration: none;">Top read</a>
+                                <td style="padding: 5px 3px;"><a rel="nofollow" href="/manga-list/new-manga" style="color: var(--brand); font-weight: bold; text-decoration: none;">Newest</a></td>
+                                <td style="padding: 5px 3px;"><a rel="nofollow" href="/manga-list/latest-manga" style="color: var(--text-color); text-decoration: none;">Latest</a></td>
+                                <td style="padding: 5px 3px;"><a rel="nofollow" href="/manga-list/hot-manga" style="color: var(--text-color); text-decoration: none;">Top read</a></td>
                             </tr>
                             <tr style="border-top: 1px solid rgba(255,255,255,0.05);">
-                                <td style="padding: 5px 3px;"><a rel="nofollow" href="/genre/all"
-                                        style="color: var(--brand); font-weight: bold; text-decoration: none;">All</a>
-
-                                <td style="padding: 5px 3px;"><a rel="nofollow" href="/manga-list/completed-manga"
-                                        style="color: var(--text-color); text-decoration: none;">Completed</a>
-                                <td style="padding: 5px 3px;"><a rel="nofollow" href="/manga-list/ongoing-manga"
-                                        style="color: var(--text-color); text-decoration: none;">Ongoing</a>
+                                <td style="padding: 5px 3px;"><a rel="nofollow" href="/genre/all" style="color: var(--brand); font-weight: bold; text-decoration: none;">All</a></td>
+                                <td style="padding: 5px 3px;"><a rel="nofollow" href="/manga-list/completed-manga" style="color: var(--text-color); text-decoration: none;">Completed</a></td>
+                                <td style="padding: 5px 3px;"><a rel="nofollow" href="/manga-list/ongoing-manga" style="color: var(--text-color); text-decoration: none;">Ongoing</a></td>
                             </tr>
 
                             <tr style="border-top: 1px solid rgba(255,255,255,0.05);">
-                                <td style="padding: 5px 3px;"><a href="/genre/action" title="Action">Action</a>
-                                <td style="padding: 5px 3px;"><a href="/genre/adaptation"
-                                        title="Adaptation">Adaptation</a>
-                                <td style="padding: 5px 3px;"><a href="/genre/adult" title="Adult">Adult</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/action" title="Action">Action</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/adaptation" title="Adaptation">Adaptation</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/adult" title="Adult">Adult</a></td>
                             </tr>
                             <tr>
-                                <td style="padding: 5px 3px;"><a href="/genre/adventure" title="Adventure">Adventure</a>
-
-                                <td style="padding: 5px 3px;"><a href="/genre/boys-love" title="Boys Love">Boys Love</a>
-
-                                <td style="padding: 5px 3px;"><a href="/genre/childhood-friends"
-                                        title="Childhood_friends">Childhood_friends</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/adventure" title="Adventure">Adventure</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/boys-love" title="Boys Love">Boys Love</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/childhood-friends" title="Childhood_friends">Childhood_friends</a></td>
                             </tr>
                             <tr>
-                                <td style="padding: 5px 3px;"><a href="/genre/comedy" title="Comedy">Comedy</a>
-                                <td style="padding: 5px 3px;"><a href="/genre/demons" title="Demons">Demons</a>
-                                <td style="padding: 5px 3px;"><a href="/genre/doujinshi" title="Doujinshi">Doujinshi</a>
-
+                                <td style="padding: 5px 3px;"><a href="/genre/comedy" title="Comedy">Comedy</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/demons" title="Demons">Demons</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/doujinshi" title="Doujinshi">Doujinshi</a></td>
                             </tr>
                             <tr>
-                                <td style="padding: 5px 3px;"><a href="/genre/drama" title="Drama">Drama</a>
-                                <td style="padding: 5px 3px;"><a href="/genre/ecchi" title="Ecchi">Ecchi</a>
-                                <td style="padding: 5px 3px;"><a href="/genre/erotica" title="Erotica">Erotica</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/drama" title="Drama">Drama</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/ecchi" title="Ecchi">Ecchi</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/erotica" title="Erotica">Erotica</a></td>
                             </tr>
                             <tr>
-                                <td style="padding: 5px 3px;"><a href="/genre/fantasy" title="Fantasy">Fantasy</a>
-                                <td style="padding: 5px 3px;"><a href="/genre/full-color" title="Full Color">Full
-                                        Color</a>
-                                <td style="padding: 5px 3px;"><a href="/genre/gender-bender"
-                                        title="Gender bender">Gender bender</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/fantasy" title="Fantasy">Fantasy</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/full-color" title="Full Color">Full Color</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/gender-bender" title="Gender bender">Gender bender</a></td>
                             </tr>
                             <tr>
-                                <td style="padding: 5px 3px;"><a href="/genre/harem" title="Harem">Harem</a>
-                                <td style="padding: 5px 3px;"><a href="/genre/heartwarming"
-                                        title="Heartwarming">Heartwarming</a>
-                                <td style="padding: 5px 3px;"><a href="/genre/hentai" title="Hentai">Hentai</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/harem" title="Harem">Harem</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/heartwarming" title="Heartwarming">Heartwarming</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/hentai" title="Hentai">Hentai</a></td>
                             </tr>
                             <tr>
-                                <td style="padding: 5px 3px;"><a href="/genre/historical"
-                                        title="Historical">Historical</a>
-                                <td style="padding: 5px 3px;"><a href="/genre/isekai" title="Isekai">Isekai</a>
-                                <td style="padding: 5px 3px;"><a href="/genre/josei" title="Josei">Josei</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/historical" title="Historical">Historical</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/isekai" title="Isekai">Isekai</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/josei" title="Josei">Josei</a></td>
                             </tr>
                             <tr>
-                                <td style="padding: 5px 3px;"><a href="/genre/long-strip" title="Long Strip">Long
-                                        Strip</a>
-                                <td style="padding: 5px 3px;"><a href="/genre/magic" title="Magic">Magic</a>
-                                <td style="padding: 5px 3px;"><a href="/genre/manga" title="Manga">Manga</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/long-strip" title="Long Strip">Long Strip</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/magic" title="Magic">Magic</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/manga" title="Manga">Manga</a></td>
                             </tr>
                             <tr>
-                                <td style="padding: 5px 3px;"><a href="/genre/manhua" title="Manhua">Manhua</a>
-                                <td style="padding: 5px 3px;"><a href="/genre/manhwa" title="Manhwa">Manhwa</a>
-                                <td style="padding: 5px 3px;"><a href="/genre/martial-arts" title="Martial arts">Martial
-                                        arts</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/manhua" title="Manhua">Manhua</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/manhwa" title="Manhwa">Manhwa</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/martial-arts" title="Martial arts">Martial arts</a></td>
                             </tr>
                             <tr>
-                                <td style="padding: 5px 3px;"><a href="/genre/mature" title="Mature">Mature</a>
-                                <td style="padding: 5px 3px;"><a href="/genre/mecha" title="Mecha">Mecha</a>
-                                <td style="padding: 5px 3px;"><a href="/genre/monsters" title="Monsters">Monsters</a>
-
+                                <td style="padding: 5px 3px;"><a href="/genre/mature" title="Mature">Mature</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/mecha" title="Mecha">Mecha</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/monsters" title="Monsters">Monsters</a></td>
                             </tr>
                             <tr>
-                                <td style="padding: 5px 3px;"><a href="/genre/mystery" title="Mystery">Mystery</a>
-                                <td style="padding: 5px 3px;"><a href="/genre/netorare" title="Netorare">Netorare</a>
-
-                                <td style="padding: 5px 3px;"><a href="/genre/office-workers"
-                                        title="Office Workers">Office Workers</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/mystery" title="Mystery">Mystery</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/netorare" title="Netorare">Netorare</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/office-workers" title="Office Workers">Office Workers</a></td>
                             </tr>
                             <tr>
-                                <td style="padding: 5px 3px;"><a href="/genre/one-shot" title="One shot">One shot</a>
-
-                                <td style="padding: 5px 3px;"><a href="/genre/pornographic"
-                                        title="Pornographic">Pornographic</a>
-                                <td style="padding: 5px 3px;"><a href="/genre/psychological"
-                                        title="Psychological">Psychological</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/one-shot" title="One shot">One shot</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/pornographic" title="Pornographic">Pornographic</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/psychological" title="Psychological">Psychological</a></td>
                             </tr>
                             <tr>
-                                <td style="padding: 5px 3px;"><a href="/genre/reincarnation"
-                                        title="Reincarnation">Reincarnation</a>
-                                <td style="padding: 5px 3px;"><a href="/genre/revenge" title="Revenge">Revenge</a>
-                                <td style="padding: 5px 3px;"><a href="/genre/romance" title="Romance">Romance</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/reincarnation" title="Reincarnation">Reincarnation</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/revenge" title="Revenge">Revenge</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/romance" title="Romance">Romance</a></td>
                             </tr>
                             <tr>
-                                <td style="padding: 5px 3px;"><a href="/genre/school-life" title="School life">School
-                                        life</a>
-                                <td style="padding: 5px 3px;"><a href="/genre/shoujo" title="Shoujo">Shoujo</a>
-                                <td style="padding: 5px 3px;"><a href="/genre/shounen" title="Shounen">Shounen</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/school-life" title="School life">School life</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/shoujo" title="Shoujo">Shoujo</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/shounen" title="Shounen">Shounen</a></td>
                             </tr>
                             <tr>
-                                <td style="padding: 5px 3px;"><a href="/genre/slice-of-life" title="Slice of life">Slice
-                                        of Life</a>
-                                <td style="padding: 5px 3px;"><a href="/genre/smut" title="Smut">Smut</a>
-                                <td style="padding: 5px 3px;"><a href="/genre/sm-bdsm" title="Sm_bdsm">Sm_bdsm</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/slice-of-life" title="Slice of life">Slice of Life</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/smut" title="Smut">Smut</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/sm-bdsm" title="Sm_bdsm">Sm_bdsm</a></td>
                             </tr>
                             <tr>
-                                <td style="padding: 5px 3px;"><a href="/genre/super-power" title="Super Power">Super
-                                        Power</a>
-                                <td style="padding: 5px 3px;"><a href="/genre/supernatural"
-                                        title="Supernatural">Supernatural</a>
-                                <td style="padding: 5px 3px;"><a href="/genre/survival" title="Survival">Survival</a>
-
+                                <td style="padding: 5px 3px;"><a href="/genre/super-power" title="Super Power">Super Power</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/supernatural" title="Supernatural">Supernatural</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/survival" title="Survival">Survival</a></td>
                             </tr>
                             <tr>
-                                <td style="padding: 5px 3px;"><a href="/genre/time-travel" title="Time Travel">Time
-                                        Travel</a>
-                                <td style="padding: 5px 3px;"><a href="/genre/tragedy" title="Tragedy">Tragedy</a>
-                                <td style="padding: 5px 3px;"><a href="/genre/transmigration"
-                                        title="Transmigration">Transmigration</a>
+                                <td style="padding: 5px 3px;"><a href="/genre/time-travel" title="Time Travel">Time Travel</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/tragedy" title="Tragedy">Tragedy</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/transmigration" title="Transmigration">Transmigration</a></td>
                             </tr>
                             <tr>
-                                <td style="padding: 5px 3px;"><a href="/genre/vampires" title="Vampires">Vampires</a>
-
-                                <td style="padding: 5px 3px;"><a href="/genre/villainess"
-                                        title="Villainess">Villainess</a>
-                                <td style="padding: 5px 3px;"><a href="/genre/webtoons" title="Webtoons">Webtoons</a>
-
+                                <td style="padding: 5px 3px;"><a href="/genre/vampires" title="Vampires">Vampires</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/villainess" title="Villainess">Villainess</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/webtoons" title="Webtoons">Webtoons</a></td>
                             </tr>
                             <tr>
-                                <td style="padding: 5px 3px;"><a href="/genre/yaoi" title="Yaoi">Yaoi</a>
-                                <td style="padding: 5px 3px;"><a href="/genre/yuri" title="Yuri">Yuri</a>
-                                <td style="padding: 5px 3px;">
+                                <td style="padding: 5px 3px;"><a href="/genre/yaoi" title="Yaoi">Yaoi</a></td>
+                                <td style="padding: 5px 3px;"><a href="/genre/yuri" title="Yuri">Yuri</a></td>
+                                <td style="padding: 5px 3px;"></td>
                             </tr>
                         </tbody>
                     </table>

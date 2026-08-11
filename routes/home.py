@@ -126,6 +126,7 @@ def sitemap_index() -> Response:
 def sitemap() -> Response:
     """Génère un sitemap XML dynamique basé sur les mangas actuellement en cache."""
     base_url = os.environ.get("BASE_URL", "https://www.manganoka.xyz").rstrip("/")
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     
     # Récupérer toutes les clés de manga du cache (ex: 'manga:Dan%252C-the-Bat...')
     manga_keys = cache.get_keys_by_prefix("manga:")
@@ -143,14 +144,23 @@ def sitemap() -> Response:
     # 1. URL de la page d'accueil
     xml_lines.append("    <url>")
     xml_lines.append(f"        <loc>{base_url}/</loc>")
+    xml_lines.append(f"        <lastmod>{today}</lastmod>")
     xml_lines.append("        <changefreq>daily</changefreq>")
     xml_lines.append("        <priority>1.0</priority>")
     xml_lines.append("    </url>")
     
     # 2. URLs de tous les mangas en cache
     for slug in slugs:
+        # Calculer la date de création du cache pour un lastmod précis
+        _manga, expires = _cache_get_with_expiry(f"manga:{slug}")
+        if expires:
+            creation_time = expires - MANGA_TTL_SECONDS
+            lastmod = datetime.fromtimestamp(creation_time, tz=timezone.utc).strftime("%Y-%m-%d")
+        else:
+            lastmod = today
         xml_lines.append("    <url>")
         xml_lines.append(f"        <loc>{base_url}/manga/{slug}</loc>")
+        xml_lines.append(f"        <lastmod>{lastmod}</lastmod>")
         xml_lines.append("        <changefreq>weekly</changefreq>")
         xml_lines.append("        <priority>0.8</priority>")
         xml_lines.append("    </url>")
@@ -159,6 +169,7 @@ def sitemap() -> Response:
     xml_content = "\n".join(xml_lines)
     
     return Response(content=xml_content, media_type="application/xml")
+
 
 
 @router.api_route("/sitemap-chapters.xml", methods=["GET", "HEAD"])
@@ -203,8 +214,10 @@ def sitemap_chapters() -> Response:
     ]
     
     for item in latest_chapters:
+        lastmod = datetime.fromtimestamp(item['time'], tz=timezone.utc).strftime("%Y-%m-%d") if item['time'] else datetime.now(timezone.utc).strftime("%Y-%m-%d")
         xml_lines.append("    <url>")
         xml_lines.append(f"        <loc>{item['url']}</loc>")
+        xml_lines.append(f"        <lastmod>{lastmod}</lastmod>")
         xml_lines.append("        <changefreq>monthly</changefreq>")
         xml_lines.append("        <priority>0.6</priority>")
         xml_lines.append("    </url>")

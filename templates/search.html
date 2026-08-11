@@ -4,6 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light dark">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://www.googletagmanager.com">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-EXEWN0JKT1"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -34,6 +36,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <script src="{{ url_for('static', path='/theme.js') }}"></script>
     <meta name="description" content="Search results for '{{ query }}' on MangaNoka. Enjoy a fast, responsive, and ad-free experience.">
+    <meta name="robots" content="noindex, follow">
     <meta property="og:site_name" content="MangaNoka">
     <meta property="og:type" content="website">
     <meta property="og:title" content="Search Results for: {{ query }} - MangaNoka">
@@ -48,7 +51,6 @@
     {% if next_page_url %}
     <link rel="next" href="{{ next_page_url }}">
     {% endif %}
-    <script src="{{ url_for('static', path='/theme.js') }}"></script>
     <script defer src="https://cloud.umami.is/script.js" data-website-id="83ab3ed5-3da3-4d7f-bb38-1c19953d0c57"></script>
 </head>
 <body>

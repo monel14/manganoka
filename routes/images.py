@@ -1,5 +1,6 @@
 import os
 import logging
+import hashlib
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -59,12 +60,48 @@ def get_image_cache_service() -> ImageCacheService:
     return _image_cache_service
 
 
+def make_image_response(
+    request: Request | None,
+    image_data: bytes,
+    content_type: str,
+    max_age: int = 31536000,
+    immutable: bool = True,
+) -> Response:
+    """
+    Génère une réponse HTTP optimisée pour les images :
+    - Hash ETag MD5 pour support HTTP 304 Not Modified
+    - Cache-Control public, max-age, immutable
+    - En-tête Vary pour compatibilité CDN / proxy
+    """
+    etag = f'"{hashlib.md5(image_data).hexdigest()}"'
+    cache_control = f"public, max-age={max_age}"
+    if immutable:
+        cache_control += ", immutable"
+
+    headers = {
+        "Cache-Control": cache_control,
+        "ETag": etag,
+        "Vary": "Accept, Accept-Encoding",
+    }
+
+    if request:
+        if_none_match = request.headers.get("if-none-match")
+        if if_none_match and etag in if_none_match:
+            return Response(status_code=304, headers=headers)
+
+    return Response(
+        content=image_data,
+        media_type=content_type,
+        headers=headers,
+    )
+
+
 # ==============================
 # Routes
 # ==============================
 
 @router.get("/img-cdn/{filename}")
-async def serve_cached_image(filename: str):
+async def serve_cached_image(request: Request, filename: str):
     """Sert l'image en cache CDN de manière robuste et directe (sans redirection), avec conversion JPEG optionnelle."""
     service = get_image_cache_service()
     
@@ -116,10 +153,10 @@ async def serve_cached_image(filename: str):
         except Exception as exc:
             logger.warning("Échec de conversion d'image Pillow en JPEG pour %s: %s", filename, exc)
             
-    return Response(
-        content=image_data,
-        media_type="image/jpeg" if is_jpeg_requested else f"image/{source_ext}",
-        headers={"Cache-Control": "public, max-age=31536000"},
+    return make_image_response(
+        request=request,
+        image_data=image_data,
+        content_type="image/jpeg" if is_jpeg_requested else f"image/{source_ext}",
     )
 
 
@@ -127,7 +164,7 @@ async def serve_cached_image(filename: str):
 # Proxy image sécurisé avec streaming
 # ==============================
 @router.get("/img-proxy")
-async def image_proxy(url: str):
+async def image_proxy(request: Request, url: str):
     """
     Proxy sécurisé pour les images avec :
     - Whitelist de domaines (SSRF protection)
@@ -149,10 +186,10 @@ async def image_proxy(url: str):
             source,
         )
         
-        return Response(
-            content=image_data,
-            media_type=content_type,
-            headers={"Cache-Control": "public, max-age=31536000"},
+        return make_image_response(
+            request=request,
+            image_data=image_data,
+            content_type=content_type,
         )
     
     except Exception as exc:
@@ -162,10 +199,11 @@ async def image_proxy(url: str):
         try:
             with open(fallback_path, "rb") as f:
                 fallback_data = f.read()
-            return Response(
-                content=fallback_data,
-                media_type="image/svg+xml",
-                headers={"Cache-Control": "public, max-age=604800"}, # Cache de 7 jours pour l'image de secours
+            return make_image_response(
+                request=request,
+                image_data=fallback_data,
+                content_type="image/svg+xml",
+                max_age=604800,
             )
         except Exception as file_exc:
             logger.error("Échec critique de lecture de l'image de secours locale: %s", file_exc)
@@ -209,10 +247,10 @@ async def chapter_image_semantic(request: Request, slug: str, chapter_num: str, 
     service = get_image_cache_service()
     try:
         image_data, content_type, source = await service.get_or_cache_image(target_url, bypass_validation=True)
-        return Response(
-            content=image_data,
-            media_type=content_type,
-            headers={"Cache-Control": "public, max-age=31536000"},
+        return make_image_response(
+            request=request,
+            image_data=image_data,
+            content_type=content_type,
         )
     except Exception as exc:
         logger.warning("Échec du chargement de l'image du chapitre %s/%s page %s: %s. Service de secours de l'image par défaut.", slug, chapter_num, page_num, exc)
@@ -220,10 +258,11 @@ async def chapter_image_semantic(request: Request, slug: str, chapter_num: str, 
         try:
             with open(fallback_path, "rb") as f:
                 fallback_data = f.read()
-            return Response(
-                content=fallback_data,
-                media_type="image/svg+xml",
-                headers={"Cache-Control": "public, max-age=604800"},
+            return make_image_response(
+                request=request,
+                image_data=fallback_data,
+                content_type="image/svg+xml",
+                max_age=604800,
             )
         except Exception as file_exc:
             logger.error("Échec critique de lecture de l'image de secours locale: %s", file_exc)
@@ -263,10 +302,10 @@ async def chapter_image(request: Request, slug: str, chapter: str, page_num: int
     service = get_image_cache_service()
     try:
         image_data, content_type, source = await service.get_or_cache_image(target_url, bypass_validation=True)
-        return Response(
-            content=image_data,
-            media_type=content_type,
-            headers={"Cache-Control": "public, max-age=31536000"},
+        return make_image_response(
+            request=request,
+            image_data=image_data,
+            content_type=content_type,
         )
     except Exception as exc:
         logger.warning("Échec du chargement de l'image alternative du chapitre %s/%s page %s: %s. Service de secours de l'image par défaut.", slug, chapter, page_num, exc)
@@ -274,10 +313,11 @@ async def chapter_image(request: Request, slug: str, chapter: str, page_num: int
         try:
             with open(fallback_path, "rb") as f:
                 fallback_data = f.read()
-            return Response(
-                content=fallback_data,
-                media_type="image/svg+xml",
-                headers={"Cache-Control": "public, max-age=604800"},
+            return make_image_response(
+                request=request,
+                image_data=fallback_data,
+                content_type="image/svg+xml",
+                max_age=604800,
             )
         except Exception as file_exc:
             logger.error("Échec critique de lecture de l'image de secours locale: %s", file_exc)

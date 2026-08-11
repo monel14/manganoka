@@ -4,6 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light dark">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://www.googletagmanager.com">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-EXEWN0JKT1"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -243,7 +245,7 @@
                         {% for chapter in manga.chapters %}
                             <a href="/read/{{ slug }}/{{ chapter.number }}">
                                 <span>{{ chapter.title }}</span>
-                                {% if chapter.date %}<time>{{ chapter.date }}</time>{% endif %}
+                                {% if chapter.date %}<time datetime="{{ chapter.date }}">{{ chapter.date }}</time>{% endif %}
                             </a>
                         {% else %}
                             <p class="empty">No chapters found.</p>
