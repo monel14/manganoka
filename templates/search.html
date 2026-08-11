@@ -17,10 +17,13 @@
     {% set host = 'www.' ~ host %}
     {% endif %}
     {% set canonical_url = request.url.scheme ~ '://' ~ host ~ request.url.path %}
-    {% if request.url.query %}
-    {% set canonical_url = canonical_url ~ '?' ~ request.url.query %}
+    {% set q_param = request.query_params.get('q') %}
+    {% if q_param %}
+    {% set canonical_url = canonical_url ~ '?q=' ~ q_param %}
     {% endif %}
     <link rel="canonical" href="{{ canonical_url }}">
+    <link rel="alternate" hreflang="en" href="{{ canonical_url }}">
+    <link rel="alternate" hreflang="x-default" href="{{ canonical_url }}">
     <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}?v=1.2">
     <link rel="alternate" type="application/rss+xml" title="MangaNoka - Latest Manga Releases" href="https://www.manganoka.xyz/rss.xml">
     

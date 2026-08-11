@@ -35,10 +35,9 @@
     {% set host = 'www.' ~ host %}
     {% endif %}
     {% set canonical_url = request.url.scheme ~ '://' ~ host ~ request.url.path %}
-    {% if request.url.query %}
-    {% set canonical_url = canonical_url ~ '?' ~ request.url.query %}
-    {% endif %}
     <link rel="canonical" href="{{ canonical_url }}">
+    <link rel="alternate" hreflang="en" href="{{ canonical_url }}">
+    <link rel="alternate" hreflang="x-default" href="{{ canonical_url }}">
     <script defer src="https://cloud.umami.is/script.js" data-website-id="83ab3ed5-3da3-4d7f-bb38-1c19953d0c57"></script>
     
     <!-- Données structurées Schema.org (JSON-LD) pour Google Rich Snippets -->
@@ -70,6 +69,25 @@
           ]
         },
         {
+          "@type": ["ComicIssue", "Book"],
+          "@id": "https://www.manganoka.xyz/read/{{ slug }}/{{ chapter }}#issue",
+          "name": {{ (manga.title ~ " Chapter " ~ chapter)|tojson }},
+          "url": "https://www.manganoka.xyz/read/{{ slug }}/{{ chapter }}",
+          "issueNumber": "{{ chapter }}",
+          "isPartOf": {
+            "@type": "ComicSeries",
+            "name": {{ manga.title|tojson }},
+            "url": "https://www.manganoka.xyz/manga/{{ slug }}"
+          },
+          "publisher": {
+            "@type": "Organization",
+            "name": "MangaNoka",
+            "url": "https://www.manganoka.xyz/"
+          },
+          "inLanguage": "en",
+          "isAccessibleForFree": true
+        },
+        {
           "@type": "ReadAction",
           "target": {
             "@type": "EntryPoint",
@@ -80,10 +98,9 @@
             ]
           },
           "object": {
-            "@type": "Book",
+            "@type": "ComicIssue",
             "name": {{ (manga.title ~ " Chapter " ~ chapter)|tojson }},
-            "url": "https://www.manganoka.xyz/read/{{ slug }}/{{ chapter }}",
-            "isAccessibleForFree": true
+            "url": "https://www.manganoka.xyz/read/{{ slug }}/{{ chapter }}"
           }
         }
       ]
@@ -163,8 +180,9 @@
             <img
                 class="manga-page"
                 data-src="{{ url_for('static', path='/manganokapage.jpeg') }}"
-                alt="MangaNoka - Read {{ manga.title }} Chapter {{ chapter }}"
+                alt="Read {{ manga.title }} Chapter {{ chapter }} Title Page - MangaNoka"
                 decoding="async"
+                loading="eager"
                 style="opacity: 0; width: 100%; height: auto; display: block; transition: opacity 0.3s ease;"
             >
         </div>
@@ -173,8 +191,9 @@
                 <img
                     class="manga-page"
                     data-src="/{{ slug }}/{{ chapter }}/{{ loop.index }}.webp"
-                    alt="{{ manga.title }} Chapter {{ chapter }} page {{ loop.index }}"
+                    alt="Read {{ manga.title }} Chapter {{ chapter }} Page {{ loop.index }} Free - MangaNoka"
                     decoding="async"
+                    loading="lazy"
                     style="opacity: 0; width: 100%; height: auto; display: block; transition: opacity 0.3s ease;"
                 >
             </div>

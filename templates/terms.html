@@ -17,10 +17,9 @@
     {% set host = 'www.' ~ host %}
     {% endif %}
     {% set canonical_url = request.url.scheme ~ '://' ~ host ~ request.url.path %}
-    {% if request.url.query %}
-    {% set canonical_url = canonical_url ~ '?' ~ request.url.query %}
-    {% endif %}
     <link rel="canonical" href="{{ canonical_url }}">
+    <link rel="alternate" hreflang="en" href="{{ canonical_url }}">
+    <link rel="alternate" hreflang="x-default" href="{{ canonical_url }}">
     <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}?v=1.2">
     <link rel="icon" href="{{ url_for('static', path='/noka_logo.svg') }}" type="image/svg+xml">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">

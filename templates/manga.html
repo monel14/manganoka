@@ -17,10 +17,9 @@
     {% set host = 'www.' ~ host %}
     {% endif %}
     {% set canonical_url = request.url.scheme ~ '://' ~ host ~ request.url.path %}
-    {% if request.url.query %}
-    {% set canonical_url = canonical_url ~ '?' ~ request.url.query %}
-    {% endif %}
     <link rel="canonical" href="{{ canonical_url }}">
+    <link rel="alternate" hreflang="en" href="{{ canonical_url }}">
+    <link rel="alternate" hreflang="x-default" href="{{ canonical_url }}">
     <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}?v=1.2">
     <link rel="alternate" type="application/rss+xml" title="MangaNoka - Latest Manga Releases" href="https://www.manganoka.xyz/rss.xml">
     
@@ -69,13 +68,14 @@
           ]
         },
         {
-          "@type": "Book",
-          "@id": "https://www.manganoka.xyz/manga/{{ slug }}#book",
+          "@type": ["ComicSeries", "Book"],
+          "@id": "https://www.manganoka.xyz/manga/{{ slug }}#series",
           "name": {{ manga.title|tojson }},
           {% if manga.alt_titles %}
           "alternateName": {{ manga.alt_titles|tojson }},
           {% endif %}
           "url": "https://www.manganoka.xyz/manga/{{ slug }}",
+          "mainEntityOfPage": "https://www.manganoka.xyz/manga/{{ slug }}",
           "image": "{{ manga.cover }}",
           "description": {{ (manga.baka_description or manga.description)|tojson }},
           {% if manga.author or manga.baka_authors %}
@@ -84,6 +84,15 @@
             "name": {{ (manga.baka_authors[0] if manga.baka_authors else manga.author)|tojson }}
           },
           {% endif %}
+          "publisher": {
+            "@type": "Organization",
+            "name": "MangaNoka",
+            "url": "https://www.manganoka.xyz/",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://www.manganoka.xyz/static/icon512.png"
+            }
+          },
           {% if manga.baka_rating %}
           "aggregateRating": {
             "@type": "AggregateRating",
@@ -144,9 +153,9 @@
                 <article class="manga-profile">
                     <div class="profile-cover" style="position: relative; width: 100%; height: 320px; overflow: hidden; background: linear-gradient(135deg, var(--surface) 0%, rgba(0,0,0,0.3) 100%); border-radius: var(--radius-md) var(--radius-md) 0 0;">
                         {% if manga.cover %}
-                            <img src="/img-proxy?url={{ manga.cover }}" alt="{{ manga.title }}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; opacity: 0.3; filter: blur(8px); transform: scale(1.1);">
+                            <img src="/img-proxy?url={{ manga.cover }}" alt="Read {{ manga.title }} Cover Background - MangaNoka" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; opacity: 0.3; filter: blur(8px); transform: scale(1.1);" loading="eager" decoding="async">
                             <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2;">
-                                <img src="/img-proxy?url={{ manga.cover }}" alt="{{ manga.title }}" style="width: 180px; height: 260px; object-fit: cover; border-radius: var(--radius-md); box-shadow: 0 8px 24px rgba(0,0,0,0.5); border: 3px solid var(--surface);">
+                                <img src="/img-proxy?url={{ manga.cover }}" alt="Read {{ manga.title }} Online Free Cover Image - MangaNoka" width="180" height="260" style="width: 180px; height: 260px; object-fit: cover; border-radius: var(--radius-md); box-shadow: 0 8px 24px rgba(0,0,0,0.5); border: 3px solid var(--surface);" loading="eager" fetchpriority="high">
                             </div>
                         {% else %}
                             <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 180px; height: 260px; background: var(--brand); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 80px; font-weight: bold; color: #fff; box-shadow: 0 8px 24px rgba(0,0,0,0.5);">
