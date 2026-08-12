@@ -241,38 +241,55 @@
         const images = Array.from(document.querySelectorAll(".manga-page"));
         if (!images.length) return;
 
-        let currentIndex = 0;
+        const CONCURRENT_LOADS = 3; // Nombre d'images à charger en parallèle
+        let loadIndex = 0;          // Index de la prochaine image à charger
+        let displayIndex = 0;       // Index de la prochaine image à afficher
+        const loadedImages = {};    // Stocke les images chargées avec leur index
 
-        function loadNextImage() {
-            if (currentIndex >= images.length) return;
+        // Affiche les images dans l'ordre si elles sont prêtes
+        function displayNextImages() {
+            while (loadedImages[displayIndex] !== undefined) {
+                const img = images[displayIndex];
+                img.style.opacity = "1";
+                if (img.parentElement) img.parentElement.style.minHeight = "auto";
+                displayIndex++;
+            }
+        }
 
-            const img = images[currentIndex];
+        // Charge une image et lance la suivante quand elle est prête
+        function loadImage(index) {
+            if (index >= images.length) return;
+
+            const img = images[index];
             const dataSrc = img.getAttribute("data-src");
+            
             if (!dataSrc) {
-                currentIndex++;
-                loadNextImage();
+                loadedImages[index] = true;
+                displayNextImages();
+                loadImage(loadIndex++);
                 return;
             }
 
             img.onload = () => {
-                img.style.opacity = "1";
-                if (img.parentElement) img.parentElement.style.minHeight = "auto";
-                currentIndex++;
-                loadNextImage();
+                loadedImages[index] = true;
+                displayNextImages(); // Tente d'afficher dans l'ordre
+                loadImage(loadIndex++); // Lance le chargement de la suivante
             };
 
             img.onerror = () => {
                 img.src = "/static/noka_lost.svg";
-                img.style.opacity = "1";
-                if (img.parentElement) img.parentElement.style.minHeight = "auto";
-                currentIndex++;
-                loadNextImage();
+                loadedImages[index] = true;
+                displayNextImages();
+                loadImage(loadIndex++);
             };
 
             img.src = dataSrc;
         }
 
-        loadNextImage();
+        // Démarre le chargement des premières images en parallèle
+        for (let i = 0; i < CONCURRENT_LOADS && i < images.length; i++) {
+            loadImage(loadIndex++);
+        }
     });
     </script>
 
