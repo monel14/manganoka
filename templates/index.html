@@ -209,19 +209,19 @@
         </section>
 
         {% if popular %}
-        <section class="popular-section" aria-label="Popular Manga">
+        <section class="popular-section" role="region" aria-label="Popular manga carousel">
             <h3 class="popular-section-title">
                 <i class="fas fa-thumbs-up" aria-hidden="true"></i> POPULAR MANGA
             </h3>
             <div class="pop-carousel-wrap">
-                <button class="pop-carousel-btn pop-carousel-prev" aria-label="Previous">
+                <button class="pop-carousel-btn pop-carousel-prev" aria-label="Show previous popular manga">
                     <i class="fas fa-chevron-left" aria-hidden="true"></i>
                 </button>
-                <div class="pop-carousel" id="pop-carousel" role="list">
+                <div class="pop-carousel" id="pop-carousel" role="list" aria-label="Popular manga list">
                     {% for item in popular %}
                     <div class="pop-item" style="--bg:url('/img-proxy?url={{ item.cover }}')" role="listitem">
-                        <a href="/manga/{{ item.slug }}" aria-label="Read {{ item.title }}">
-                            <img src="/img-proxy?url={{ item.cover }}" alt="Read {{ item.title }} Online Free - MangaNoka Cover" {% if loop.index <= 4 %}fetchpriority="high" loading="eager"{% else %}loading="lazy"{% endif %} decoding="async" width="160" height="220">
+                        <a href="/manga/{{ item.slug }}" aria-label="Read {{ item.title }}{% if item.chapter.title %}, latest: {{ item.chapter.title }}{% endif %}">
+                            <img src="/img-proxy?url={{ item.cover }}" alt="{{ item.title }} cover" {% if loop.index <= 4 %}fetchpriority="high" loading="eager"{% else %}loading="lazy"{% endif %} decoding="async" width="160" height="220">
                         </a>
                         <div class="pop-overlay">
                             <h3 class="pop-title">
@@ -230,7 +230,8 @@
                             {% if item.chapter.title %}
                             <div class="pop-chapter">
                                 <a href="/read/{{ item.slug }}/{{ item.chapter.number }}"
-                                    title="{{ item.chapter.title }}">
+                                    title="Read {{ item.chapter.title }}"
+                                    aria-label="Read {{ item.title }} {{ item.chapter.title }}">
                                     {{ item.chapter.title }}
                                 </a>
                                 <i class="fas fa-arrow-circle-right" aria-hidden="true"></i>
@@ -240,7 +241,7 @@
                     </div>
                     {% endfor %}
                 </div>
-                <button class="pop-carousel-btn pop-carousel-next" aria-label="Next">
+                <button class="pop-carousel-btn pop-carousel-next" aria-label="Show next popular manga">
                     <i class="fas fa-chevron-right" aria-hidden="true"></i>
                 </button>
             </div>
@@ -251,19 +252,19 @@
             <section class="main-column">
                 <div class="section-bar">
                     <h1 class="section-title">
-                        <i class="fas fa-arrow-circle-right section-title-icon"></i>
+                        <i class="fas fa-arrow-circle-right section-title-icon" aria-hidden="true"></i>
                         {% if page_title %}{{ page_title }}{% else %}Latest Manga Releases{% endif %}
                     </h1>
                     {% if not is_home %}
-                    <div class="pagination">
+                    <nav class="pagination" aria-label="Pagination navigation">
                         {% if previous_page_url %}
-                        <a href="{{ previous_page_url }}">Previous</a>
+                        <a href="{{ previous_page_url }}" aria-label="Go to previous page">Previous</a>
                         {% endif %}
-                        <span>Page {{ current_page }}</span>
+                        <span aria-current="page">Page {{ current_page }}</span>
                         {% if next_page_url %}
-                        <a href="{{ next_page_url }}">Next</a>
+                        <a href="{{ next_page_url }}" aria-label="Go to next page">Next</a>
                         {% endif %}
-                    </div>
+                    </nav>
                     {% endif %}
                 </div>
 
@@ -271,39 +272,36 @@
                 <!-- Manga Filter Accordion (MangaBats Style) -->
                 <details class="tag manga-filter-details">
                     <summary class="manga-filter-summary">
-                        <h5><i class="fas fa-filter"></i> Filter</h5>
-                        <span class="filter-toggle"><i class="fas fa-chevron-down toggle-icon"></i></span>
+                        <h5><i class="fas fa-filter" aria-hidden="true"></i> Filter</h5>
+                        <span class="filter-toggle"><i class="fas fa-chevron-down toggle-icon" aria-hidden="true"></i></span>
                     </summary>
 
                     <div class="manga-filter-content">
                         <h6 class="filter-header">Genres</h6>
-                        <ul class="tag-name filter-list">
-                            <li tabindex="0"><a class="filter-chip" href="/genre/action">Action</a></li>
-                            <li tabindex="0"><a class="filter-chip" href="/genre/adventure">Adventure</a></li>
-                            <li tabindex="0"><a class="filter-chip" href="/genre/comedy">Comedy</a></li>
-                            <li tabindex="0"><a class="filter-chip" href="/genre/drama">Drama</a></li>
-                            <li tabindex="0"><a class="filter-chip" href="/genre/fantasy">Fantasy</a></li>
-                            <li tabindex="0"><a class="filter-chip" href="/genre/romance">Romance</a></li>
-                            <li tabindex="0"><a class="filter-chip" href="/genre/shounen">Shounen</a></li>
-                            <li tabindex="0"><a class="filter-chip" href="/genre/shoujo">Shoujo</a></li>
-                            <li tabindex="0"><a class="filter-chip" href="/genre/slice-of-life">Slice of Life</a></li>
+                        <ul class="tag-name filter-list" role="list">
+                            <li tabindex="0" role="listitem"><a class="filter-chip" href="/genre/action">Action</a></li>
+                            <li tabindex="0" role="listitem"><a class="filter-chip" href="/genre/adventure">Adventure</a></li>
+                            <li tabindex="0" role="listitem"><a class="filter-chip" href="/genre/comedy">Comedy</a></li>
+                            <li tabindex="0" role="listitem"><a class="filter-chip" href="/genre/drama">Drama</a></li>
+                            <li tabindex="0" role="listitem"><a class="filter-chip" href="/genre/fantasy">Fantasy</a></li>
+                            <li tabindex="0" role="listitem"><a class="filter-chip" href="/genre/romance">Romance</a></li>
+                            <li tabindex="0" role="listitem"><a class="filter-chip" href="/genre/shounen">Shounen</a></li>
+                            <li tabindex="0" role="listitem"><a class="filter-chip" href="/genre/shoujo">Shoujo</a></li>
+                            <li tabindex="0" role="listitem"><a class="filter-chip" href="/genre/slice-of-life">Slice of Life</a></li>
                         </ul>
 
                         <h6 class="filter-header filter-separator">Type</h6>
-                        <ul class="spec-tag filter-list filter-list--inline">
-                            <li tabindex="0"><a class="filter-chip" href="/manga-list/new-manga">Newest</a></li>
-                            <li tabindex="0"><a class="filter-chip filter-chip--active"
-                                    href="/manga-list/latest-manga">Latest</a></li>
-                            <li tabindex="0"><a class="filter-chip" href="/manga-list/hot-manga">Top read</a></li>
+                        <ul class="spec-tag filter-list filter-list--inline" role="list">
+                            <li tabindex="0" role="listitem"><a class="filter-chip" href="/manga-list/new-manga">Newest</a></li>
+                            <li tabindex="0" role="listitem"><a class="filter-chip filter-chip--active" href="/manga-list/latest-manga" aria-current="page">Latest</a></li>
+                            <li tabindex="0" role="listitem"><a class="filter-chip" href="/manga-list/hot-manga">Top read</a></li>
                         </ul>
 
                         <h6 class="filter-header filter-separator">Status</h6>
-                        <ul class="spec-tag filter-list filter-list--inline">
-                            <li tabindex="0"><a class="filter-chip filter-chip--active"
-                                    href="/manga-list/latest-manga">All</a></li>
-                            <li tabindex="0"><a class="filter-chip" href="/manga-list/completed-manga">Completed</a>
-                            </li>
-                            <li tabindex="0"><a class="filter-chip" href="/manga-list/ongoing-manga">Ongoing</a></li>
+                        <ul class="spec-tag filter-list filter-list--inline" role="list">
+                            <li tabindex="0" role="listitem"><a class="filter-chip filter-chip--active" href="/manga-list/latest-manga" aria-current="page">All</a></li>
+                            <li tabindex="0" role="listitem"><a class="filter-chip" href="/manga-list/completed-manga">Completed</a></li>
+                            <li tabindex="0" role="listitem"><a class="filter-chip" href="/manga-list/ongoing-manga">Ongoing</a></li>
                         </ul>
                     </div>
                 </details>
@@ -316,11 +314,11 @@
                 <div class="release-grid">
                     {% for manga in mangas %}
                     <article class="release-item">
-                        <a href="/manga/{{ manga.slug }}" class="release-cover" aria-label="{{ manga.title }}">
+                        <a href="/manga/{{ manga.slug }}" class="release-cover" aria-label="View {{ manga.title }}">
                             {% if manga.cover %}
-                            <img src="/img-proxy?url={{ manga.cover }}" alt="Read {{ manga.title }} Online Free - MangaNoka" loading="lazy" decoding="async" width="70" height="95" style="display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+                            <img src="/img-proxy?url={{ manga.cover }}" alt="{{ manga.title }} cover" loading="lazy" decoding="async" width="70" height="95" style="display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
                             {% else %}
-                            <span>{{ manga.title[:1] }}</span>
+                            <span aria-label="{{ manga.title }} cover placeholder">{{ manga.title[:1] }}</span>
                             {% endif %}
                         </a>
                         <div class="release-meta">
@@ -329,7 +327,7 @@
                             </h2>
                             <div class="chapter-list">
                                 {% for chapter in manga.chapters[:3] %}
-                                <a class="chapter-link" href="/read/{{ manga.slug }}/{{ chapter.number }}">
+                                <a class="chapter-link" href="/read/{{ manga.slug }}/{{ chapter.number }}" aria-label="Read {{ manga.title }} {{ chapter.title }}">
                                     <span class="chapter-title">» {{ chapter.title }}</span>
                                     {% if chapter.date %}
                                     <time class="chapter-date" datetime="{{ chapter.date }}">{{ chapter.date }}</time>
@@ -348,55 +346,55 @@
                 <!-- "VIEW MORE" button at the bottom of the home page -->
                 <div id="loadpage" class="view-more-wrapper">
                     <a href="/manga-list/latest-manga" title="View all manga releases"
-                        class="xem-them view-more-link">VIEW MORE</a>
+                        class="xem-them view-more-link" aria-label="View all latest manga releases">VIEW MORE</a>
                 </div>
                 {% else %}
                 <!-- MangaBats style page list pagination -->
-                <div class="panel_page_number pagination-panel">
+                <nav class="panel_page_number pagination-panel" aria-label="Page navigation">
                     <div class="group_page">
                         {% if previous_page_url %}
-                        <a class="page_blue" href="{{ previous_page_url }}">First(1)</a>
-                        <a href="{{ previous_page_url }}">Prev</a>
+                        <a class="page_blue" href="{{ previous_page_url }}" aria-label="Go to first page">First(1)</a>
+                        <a href="{{ previous_page_url }}" aria-label="Go to previous page">Prev</a>
                         {% endif %}
 
-                        <a class="page_select" href="#">{{ current_page }}</a>
+                        <a class="page_select" href="#" aria-current="page" aria-label="Current page {{ current_page }}">{{ current_page }}</a>
 
                         {% if next_page_url %}
-                        <a href="{{ next_page_url }}">{{ current_page + 1 }}</a>
-                        <a class="page_blue page_last" href="{{ next_page_url }}">Last</a>
+                        <a href="{{ next_page_url }}" aria-label="Go to page {{ current_page + 1 }}">{{ current_page + 1 }}</a>
+                        <a class="page_blue page_last" href="{{ next_page_url }}" aria-label="Go to last page">Last</a>
                         {% endif %}
                     </div>
-                </div>
+                </nav>
                 {% endif %}
             </section>
 
             <aside class="side-column">
                 <!-- 0. Bookmarks Sidebar Widget -->
-                <div id="bookmarks-sidebar-content" class="history-container only-pc"
+                <aside id="bookmarks-sidebar-content" class="history-container only-pc" aria-label="Bookmarked manga"
                     style="display: none; margin-bottom: 20px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--paper); padding: 12px; box-shadow: var(--shadow);">
                     <div id="bookmarks-sidebar-header" class="history-sidebar-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); padding-bottom: 8px; margin-bottom: 10px;">
                         <h3 class="history-title history-title-bold" style="margin: 0; font-size: 14px; font-weight: bold; text-transform: uppercase; color: #28a745 !important;">Bookmarks</h3>
-                        <a href="/history?tab=bookmarks" class="history-title history-title-viewmore" style="font-size: 11.5px; color: #28a745 !important; font-weight: bold; text-decoration: none;">View All <i
-                                class="fas fa-angle-double-right"></i></a>
+                        <a href="/history?tab=bookmarks" class="history-title history-title-viewmore" aria-label="View all bookmarks" style="font-size: 11.5px; color: #28a745 !important; font-weight: bold; text-decoration: none;">View All <i
+                                class="fas fa-angle-double-right" aria-hidden="true"></i></a>
                     </div>
-                </div>
+                </aside>
 
                 <!-- 1. History Sidebar Widget -->
-                <div id="history-sidebar-content" class="history-container only-pc"
+                <aside id="history-sidebar-content" class="history-container only-pc" aria-label="Reading history"
                     style="display: none; margin-bottom: 20px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--paper); padding: 12px; box-shadow: var(--shadow);">
                     <div id="history-sidebar-header" class="history-sidebar-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); padding-bottom: 8px; margin-bottom: 10px;">
                         <h3 class="history-title history-title-bold" style="margin: 0; font-size: 14px; font-weight: bold; text-transform: uppercase; color: var(--ink);">History</h3>
-                        <a href="/history" class="history-title history-title-viewmore" style="font-size: 11.5px; color: var(--brand); font-weight: bold; text-decoration: none;">View More <i
-                                class="fas fa-angle-double-right"></i></a>
+                        <a href="/history" class="history-title history-title-viewmore" aria-label="View full reading history" style="font-size: 11.5px; color: var(--brand); font-weight: bold; text-decoration: none;">View More <i
+                                class="fas fa-angle-double-right" aria-hidden="true"></i></a>
                     </div>
-                </div>
+                </aside>
 
                 <!-- 2. Most Popular Manga Widget -->
-                <div class="xem-nhieu">
+                <section class="xem-nhieu" aria-label="Most popular manga">
                     <h2 class="title all-title section-bar">Most Popular Manga</h2>
-                    <div class="all" style="display: flex; flex-direction: column; gap: 8px;">
+                    <div class="all" style="display: flex; flex-direction: column; gap: 8px;" role="list">
                         {% for item in popular_sidebar %}
-                        <div class="xem-nhieu-item"
+                        <div class="xem-nhieu-item" role="listitem"
                             style="text-align: left; padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.05);">
                             <h3
                                 style="font-size: 13px; margin: 0; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
@@ -409,7 +407,7 @@
                         {% else %}
                         <!-- Fallback si vide -->
                         {% for manga in mangas[:10] %}
-                        <div class="xem-nhieu-item"
+                        <div class="xem-nhieu-item" role="listitem"
                             style="text-align: left; padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.05);">
                             <h3
                                 style="font-size: 13px; margin: 0; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
@@ -422,7 +420,7 @@
                         {% endfor %}
                         {% endfor %}
                     </div>
-                </div>
+                </section>
 
                 <div data-zone="right_sidebar" style="float: left;"></div>
 

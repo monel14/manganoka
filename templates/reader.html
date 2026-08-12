@@ -144,7 +144,7 @@
     </nav>
 
     <section class="chapter-options">
-        <select class="chapter-select" aria-label="Change chapter" onchange="if (this.value) window.location.href = this.value">
+        <select class="chapter-select" aria-label="Select chapter to read" onchange="if (this.value) window.location.href = this.value">
             {% for item in chapters %}
                 <option value="/read/{{ slug }}/{{ item.number }}" {% if item.number|string == chapter|string %}selected{% endif %}>
                     {{ item.title }}
@@ -152,37 +152,38 @@
             {% endfor %}
         </select>
 
-        <div class="chapter-buttons" aria-label="Chapter navigation">
+        <nav class="chapter-buttons" aria-label="Chapter navigation">
             {% if previous_chapter %}
-                <a class="chapter-btn" href="/read/{{ slug }}/{{ previous_chapter.number }}">PREV CHAPTER</a>
+                <a class="chapter-btn" href="/read/{{ slug }}/{{ previous_chapter.number }}" aria-label="Go to previous chapter {{ previous_chapter.number }}">PREV CHAPTER</a>
             {% else %}
-                <span class="chapter-btn disabled">PREV CHAPTER</span>
+                <span class="chapter-btn disabled" aria-disabled="true">PREV CHAPTER</span>
             {% endif %}
-            <a class="chapter-btn home" href="/">GO HOME</a>
+            <a class="chapter-btn home" href="/" aria-label="Return to home page">GO HOME</a>
             {% if next_chapter %}
-                <a class="chapter-btn" href="/read/{{ slug }}/{{ next_chapter.number }}">NEXT CHAPTER</a>
+                <a class="chapter-btn" href="/read/{{ slug }}/{{ next_chapter.number }}" aria-label="Go to next chapter {{ next_chapter.number }}">NEXT CHAPTER</a>
             {% else %}
-                <span class="chapter-btn disabled">NEXT CHAPTER</span>
+                <span class="chapter-btn disabled" aria-disabled="true">NEXT CHAPTER</span>
             {% endif %}
-        </div>
+        </nav>
 
         <h1>{{ manga.title }}: Chapter {{ chapter }}</h1>
     </section>
 
-    <section class="chapter-info">
+    <section class="chapter-info" role="complementary" aria-label="Chapter information">
         <h2>{{ manga.title }} Chapter {{ chapter }}</h2>
         <p>You're reading <strong>{{ manga.title }} Chapter {{ chapter }}</strong>.</p>
         <p>Images are loaded progressively and resized for desktop and mobile reading.</p>
          
     </section>
 
-    <main class="chapter-reader" id="reader" style="width: min(980px, 100%); margin: 0 auto; display: flex; flex-direction: column; padding: 16px 0;">
+    <main class="chapter-reader" id="reader" role="main" aria-label="Chapter reader" style="width: min(980px, 100%); margin: 0 auto; display: flex; flex-direction: column; padding: 16px 0;">
         <!-- Noka branded first page -->
         <div class="page-wrapper" style="min-height: 300px; width: 100%; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.02);">
             <img
                 class="manga-page"
                 data-src="{{ url_for('static', path='/manganokapage.jpeg') }}"
                 alt="Read {{ manga.title }} Chapter {{ chapter }} Title Page - MangaNoka"
+                aria-label="Title page"
                 decoding="async"
                 loading="eager"
                 style="opacity: 0; width: 100%; height: auto; display: block; transition: opacity 0.3s ease;"
@@ -194,6 +195,7 @@
                     class="manga-page"
                     data-src="/{{ slug }}/{{ chapter }}/{{ loop.index }}.webp"
                     alt="Read {{ manga.title }} Chapter {{ chapter }} Page {{ loop.index }} Free - MangaNoka"
+                    aria-label="Page {{ loop.index }} of {{ page.images|length }}"
                     decoding="async"
                     loading="lazy"
                     style="opacity: 0; width: 100%; height: auto; display: block; transition: opacity 0.3s ease;"
@@ -205,7 +207,7 @@
     </main>
 
     <section class="chapter-options chapter-options-bottom">
-        <select class="chapter-select" aria-label="Change chapter" onchange="if (this.value) window.location.href = this.value">
+        <select class="chapter-select" aria-label="Select chapter to read" onchange="if (this.value) window.location.href = this.value">
             {% for item in chapters %}
                 <option value="/read/{{ slug }}/{{ item.number }}" {% if item.number|string == chapter|string %}selected{% endif %}>
                     {{ item.title }}
@@ -213,19 +215,19 @@
             {% endfor %}
         </select>
 
-        <div class="chapter-buttons" aria-label="Chapter navigation">
+        <nav class="chapter-buttons" aria-label="Chapter navigation">
             {% if previous_chapter %}
-                <a class="chapter-btn" href="/read/{{ slug }}/{{ previous_chapter.number }}">PREV CHAPTER</a>
+                <a class="chapter-btn" href="/read/{{ slug }}/{{ previous_chapter.number }}" aria-label="Go to previous chapter {{ previous_chapter.number }}">PREV CHAPTER</a>
             {% else %}
-                <span class="chapter-btn disabled">PREV CHAPTER</span>
+                <span class="chapter-btn disabled" aria-disabled="true">PREV CHAPTER</span>
             {% endif %}
-            <a class="chapter-btn home" href="/">GO HOME</a>
+            <a class="chapter-btn home" href="/" aria-label="Return to home page">GO HOME</a>
             {% if next_chapter %}
-                <a class="chapter-btn" href="/read/{{ slug }}/{{ next_chapter.number }}">NEXT CHAPTER</a>
+                <a class="chapter-btn" href="/read/{{ slug }}/{{ next_chapter.number }}" aria-label="Go to next chapter {{ next_chapter.number }}">NEXT CHAPTER</a>
             {% else %}
-                <span class="chapter-btn disabled">NEXT CHAPTER</span>
+                <span class="chapter-btn disabled" aria-disabled="true">NEXT CHAPTER</span>
             {% endif %}
-        </div>
+        </nav>
     </section>
 
     <nav class="chapter-breadcrumb chapter-breadcrumb-bottom" aria-label="Breadcrumb">
@@ -330,12 +332,48 @@
             localStorage.setItem("manga_history", JSON.stringify(history));
         }
     })();
+
+    // Sauvegarde et restauration de la position de scroll
+    (function() {
+        const slug = "{{ slug }}";
+        const chapter = "{{ chapter }}";
+        const scrollKey = `read_${slug}_${chapter}`;
+        
+        // Restaurer la position de scroll au chargement
+        window.addEventListener('load', () => {
+            const savedScroll = localStorage.getItem(scrollKey);
+            if (savedScroll) {
+                window.scrollTo(0, parseInt(savedScroll, 10));
+            }
+        });
+        
+        // Sauvegarder la position de scroll avant de quitter
+        window.addEventListener('beforeunload', () => {
+            localStorage.setItem(scrollKey, window.scrollY);
+        });
+        
+        // Sauvegarder périodiquement pendant la lecture (toutes les 2 secondes)
+        let scrollTimeout;
+        window.addEventListener('scroll', () => {
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                localStorage.setItem(scrollKey, window.scrollY);
+            }, 2000);
+        });
+        
+        // Nettoyer les anciennes positions (garder seulement les 20 dernières)
+        const allKeys = Object.keys(localStorage);
+        const scrollKeys = allKeys.filter(key => key.startsWith('read_'));
+        if (scrollKeys.length > 20) {
+            scrollKeys.slice(20).forEach(key => localStorage.removeItem(key));
+        }
+    })();
     </script>
 
     <!-- Floating Back-to-Top button -->
-    <div class="reader-floating-actions" style="position: fixed; bottom: 25px; right: 25px; display: flex; flex-direction: column; gap: 10px; z-index: 1000;">
-        <button id="btn-back-to-top" style="width: 44px; height: 44px; border-radius: 50%; border: 0; background: var(--brand); color: #fff; display: none; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); font-size: 16px; transition: background 0.15s, opacity 0.2s;" title="Scroll to Top">
-            <i class="fas fa-chevron-up"></i>
+    <div class="reader-floating-actions" role="complementary" aria-label="Quick actions" style="position: fixed; bottom: 25px; right: 25px; display: flex; flex-direction: column; gap: 10px; z-index: 1000;">
+        <button id="btn-back-to-top" aria-label="Scroll back to top of page" style="width: 44px; height: 44px; border-radius: 50%; border: 0; background: var(--brand); color: #fff; display: none; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); font-size: 16px; transition: background 0.15s, opacity 0.2s;" title="Scroll to Top">
+            <i class="fas fa-chevron-up" aria-hidden="true"></i>
         </button>
     </div>
 

@@ -104,15 +104,15 @@
                         {% endif %}
                     </h1>
                     {% if mangas %}
-                    <div class="pagination">
+                    <nav class="pagination" aria-label="Search results pagination">
                         {% if previous_page_url %}
-                            <a href="{{ previous_page_url }}">Précédent</a>
+                            <a href="{{ previous_page_url }}" aria-label="Go to previous page">Précédent</a>
                         {% endif %}
-                        <span>Page {{ current_page }}</span>
+                        <span aria-current="page">Page {{ current_page }}</span>
                         {% if next_page_url %}
-                            <a href="{{ next_page_url }}">Suivant</a>
+                            <a href="{{ next_page_url }}" aria-label="Go to next page">Suivant</a>
                         {% endif %}
-                    </div>
+                    </nav>
                     {% endif %}
                 </div>
 
@@ -123,11 +123,11 @@
                 <div class="search-results">
                     {% for manga in mangas %}
                         <article class="search-result-item">
-                            <a href="/manga/{{ manga.slug }}" class="result-cover">
+                            <a href="/manga/{{ manga.slug }}" class="result-cover" aria-label="View {{ manga.title }}">
                                 {% if manga.cover %}
-                                    <img src="/img-proxy?url={{ manga.cover }}" alt="{{ manga.title }}" loading="lazy">
+                                    <img src="/img-proxy?url={{ manga.cover }}" alt="{{ manga.title }} cover" loading="lazy">
                                 {% else %}
-                                    <span>{{ manga.title[:1] }}</span>
+                                    <span aria-label="{{ manga.title }} placeholder">{{ manga.title[:1] }}</span>
                                 {% endif %}
                             </a>
                             <div class="result-meta">
@@ -143,8 +143,8 @@
                             </div>
                         </article>
                     {% else %}
-                        <div class="noka-empty-state">
-                            <img src="{{ url_for('static', path='/noka_search.svg') }}" alt="Noka cherche partout">
+                        <div class="noka-empty-state" role="status" aria-live="polite">
+                            <img src="{{ url_for('static', path='/noka_search.svg') }}" alt="Noka searching everywhere">
                             <h3>Noka n'a rien trouvé...</h3>
                             <p>🔎 Aucun manga ne correspond à « {{ query }} ». Vérifie l'orthographe ou tente un autre titre — Noka continue de fouiller !</p>
                         </div>
@@ -152,13 +152,13 @@
                 </div>
 
                 {% if mangas %}
-                    <nav class="pagination pagination-bottom" aria-label="Pagination">
+                    <nav class="pagination pagination-bottom" aria-label="Search results pagination">
                         {% if previous_page_url %}
-                            <a href="{{ previous_page_url }}">Précédent</a>
+                            <a href="{{ previous_page_url }}" aria-label="Go to previous page">Précédent</a>
                         {% endif %}
-                        <span>Page {{ current_page }}</span>
+                        <span aria-current="page">Page {{ current_page }}</span>
                         {% if next_page_url %}
-                            <a href="{{ next_page_url }}">Suivant</a>
+                            <a href="{{ next_page_url }}" aria-label="Go to next page">Suivant</a>
                         {% endif %}
                     </nav>
                 {% endif %}
