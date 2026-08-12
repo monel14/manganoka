@@ -241,14 +241,12 @@
         const images = Array.from(document.querySelectorAll(".manga-page"));
         if (!images.length) return;
 
-        const CONCURRENT_LOADS = 3; // Nombre d'images à charger en parallèle
-        let loadIndex = 0;          // Index de la prochaine image à charger
-        let displayIndex = 0;       // Index de la prochaine image à afficher
-        const loadedImages = {};    // Stocke les images chargées avec leur index
+        const loadedImages = new Set(); // Stocke les index des images chargées
+        let displayIndex = 0;           // Index de la prochaine image à afficher
 
         // Affiche les images dans l'ordre si elles sont prêtes
         function displayNextImages() {
-            while (loadedImages[displayIndex] !== undefined) {
+            while (loadedImages.has(displayIndex) && displayIndex < images.length) {
                 const img = images[displayIndex];
                 img.style.opacity = "1";
                 if (img.parentElement) img.parentElement.style.minHeight = "auto";
@@ -256,40 +254,54 @@
             }
         }
 
-        // Charge une image et lance la suivante quand elle est prête
-        function loadImage(index) {
-            if (index >= images.length) return;
-
-            const img = images[index];
+        // Charge une image quand elle approche du viewport
+        function loadImage(img, index) {
             const dataSrc = img.getAttribute("data-src");
             
             if (!dataSrc) {
-                loadedImages[index] = true;
+                loadedImages.add(index);
                 displayNextImages();
-                loadImage(loadIndex++);
                 return;
             }
 
             img.onload = () => {
-                loadedImages[index] = true;
-                displayNextImages(); // Tente d'afficher dans l'ordre
-                loadImage(loadIndex++); // Lance le chargement de la suivante
+                loadedImages.add(index);
+                displayNextImages(); // Affiche dans l'ordre
             };
 
             img.onerror = () => {
                 img.src = "/static/noka_lost.svg";
-                loadedImages[index] = true;
+                loadedImages.add(index);
                 displayNextImages();
-                loadImage(loadIndex++);
             };
 
             img.src = dataSrc;
         }
 
-        // Démarre le chargement des premières images en parallèle
-        for (let i = 0; i < CONCURRENT_LOADS && i < images.length; i++) {
-            loadImage(loadIndex++);
-        }
+        // Intersection Observer : charge les images quand elles approchent du viewport
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    const index = images.indexOf(img);
+                    
+                    // Charge l'image si pas déjà chargée
+                    if (!img.src || img.src === window.location.href) {
+                        loadImage(img, index);
+                    }
+                    
+                    // Arrête d'observer cette image
+                    observer.unobserve(img);
+                }
+            });
+        }, {
+            // Précharge 800px avant que l'image soit visible
+            // Ajuste cette valeur selon tes besoins (plus = précharge plus tôt)
+            rootMargin: "800px"
+        });
+
+        // Observe toutes les images pour détecter quand elles approchent
+        images.forEach(img => observer.observe(img));
     });
     </script>
 
