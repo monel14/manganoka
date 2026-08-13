@@ -109,6 +109,10 @@ app.include_router(reader.router)
 app.include_router(search.router)
 app.include_router(images.router)  # Ta nouvelle route proxy/cache d'images
 
+# Routes d'administration
+from routes import admin
+app.include_router(admin.router)
+
 # 5. Routes pour les fichiers favicon à la racine du domaine
 #    (indispensable pour que Google affiche le favicon dans les résultats)
 from fastapi.responses import FileResponse

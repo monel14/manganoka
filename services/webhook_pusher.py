@@ -12,11 +12,17 @@ DB_PATH = Path(__file__).resolve().parent.parent / "cache.db"
 
 
 def init_db():
-    """Crée la table des GUIDs déjà envoyés au webhook si elle n'existe pas."""
+    """Crée les tables nécessaires si elles n'existent pas."""
     with sqlite3.connect(DB_PATH) as conn:
+        # Table des GUIDs déjà envoyés au webhook
         conn.execute(
             "CREATE TABLE IF NOT EXISTS posted_pins "
             "(guid TEXT PRIMARY KEY, posted_at REAL)"
+        )
+        # Table pour tracker le quota quotidien
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS webhook_daily_quota "
+            "(date TEXT PRIMARY KEY, count INTEGER DEFAULT 0)"
         )
 
 
@@ -43,12 +49,114 @@ def mark_guid_posted(guid: str):
         logger.warning("Make Webhook Pusher: Échec d'écriture dans posted_pins: %s", exc)
 
 
-async def push_to_make_webhook(manga_title: str, slug: str, latest_ch_num: str, raw_desc: str, cover: str, bakacover: str | None = None) -> None:
+def check_daily_quota(max_per_day: int = 50) -> bool:
+    """
+    Vérifie si le quota quotidien de pins n'est pas dépassé.
+    Par défaut: max 50 pins/jour (recommandation Pinterest).
+    """
+    from datetime import date
+    
+    try:
+        with sqlite3.connect(DB_PATH) as conn:
+            today = date.today().isoformat()
+            row = conn.execute(
+                "SELECT count FROM webhook_daily_quota WHERE date = ?",
+                (today,)
+            ).fetchone()
+            
+            current_count = row[0] if row else 0
+            
+            if current_count >= max_per_day:
+                logger.warning(
+                    "Webhook Pusher: Quota quotidien atteint (%d/%d). "
+                    "Aucun nouveau pin ne sera publié aujourd'hui.",
+                    current_count, max_per_day
+                )
+                return False
+            
+            return True
+    except Exception as exc:
+        logger.warning("Webhook Pusher: Erreur vérification quota: %s", exc)
+        return True  # En cas d'erreur, on laisse passer
+
+
+def increment_daily_quota():
+    """Incrémente le compteur quotidien de pins envoyés."""
+    from datetime import date
+    
+    try:
+        with sqlite3.connect(DB_PATH) as conn:
+            today = date.today().isoformat()
+            conn.execute(
+                "INSERT INTO webhook_daily_quota (date, count) VALUES (?, 1) "
+                "ON CONFLICT(date) DO UPDATE SET count = count + 1",
+                (today,)
+            )
+    except Exception as exc:
+        logger.warning("Webhook Pusher: Erreur incrémentation quota: %s", exc)
+
+
+def is_new_manga_detection(slug: str) -> bool:
+    """
+    Détecte si un manga est nouveau (première fois qu'il est chargé).
+    Utilise une table dédiée pour tracker les mangas déjà vus.
+    """
+    try:
+        with sqlite3.connect(DB_PATH) as conn:
+            # Créer la table si elle n'existe pas
+            conn.execute(
+                "CREATE TABLE IF NOT EXISTS seen_mangas "
+                "(slug TEXT PRIMARY KEY, first_seen_at REAL)"
+            )
+            
+            # Vérifier si le manga existe
+            row = conn.execute(
+                "SELECT 1 FROM seen_mangas WHERE slug = ?",
+                (slug,)
+            ).fetchone()
+            
+            is_new = row is None
+            
+            # Si nouveau, l'enregistrer
+            if is_new:
+                conn.execute(
+                    "INSERT INTO seen_mangas VALUES (?, ?)",
+                    (slug, time.time())
+                )
+                conn.commit()
+                logger.info("Webhook Pusher: Nouveau manga détecté: %s", slug)
+            
+            return is_new
+    except Exception as exc:
+        logger.warning("Webhook Pusher: Erreur détection nouveau manga: %s", exc)
+        return False  # En cas d'erreur, considérer comme existant
+
+
+async def push_to_make_webhook(manga_title: str, slug: str, latest_ch_num: str, raw_desc: str, cover: str, bakacover: str | None = None, all_chapters: list = None, is_new_manga: bool = False) -> None:
     """
     Envoie en temps réel un payload JSON structuré au Webhook de Make.com.
     Utilise la table SQLite `posted_pins` pour garantir qu'un chapitre n'est envoyé qu'UNE SEULE FOIS.
+    
+    ANTI-SPAM: 
+    - Ne publie QUE le dernier chapitre de chaque manga
+    - OU le premier chapitre si c'est un nouveau manga (is_new_manga=True)
+    
+    Stratégie: 1 pin par manga = contenu frais et pertinent sans spam.
     """
     init_db()
+    
+    # ANTI-SPAM: Ne publier QUE le dernier chapitre (le plus récent)
+    # EXCEPTION: Si c'est un nouveau manga, on publie le premier chapitre pour annoncer sa disponibilité
+    if not is_new_manga and all_chapters:
+        # Récupérer le numéro du dernier chapitre
+        latest_chapter_num = str(all_chapters[0].get("number", "")) if all_chapters else ""
+        if latest_ch_num != latest_chapter_num:
+            logger.debug(
+                "Webhook Pusher: Chapitre '%s' de '%s' n'est pas le dernier chapitre (%s). "
+                "Publication skippée pour éviter le spam Pinterest. Seul le dernier chapitre est publié.",
+                latest_ch_num, manga_title, latest_chapter_num
+            )
+            return
     
     base_url = os.environ.get("BASE_URL", "https://www.manganoka.xyz").rstrip("/")
     guid = f"{base_url}/manga/{slug}#ch-{latest_ch_num}"
@@ -56,6 +164,12 @@ async def push_to_make_webhook(manga_title: str, slug: str, latest_ch_num: str, 
     # 1. Éviter 100 % des doublons : si le chapitre est déjà publié, on s'arrête immédiatement !
     if is_guid_posted(guid):
         logger.info("Make Webhook Pusher: Le chapitre '%s ch %s' a déjà été envoyé. Envoi sauté.", manga_title, latest_ch_num)
+        return
+    
+    # 2. Vérifier le quota quotidien (max 50 pins/jour par défaut)
+    if not check_daily_quota(max_per_day=50):
+        # Marquer quand même pour éviter de re-tenter demain
+        mark_guid_posted(guid)
         return
 
     webhook_url = os.environ.get("MAKE_WEBHOOK_URL")
@@ -87,22 +201,33 @@ async def push_to_make_webhook(manga_title: str, slug: str, latest_ch_num: str, 
     clean_desc_source = raw_desc or "Discover and read your favorite manga online for free."
     if len(clean_desc_source) > 180:
         clean_desc_source = clean_desc_source[:177] + "..."
-        
-    seo_desc = (
-        f"Read {manga_title} Chapter {latest_ch_num} online for free. Enjoy a high-speed, mobile-responsive, and ad-free experience on MangaNoka! "
-        f"{clean_desc_source} "
-        f"\n\n#manga #manhwa #webtoon #readmanga #anime #manganoka {specific_hashtag}"
-    )
+    
+    # Message différent pour nouveau manga vs nouveau chapitre
+    if is_new_manga:
+        seo_desc = (
+            f"🆕 NEW MANGA: {manga_title} is now available! Start reading Chapter {latest_ch_num} online for free. "
+            f"Enjoy a high-speed, mobile-responsive, and ad-free experience on MangaNoka! "
+            f"{clean_desc_source} "
+            f"\n\n#newmanga #manga #manhwa #webtoon #readmanga #anime #manganoka {specific_hashtag}"
+        )
+        pin_title = f"🆕 NEW: Read {manga_title} Online Free - Chapter {latest_ch_num} Available Now!"
+    else:
+        seo_desc = (
+            f"Read {manga_title} Chapter {latest_ch_num} online for free. Enjoy a high-speed, mobile-responsive, and ad-free experience on MangaNoka! "
+            f"{clean_desc_source} "
+            f"\n\n#manga #manhwa #webtoon #readmanga #anime #manganoka {specific_hashtag}"
+        )
+        pin_title = f"Read {manga_title} Chapter {latest_ch_num} Online Free - No Ads & High-Speed"
 
     payload = {
-        "title": f"Read {manga_title} Chapter {latest_ch_num} Online Free - No Ads & High-Speed",
+        "title": pin_title,
         "link": f"{base_url}/read/{slug}/{latest_ch_num}",
         "description": seo_desc,
         "image_url": image_url,
         "guid": guid
     }
     
-    logger.info("Make Webhook Pusher: Envoi au webhook de '%s ch %s'...", manga_title, latest_ch_num)
+    logger.info("Make Webhook Pusher: Envoi au webhook de '%s ch %s'... (nouveau manga: %s)", manga_title, latest_ch_num, is_new_manga)
     
     async with httpx.AsyncClient() as client:
         try:
@@ -110,6 +235,7 @@ async def push_to_make_webhook(manga_title: str, slug: str, latest_ch_num: str, 
             if r.status_code in (200, 201, 202):
                 logger.info("Make Webhook Pusher: Payload envoyé avec succès ! (HTTP %d)", r.status_code)
                 mark_guid_posted(guid)
+                increment_daily_quota()  # Incrémenter le compteur quotidien
             else:
                 logger.warning("Make Webhook Pusher: Retour inattendu du Webhook (HTTP %d): %s", r.status_code, r.text)
         except Exception as exc:

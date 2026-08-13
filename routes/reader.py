@@ -7,6 +7,18 @@ from fastapi import APIRouter, HTTPException, Request, BackgroundTasks
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
+# Utilitaire pour détecter les bots
+def _is_bot_request(request: Request) -> bool:
+    """Détecte si la requête provient d'un bot/crawler."""
+    user_agent = request.headers.get("user-agent", "").lower()
+    bot_patterns = [
+        'bot', 'crawler', 'spider', 'crawling', 'scraper',
+        'googlebot', 'bingbot', 'slurp', 'duckduckbot', 'baiduspider',
+        'yandexbot', 'sogou', 'exabot', 'facebot', 'ia_archiver',
+        'semrush', 'ahrefs', 'majestic', 'mj12bot', 'dotbot'
+    ]
+    return any(pattern in user_agent for pattern in bot_patterns)
+
 from cache import CHAPTER_TTL_SECONDS, CHAPTER_TTL_SECONDS, MANGA_TTL_SECONDS, cache
 from scraper.client import FetchError, NotFoundError, get_html
 from scraper.parser import ChapterLink, ChapterPage, MangaDetail, parse_chapter, parse_manga
@@ -83,10 +95,15 @@ async def read_chapter(request: Request, slug: str, chapter: str, background_tas
 
     previous_chapter, next_chapter = _chapter_neighbors(manga["chapters"], chapter)
 
-    # Déclencher l'indexation instantanée sur Bing/Yandex via IndexNow en arrière-plan
-    background_tasks.add_task(ping_indexnow, [f"/read/{slug}/{chapter}"])
-    # Notifier également Google via son API d'indexation officielle
-    background_tasks.add_task(ping_google_indexing, [f"/read/{slug}/{chapter}"])
+    # Indexation : Ne déclencher que pour les vrais utilisateurs (pas les bots)
+    # pour économiser le quota Google Indexing API (200 requêtes/jour)
+    if not _is_bot_request(request):
+        # Déclencher l'indexation instantanée sur Bing/Yandex via IndexNow en arrière-plan
+        background_tasks.add_task(ping_indexnow, [f"/read/{slug}/{chapter}"])
+        # Notifier également Google via son API d'indexation officielle
+        background_tasks.add_task(ping_google_indexing, [f"/read/{slug}/{chapter}"])
+    else:
+        logger.debug("Bot detected, skipping indexing ping for /read/%s/%s", slug, chapter)
 
     return templates.TemplateResponse(
         request,
@@ -152,17 +169,20 @@ async def _load_manga(slug: str) -> MangaDetail:
             logger.warning("Manga Cache: Failed to pre-cache cover image: %s", exc)
 
     # Déclencher la publication en temps réel vers le Webhook Make.com
+    # ANTI-SPAM: Seul le dernier chapitre de chaque manga est publié sur Pinterest
     try:
         from services.webhook_pusher import push_to_make_webhook
         chapters = manga_detail.get("chapters", [])
-        latest_ch_num = str(chapters[0].get("number", "1")) if chapters else "1"
+        # Utiliser le chapitre ACTUEL lu, pas le dernier chapitre du manga
         await push_to_make_webhook(
             manga_title=manga_detail["title"],
             slug=slug,
-            latest_ch_num=latest_ch_num,
+            latest_ch_num=chapter,  # Chapitre actuellement lu
             raw_desc=manga_detail.get("description"),
             cover=manga_detail.get("cover"),
-            bakacover=manga_detail.get("bakacover")
+            bakacover=manga_detail.get("bakacover"),
+            all_chapters=chapters,  # Passer la liste complète pour vérification
+            is_new_manga=False  # Dans le reader, jamais un nouveau manga
         )
     except Exception as exc:
         logger.warning("Failed to trigger Make Webhook for manga %s: %s", slug, exc)

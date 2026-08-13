@@ -51,6 +51,11 @@ def _filter_and_log_unindexed_urls(urls: list[str]) -> list[str]:
                 "CREATE TABLE IF NOT EXISTS google_indexed_urls "
                 "(url TEXT PRIMARY KEY, pinged_at REAL)"
             )
+            # Table pour tracker les stats quotidiennes
+            conn.execute(
+                "CREATE TABLE IF NOT EXISTS google_indexing_stats "
+                "(date TEXT PRIMARY KEY, requests_sent INTEGER DEFAULT 0, requests_blocked INTEGER DEFAULT 0)"
+            )
             conn.commit()
     except Exception as e:
         logger.warning("Google Indexing: Impossible d'initialiser la table de dé-duplication: %s", e)
@@ -61,6 +66,7 @@ def _filter_and_log_unindexed_urls(urls: list[str]) -> list[str]:
     # On dédouble sur une base de 7 jours (168 heures) pour préserver au maximum le quota.
     # Une fois qu'une URL de chapitre est indexée sur Google, elle l'est de manière permanente, pas besoin de repinger.
     one_week_ago = now - (7 * 24 * 3600)
+    blocked_count = 0
     
     try:
         with sqlite3.connect(str(db_path), timeout=10.0) as conn:
@@ -77,7 +83,28 @@ def _filter_and_log_unindexed_urls(urls: list[str]) -> list[str]:
                     conn.execute(
                         "INSERT OR REPLACE INTO google_indexed_urls VALUES (?, ?)", (full_url, now)
                     )
+                else:
+                    blocked_count += 1
+                    
+            # Mettre à jour les stats quotidiennes
+            from datetime import date
+            today = date.today().isoformat()
+            conn.execute(
+                "INSERT INTO google_indexing_stats (date, requests_sent, requests_blocked) "
+                "VALUES (?, ?, ?) "
+                "ON CONFLICT(date) DO UPDATE SET "
+                "requests_sent = requests_sent + ?, "
+                "requests_blocked = requests_blocked + ?",
+                (today, len(unindexed_urls), blocked_count, len(unindexed_urls), blocked_count)
+            )
             conn.commit()
+            
+            if blocked_count > 0:
+                logger.info(
+                    "Google Indexing: %d/%d URLs bloquées (déjà notifiées dans les 7 derniers jours). "
+                    "Quota économisé aujourd'hui.",
+                    blocked_count, len(urls)
+                )
     except Exception as e:
         logger.warning("Google Indexing: Erreur lors de la lecture/écriture en base pour dé-duplication: %s", e)
         return urls

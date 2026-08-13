@@ -7,6 +7,18 @@ from fastapi import APIRouter, HTTPException, Request, BackgroundTasks
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
+# Utilitaire pour détecter les bots
+def _is_bot_request(request: Request) -> bool:
+    """Détecte si la requête provient d'un bot/crawler."""
+    user_agent = request.headers.get("user-agent", "").lower()
+    bot_patterns = [
+        'bot', 'crawler', 'spider', 'crawling', 'scraper',
+        'googlebot', 'bingbot', 'slurp', 'duckduckbot', 'baiduspider',
+        'yandexbot', 'sogou', 'exabot', 'facebot', 'ia_archiver',
+        'semrush', 'ahrefs', 'majestic', 'mj12bot', 'dotbot'
+    ]
+    return any(pattern in user_agent for pattern in bot_patterns)
+
 from cache import MANGA_TTL_SECONDS, cache
 from scraper.client import FetchError, NotFoundError, get_html, get_http_client
 from scraper.parser import MangaDetail, parse_manga
@@ -53,10 +65,15 @@ async def manga_detail(request: Request, slug: str, background_tasks: Background
     # Récupérer des mangas similaires depuis le cache (Related Manga)
     related_mangas = _get_related_mangas(slug, limit=6)
 
-    # Déclencher l'indexation instantanée sur Bing/Yandex via IndexNow en arrière-plan
-    background_tasks.add_task(ping_indexnow, [f"/manga/{slug}"])
-    # Notifier également Google via son API d'indexation officielle
-    background_tasks.add_task(ping_google_indexing, [f"/manga/{slug}"])
+    # Indexation : Ne déclencher que pour les vrais utilisateurs (pas les bots)
+    # pour économiser le quota Google Indexing API (200 requêtes/jour)
+    if not _is_bot_request(request):
+        # Déclencher l'indexation instantanée sur Bing/Yandex via IndexNow en arrière-plan
+        background_tasks.add_task(ping_indexnow, [f"/manga/{slug}"])
+        # Notifier également Google via son API d'indexation officielle
+        background_tasks.add_task(ping_google_indexing, [f"/manga/{slug}"])
+    else:
+        logger.debug("Bot detected, skipping indexing ping for /manga/%s", slug)
 
     return templates.TemplateResponse(
         request,
@@ -116,9 +133,35 @@ async def _load_manga(slug: str) -> MangaDetail:
             logger.warning("Manga Cache: Failed to pre-cache cover image: %s", exc)
         
     # Déclencher la publication en temps réel vers le Webhook Make.com
+    # STRATÉGIE DOUBLE:
+    # 1. Si NOUVEAU manga → Publier le premier chapitre pour annoncer sa disponibilité
+    # 2. Si manga existant → Publier UNIQUEMENT le dernier chapitre (anti-spam)
     try:
-        from services.webhook_pusher import push_to_make_webhook
+        from services.webhook_pusher import push_to_make_webhook, is_new_manga_detection
+        
         chapters = manga_detail.get("chapters", [])
+        
+        # Détecter si c'est un nouveau manga
+        is_new = is_new_manga_detection(slug)
+        
+        if is_new:
+            # NOUVEAU MANGA: Publier le premier chapitre pour l'annoncer
+            first_chapter = chapters[-1] if chapters else None
+            if first_chapter:
+                first_ch_num = str(first_chapter.get("number", "1"))
+                logger.info("Nouveau manga détecté: %s. Publication du premier chapitre (%s).", slug, first_ch_num)
+                await push_to_make_webhook(
+                    manga_title=manga_detail["title"],
+                    slug=slug,
+                    latest_ch_num=first_ch_num,
+                    raw_desc=manga_detail.get("description"),
+                    cover=manga_detail.get("cover"),
+                    bakacover=manga_detail.get("bakacover"),
+                    all_chapters=chapters,
+                    is_new_manga=True  # Flag pour message spécial "NEW MANGA"
+                )
+        
+        # Toujours publier le dernier chapitre (pour mangas existants ou nouveaux)
         latest_ch_num = str(chapters[0].get("number", "1")) if chapters else "1"
         await push_to_make_webhook(
             manga_title=manga_detail["title"],
@@ -126,7 +169,9 @@ async def _load_manga(slug: str) -> MangaDetail:
             latest_ch_num=latest_ch_num,
             raw_desc=manga_detail.get("description"),
             cover=manga_detail.get("cover"),
-            bakacover=manga_detail.get("bakacover")
+            bakacover=manga_detail.get("bakacover"),
+            all_chapters=chapters,
+            is_new_manga=False
         )
     except Exception as exc:
         logger.warning("Failed to trigger Make Webhook for manga %s: %s", slug, exc)
