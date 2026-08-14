@@ -34,6 +34,8 @@ ALLOWED_DOMAINS = {
     "mangabats.com",
     "img-r1.2xstorage.com",
     "img-r2.2xstorage.com",
+    "images.mangabaka.dev",
+    "mangabaka.dev",
 }
 
 

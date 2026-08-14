@@ -179,19 +179,41 @@ async def push_to_make_webhook(manga_title: str, slug: str, latest_ch_num: str, 
         mark_guid_posted(guid)
         return
 
-    # 2. Sélectionner l'enclot d'image JPEG optimal (MangaBaka direct ou notre proxy local)
-    if bakacover:
-        image_url = bakacover
-    elif cover:
+    # 2. Sélectionner l'image optimale pour Buffer/Pinterest
+    # - Buffer ne supporte pas le WebP
+    # - Pinterest rejette les URLs sans extension
+    # - Solution: /img-cdn/{hash}.jpg qui convertit automatiquement en JPEG via Pillow
+    # - On préchauffe le cache si l'image n'est pas encore présente
+    image_url = f"{base_url}/static/og_image.png"  # Fallback par défaut
+    if cover:
         try:
             from services.image_cache import get_cache_filename
+            from routes.images import get_image_cache_service
+            
             filename, _ = get_cache_filename(cover)
             filename_jpg = filename.rsplit(".", 1)[0] + ".jpg"
+            
+            service = get_image_cache_service()
+            
+            # Vérifier si l'image est déjà en cache (local ou S3)
+            in_local = service.get_from_local_cache(filename) or service.get_from_local_cache(filename_jpg)
+            in_s3 = False
+            if not service.disable_s3:
+                in_s3 = service.get_from_s3(service.get_s3_object_key(filename)) is not None
+            
+            if not in_local and not in_s3:
+                # Préchauffer le cache en téléchargeant l'image maintenant
+                logger.info("Webhook Pusher: Préchauffage du cache image pour %s", cover)
+                image_data, content_type = await service.download_image_streaming(cover)
+                service.save_to_local_cache(filename, image_data)
+                if not service.disable_s3:
+                    service.upload_to_s3(service.get_s3_object_key(filename), image_data, content_type)
+            
+            # URL finale avec extension .jpg → conversion JPEG automatique dans /img-cdn
             image_url = f"{base_url}/img-cdn/{filename_jpg}"
-        except Exception:
-            image_url = cover
-    else:
-        image_url = f"{base_url}/static/noka_lost.svg"
+        except Exception as exc:
+            logger.warning("Webhook Pusher: Échec préchargement image, utilisation og_image: %s", exc)
+            image_url = f"{base_url}/static/og_image.png"
 
     # 3. Générer le hashtag sémantique de titre spécifique (ex: #sololeveling)
     clean_title_tag = "".join(c for c in manga_title.lower() if c.isalnum())
