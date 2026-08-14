@@ -65,13 +65,12 @@ async def manga_detail(request: Request, slug: str, background_tasks: Background
     # Récupérer des mangas similaires depuis le cache (Related Manga)
     related_mangas = _get_related_mangas(slug, limit=6)
 
-    # Indexation : Ne déclencher que pour les vrais utilisateurs (pas les bots)
-    # pour économiser le quota Google Indexing API (200 requêtes/jour)
+    # Indexation + Webhook : Ne déclencher que pour les vrais utilisateurs (pas les bots)
     if not _is_bot_request(request):
-        # Déclencher l'indexation instantanée sur Bing/Yandex via IndexNow en arrière-plan
         background_tasks.add_task(ping_indexnow, [f"/manga/{slug}"])
-        # Notifier également Google via son API d'indexation officielle
         background_tasks.add_task(ping_google_indexing, [f"/manga/{slug}"])
+        # Webhook Make.com : déclenché ici dans la route, pas dans le loader de cache
+        background_tasks.add_task(_trigger_webhook, manga, slug)
     else:
         logger.debug("Bot detected, skipping indexing ping for /manga/%s", slug)
 
@@ -80,6 +79,51 @@ async def manga_detail(request: Request, slug: str, background_tasks: Background
         "manga.html",
         {"request": request, "manga": manga, "slug": slug, "related_mangas": related_mangas},
     )
+
+
+async def _trigger_webhook(manga: MangaDetail, slug: str) -> None:
+    """
+    Déclenche le webhook Make.com depuis la route (pas depuis le loader de cache).
+    Protégé par l'anti-doublon GUID → s'exécute à chaque visite mais n'envoie qu'une seule fois par chapitre.
+    Gère aussi la détection de nouveaux mangas (2 pins: ch.1 + dernier chapitre).
+    """
+    try:
+        from services.webhook_pusher import push_to_make_webhook, is_new_manga_detection
+        chapters = manga.get("chapters", [])
+
+        is_new = is_new_manga_detection(slug)
+
+        if is_new:
+            # NOUVEAU MANGA : publier le premier chapitre pour l'annoncer
+            first_chapter = chapters[-1] if chapters else None
+            if first_chapter:
+                first_ch_num = str(first_chapter.get("number", "1"))
+                logger.info("Nouveau manga détecté: %s. Publication ch.%s (premier).", slug, first_ch_num)
+                await push_to_make_webhook(
+                    manga_title=manga["title"],
+                    slug=slug,
+                    latest_ch_num=first_ch_num,
+                    raw_desc=manga.get("description"),
+                    cover=manga.get("cover"),
+                    bakacover=manga.get("bakacover"),
+                    all_chapters=chapters,
+                    is_new_manga=True,
+                )
+
+        # Toujours publier le dernier chapitre
+        latest_ch_num = str(chapters[0].get("number", "1")) if chapters else "1"
+        await push_to_make_webhook(
+            manga_title=manga["title"],
+            slug=slug,
+            latest_ch_num=latest_ch_num,
+            raw_desc=manga.get("description"),
+            cover=manga.get("cover"),
+            bakacover=manga.get("bakacover"),
+            all_chapters=chapters,
+            is_new_manga=False,
+        )
+    except Exception as exc:
+        logger.warning("Failed to trigger Make Webhook for manga %s: %s", slug, exc)
 
 
 async def _load_manga(slug: str) -> MangaDetail:
@@ -121,7 +165,7 @@ async def _load_manga(slug: str) -> MangaDetail:
         manga_detail["baka_status"] = None
         manga_detail["baka_year"] = None
 
-    # Pré-charger la couverture d'image (MangaBaka ou d'origine) dans le cache pour éviter tout 404 sur Pinterest / Buffer / RSS
+    # Pré-charger la couverture d'image dans le cache pour éviter tout 404 sur Pinterest / Buffer / RSS
     target_cover = manga_detail.get("bakacover") or manga_detail.get("cover")
     if target_cover:
         try:
@@ -131,50 +175,6 @@ async def _load_manga(slug: str) -> MangaDetail:
             logger.info("Manga Cache: Cover image pre-cached successfully for %s", slug)
         except Exception as exc:
             logger.warning("Manga Cache: Failed to pre-cache cover image: %s", exc)
-        
-    # Déclencher la publication en temps réel vers le Webhook Make.com
-    # STRATÉGIE DOUBLE:
-    # 1. Si NOUVEAU manga → Publier le premier chapitre pour annoncer sa disponibilité
-    # 2. Si manga existant → Publier UNIQUEMENT le dernier chapitre (anti-spam)
-    try:
-        from services.webhook_pusher import push_to_make_webhook, is_new_manga_detection
-        
-        chapters = manga_detail.get("chapters", [])
-        
-        # Détecter si c'est un nouveau manga
-        is_new = is_new_manga_detection(slug)
-        
-        if is_new:
-            # NOUVEAU MANGA: Publier le premier chapitre pour l'annoncer
-            first_chapter = chapters[-1] if chapters else None
-            if first_chapter:
-                first_ch_num = str(first_chapter.get("number", "1"))
-                logger.info("Nouveau manga détecté: %s. Publication du premier chapitre (%s).", slug, first_ch_num)
-                await push_to_make_webhook(
-                    manga_title=manga_detail["title"],
-                    slug=slug,
-                    latest_ch_num=first_ch_num,
-                    raw_desc=manga_detail.get("description"),
-                    cover=manga_detail.get("cover"),
-                    bakacover=manga_detail.get("bakacover"),
-                    all_chapters=chapters,
-                    is_new_manga=True  # Flag pour message spécial "NEW MANGA"
-                )
-        
-        # Toujours publier le dernier chapitre (pour mangas existants ou nouveaux)
-        latest_ch_num = str(chapters[0].get("number", "1")) if chapters else "1"
-        await push_to_make_webhook(
-            manga_title=manga_detail["title"],
-            slug=slug,
-            latest_ch_num=latest_ch_num,
-            raw_desc=manga_detail.get("description"),
-            cover=manga_detail.get("cover"),
-            bakacover=manga_detail.get("bakacover"),
-            all_chapters=chapters,
-            is_new_manga=False
-        )
-    except Exception as exc:
-        logger.warning("Failed to trigger Make Webhook for manga %s: %s", slug, exc)
 
     return manga_detail
 

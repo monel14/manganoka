@@ -95,13 +95,18 @@ async def read_chapter(request: Request, slug: str, chapter: str, background_tas
 
     previous_chapter, next_chapter = _chapter_neighbors(manga["chapters"], chapter)
 
-    # Indexation : Ne déclencher que pour les vrais utilisateurs (pas les bots)
-    # pour économiser le quota Google Indexing API (200 requêtes/jour)
+    # Indexation + Webhook : Ne déclencher que pour les vrais utilisateurs (pas les bots)
     if not _is_bot_request(request):
-        # Déclencher l'indexation instantanée sur Bing/Yandex via IndexNow en arrière-plan
         background_tasks.add_task(ping_indexnow, [f"/read/{slug}/{chapter}"])
-        # Notifier également Google via son API d'indexation officielle
         background_tasks.add_task(ping_google_indexing, [f"/read/{slug}/{chapter}"])
+        # Webhook Make.com : déclenché ici dans la route, pas dans le loader de cache
+        # Ainsi il s'exécute à chaque visite, protégé par l'anti-doublon GUID
+        background_tasks.add_task(
+            _trigger_webhook,
+            manga,
+            slug,
+            chapter,
+        )
     else:
         logger.debug("Bot detected, skipping indexing ping for /read/%s/%s", slug, chapter)
 
@@ -119,6 +124,28 @@ async def read_chapter(request: Request, slug: str, chapter: str, background_tas
             "next_chapter": next_chapter,
         },
     )
+
+
+async def _trigger_webhook(manga: MangaDetail, slug: str, chapter: str) -> None:
+    """
+    Déclenche le webhook Make.com depuis la route (pas depuis le loader de cache).
+    Protégé par l'anti-doublon GUID → s'exécute à chaque visite mais n'envoie qu'une seule fois par chapitre.
+    """
+    try:
+        from services.webhook_pusher import push_to_make_webhook
+        chapters = manga.get("chapters", [])
+        await push_to_make_webhook(
+            manga_title=manga["title"],
+            slug=slug,
+            latest_ch_num=chapter,
+            raw_desc=manga.get("description"),
+            cover=manga.get("cover"),
+            bakacover=manga.get("bakacover"),
+            all_chapters=chapters,
+            is_new_manga=False,
+        )
+    except Exception as exc:
+        logger.warning("Failed to trigger Make Webhook for reader %s/%s: %s", slug, chapter, exc)
 
 
 async def _load_chapter(slug: str, chapter: str) -> ChapterPage:
@@ -157,7 +184,7 @@ async def _load_manga(slug: str) -> MangaDetail:
         manga_detail["alt_titles"] = []
         manga_detail["bakacover"] = None
         
-    # Pré-charger la couverture d'image (MangaBaka ou d'origine) dans le cache pour éviter tout 404 sur Pinterest / Buffer / RSS
+    # Pré-charger la couverture d'image dans le cache pour éviter tout 404 sur Pinterest / Buffer / RSS
     target_cover = manga_detail.get("bakacover") or manga_detail.get("cover")
     if target_cover:
         try:
@@ -167,25 +194,6 @@ async def _load_manga(slug: str) -> MangaDetail:
             logger.info("Manga Cache: Cover image pre-cached successfully for %s", slug)
         except Exception as exc:
             logger.warning("Manga Cache: Failed to pre-cache cover image: %s", exc)
-
-    # Déclencher la publication en temps réel vers le Webhook Make.com
-    # ANTI-SPAM: Seul le dernier chapitre de chaque manga est publié sur Pinterest
-    try:
-        from services.webhook_pusher import push_to_make_webhook
-        chapters = manga_detail.get("chapters", [])
-        # Utiliser le chapitre ACTUEL lu, pas le dernier chapitre du manga
-        await push_to_make_webhook(
-            manga_title=manga_detail["title"],
-            slug=slug,
-            latest_ch_num=chapter,  # Chapitre actuellement lu
-            raw_desc=manga_detail.get("description"),
-            cover=manga_detail.get("cover"),
-            bakacover=manga_detail.get("bakacover"),
-            all_chapters=chapters,  # Passer la liste complète pour vérification
-            is_new_manga=False  # Dans le reader, jamais un nouveau manga
-        )
-    except Exception as exc:
-        logger.warning("Failed to trigger Make Webhook for manga %s: %s", slug, exc)
 
     return manga_detail
 
