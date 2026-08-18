@@ -14,6 +14,7 @@ from fastapi.templating import Jinja2Templates
 # Import de tes routes modulaires
 from routes import home, manga, reader, search, images
 from scraper.client import close_http_client
+from services.phenix_scans import close_phenix_api
 
 
 @asynccontextmanager
@@ -22,6 +23,7 @@ async def lifespan(app: FastAPI):
     yield
     # Shutdown
     await close_http_client()
+    await close_phenix_api()
 
 
 app = FastAPI(title="MangaNoka", lifespan=lifespan)

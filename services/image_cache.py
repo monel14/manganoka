@@ -30,8 +30,7 @@ ALLOWED_CONTENT_TYPES = {
     "image/gif",
 }
 ALLOWED_DOMAINS = {
-    "www.mangabats.com",
-    "mangabats.com",
+    "api.phenix-scans.co",
     "img-r1.2xstorage.com",
     "img-r2.2xstorage.com",
     "images.mangabaka.dev",
@@ -180,7 +179,7 @@ class ImageCacheService:
         """
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-            "Referer": "https://www.mangabats.com/",
+            "Referer": "https://api.phenix-scans.co/",
         }
         
         async with httpx.AsyncClient(timeout=15) as client:

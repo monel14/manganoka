@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import re
 import unicodedata
+from typing import TypedDict
 from pathlib import Path
 
 from fastapi import APIRouter, Query, Request
@@ -10,8 +11,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 
 from cache import HOME_TTL_SECONDS, cache
-from scraper.client import FetchError, get_html
-from scraper.parser import SearchManga, parse_search
+from services.phenix_scans import get_phenix_api
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -55,6 +55,14 @@ def normalize_query(query: str) -> str:
     return query
 
 
+class SearchManga(TypedDict):
+    title: str
+    slug: str
+    cover: str
+    latest_chapter: str
+    views: str
+
+
 @router.get("/api/search")
 async def api_search(q: str = Query(default="", min_length=1)) -> JSONResponse:
     """Endpoint JSON pour le dropdown de recherche live."""
@@ -63,14 +71,15 @@ async def api_search(q: str = Query(default="", min_length=1)) -> JSONResponse:
         return JSONResponse({"results": []})
 
     try:
-        cache_key = f"search:{normalized_q}:1"
-        mangas = await cache.get_or_set(
+        cache_key = f"search:fr:{normalized_q}:1"
+        result = await cache.get_or_set(
             cache_key,
             HOME_TTL_SECONDS,
             lambda: _load_search(normalized_q, 1),
         )
-    except FetchError as exc:
-        logger.warning("Unable to search for '%s': %s", q, exc)
+        mangas = result if isinstance(result, list) else []
+    except Exception as exc:
+        logger.warning("Impossible de chercher '%s': %s", q, exc)
         return JSONResponse({"results": [], "error": str(exc)})
 
     return JSONResponse({
@@ -79,7 +88,7 @@ async def api_search(q: str = Query(default="", min_length=1)) -> JSONResponse:
                 "title": m["title"],
                 "slug": m["slug"],
                 "cover": m["cover"],
-                "views": m["views"],
+                "views": m.get("views", ""),
                 "author": m.get("author", ""),
                 "latest_chapter": m.get("latest_chapter", ""),
             }
@@ -99,18 +108,19 @@ async def search(
     normalized_q = normalize_query(q)
 
     if not normalized_q:
-        error = "Please enter a search query."
+        error = "Veuillez entrer une requête de recherche."
     else:
         try:
-            cache_key = f"search:{normalized_q}:{page}"
-            mangas = await cache.get_or_set(
+            cache_key = f"search:fr:{normalized_q}:{page}"
+            result = await cache.get_or_set(
                 cache_key,
                 HOME_TTL_SECONDS,
                 lambda: _load_search(normalized_q, page),
             )
-        except FetchError as exc:
-            logger.warning("Unable to search for '%s' page %s: %s", q, page, exc)
-            error = "Unable to search at the moment."
+            mangas = result if isinstance(result, list) else []
+        except Exception as exc:
+            logger.warning("Impossible de chercher '%s' page %s: %s", q, page, exc)
+            error = "Impossible d'effectuer la recherche pour le moment."
 
     has_next_page = len(mangas) >= 20
     previous_page_url = f"/search?q={q}&p={page - 1}" if page > 1 else None
@@ -121,7 +131,7 @@ async def search(
         "search.html",
         {
             "request": request,
-            "query": q,  # On garde la recherche originale pour l'affichage utilisateur
+            "query": q,
             "mangas": mangas,
             "error": error,
             "current_page": page,
@@ -132,6 +142,28 @@ async def search(
 
 
 async def _load_search(query: str, page: int) -> list[SearchManga]:
-    path = f"/search/story/{query}?page={page}"
-    html = await get_html(path)
-    return parse_search(html)
+    """Recherche les mangas via l'API Phenix Scans.
+    
+    L'API Phenix Scans expose /api/manga?search=<query>.
+    On retourne une liste compatible SearchManga.
+    """
+    try:
+        api = get_phenix_api()
+        mangas_raw, _ = await api.get_latest_mangas(page=page, limit=20)
+        # Filtrer par correspondance de titre (recherche locale côté client)
+        q_lower = query.lower()
+        results: list[SearchManga] = []
+        for m in mangas_raw:
+            if q_lower in m.get("title", "").lower():
+                chapters = m.get("chapters", [])
+                results.append({
+                    "title": m.get("title", ""),
+                    "slug": m.get("slug", ""),
+                    "cover": m.get("cover", ""),
+                    "latest_chapter": chapters[0].get("title", "") if chapters else "",
+                    "views": "",
+                })
+        return results
+    except Exception as exc:
+        logger.warning("Échec de la recherche Phenix Scans pour '%s': %s", query, exc)
+        return []

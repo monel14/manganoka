@@ -13,9 +13,9 @@
       gtag('js', new Date());
       gtag('config', 'G-EXEWN0JKT1');
     </script>
-    <title>Read {{ page.title }} Chapter {{ chapter }} Online Free - MangaNoka - Fast, responsive, and ad-free experience.</title>
+    <title>Lire {{ page.title }} Chapitre {{ chapter }} en ligne gratuitement - MangaNoka</title>
     <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}?v=1.2">
-    <link rel="alternate" type="application/rss+xml" title="MangaNoka - Latest Manga Releases" href="https://www.manganoka.xyz/rss.xml">
+    <link rel="alternate" type="application/rss+xml" title="MangaNoka - Dernières sorties manga" href="https://www.manganoka.xyz/rss.xml">
     
     <link rel="icon" href="/favicon.ico" sizes="48x48" type="image/x-icon">
     <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png">
@@ -23,11 +23,11 @@
     <link rel="icon" href="{{ url_for('static', path='/noka_logo.svg') }}" type="image/svg+xml">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <script src="{{ url_for('static', path='/theme.js') }}"></script>
-    <meta name="description" content="Read {{ page.title }} Chapter {{ chapter }} online for free on MangaNoka. Enjoy a fast, responsive, and ad-free experience.">
+    <meta name="description" content="Lire {{ page.title }} Chapitre {{ chapter }} en ligne gratuitement sur MangaNoka. Expérience rapide, responsive et sans publicité.">
     <meta property="og:site_name" content="MangaNoka">
     <meta property="og:type" content="website">
     <meta property="og:title" content="Read {{ page.title }} Chapter {{ chapter }} Online Free - MangaNoka">
-    <meta property="og:description" content="Read {{ page.title }} Chapter {{ chapter }} online for free on MangaNoka. Enjoy a fast, responsive, and ad-free experience.">
+    <meta property="og:description" content="Lire {{ page.title }} Chapitre {{ chapter }} en ligne gratuitement sur MangaNoka. Expérience rapide, responsive et sans publicité.">
     <meta property="og:image" content="{{ url_for('static', path='/og_image.png') }}">
     <meta name="twitter:card" content="summary_large_image">
     <link rel="manifest" href="{{ url_for('static', path='/manifest.json') }}">
@@ -65,7 +65,7 @@
             {
               "@type": "ListItem",
               "position": 3,
-              "name": "Chapter {{ chapter }}",
+              "name": "Chapitre {{ chapter }}",
               "item": "https://www.manganoka.xyz/read/{{ slug }}/{{ chapter }}"
             }
           ]
@@ -116,7 +116,7 @@
                 <img class="brand-logo" src="{{ url_for('static', path='/noka_logo.svg') }}" alt="MangaNoka logo">
                 <span>Manga<b>Noka</b></span>
             </a>
-            <button id="theme-toggle" class="reader-theme-toggle" aria-label="Toggle Theme" title="Toggle Theme (Lanterne Noka)">
+            <button id="theme-toggle" class="reader-theme-toggle" aria-label="Changer le thème" title="Changer le thème (Lanterne Noka)">
                 <svg class="lantern-icon" viewBox="0 0 24 24">
                     <!-- Crochet / Sommet de la lanterne -->
                     <path d="M12 2v3M9 5h6" stroke-linecap="round"/>
@@ -136,11 +136,11 @@
     </header>
 
     <nav class="chapter-breadcrumb" aria-label="Breadcrumb">
-        <a href="/">Manga Online</a>
+        <a href="/">Manga en ligne</a>
         <span>»</span>
         <a href="/manga/{{ slug }}">{{ manga.title }}</a>
         <span>»</span>
-        <span>Chapter {{ chapter }}</span>
+        <span>Chapitre {{ chapter }}</span>
     </nav>
 
     <section class="chapter-options">
@@ -154,25 +154,25 @@
 
         <nav class="chapter-buttons" aria-label="Chapter navigation">
             {% if previous_chapter %}
-                <a class="chapter-btn" href="/read/{{ slug }}/{{ previous_chapter.number }}" aria-label="Go to previous chapter {{ previous_chapter.number }}">PREV CHAPTER</a>
+                <a class="chapter-btn" href="/read/{{ slug }}/{{ previous_chapter.number }}" aria-label="Go to previous chapter {{ previous_chapter.number }}">CHAP. PRÉC.</a>
             {% else %}
-                <span class="chapter-btn disabled" aria-disabled="true">PREV CHAPTER</span>
+                <span class="chapter-btn disabled" aria-disabled="true">CHAP. PRÉC.</span>
             {% endif %}
-            <a class="chapter-btn home" href="/" aria-label="Return to home page">GO HOME</a>
+            <a class="chapter-btn home" href="/" aria-label="Return to home page">ACCUEIL</a>
             {% if next_chapter %}
-                <a class="chapter-btn" href="/read/{{ slug }}/{{ next_chapter.number }}" aria-label="Go to next chapter {{ next_chapter.number }}">NEXT CHAPTER</a>
+                <a class="chapter-btn" href="/read/{{ slug }}/{{ next_chapter.number }}" aria-label="Go to next chapter {{ next_chapter.number }}">CHAP. SUIV.</a>
             {% else %}
-                <span class="chapter-btn disabled" aria-disabled="true">NEXT CHAPTER</span>
+                <span class="chapter-btn disabled" aria-disabled="true">CHAP. SUIV.</span>
             {% endif %}
         </nav>
 
-        <h1>{{ manga.title }}: Chapter {{ chapter }}</h1>
+        <h1>{{ manga.title }} : Chapitre {{ chapter }}</h1>
     </section>
 
     <section class="chapter-info" role="complementary" aria-label="Chapter information">
-        <h2>{{ manga.title }} Chapter {{ chapter }}</h2>
-        <p>You're reading <strong>{{ manga.title }} Chapter {{ chapter }}</strong>.</p>
-        <p>Images are loaded progressively and resized for desktop and mobile reading.</p>
+        <h2>{{ manga.title }} Chapitre {{ chapter }}</h2>
+        <p>Vous lisez <strong>{{ manga.title }} Chapitre {{ chapter }}</strong>.</p>
+        <p>Les images se chargent progressivement et s'adaptent à votre écran.</p>
          
     </section>
 
@@ -183,7 +183,7 @@
                 class="manga-page"
                 data-src="{{ url_for('static', path='/manganokapage.jpeg') }}"
                 alt="Read {{ manga.title }} Chapter {{ chapter }} Title Page - MangaNoka"
-                aria-label="Title page"
+                aria-label="Page de titre"
                 decoding="async"
                 loading="eager"
                 style="opacity: 0; width: 100%; height: auto; display: block; transition: opacity 0.3s ease;"
@@ -193,16 +193,16 @@
             <div class="page-wrapper" style="min-height: 300px; width: 100%; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.02);">
                 <img
                     class="manga-page"
-                    data-src="/{{ slug }}/{{ chapter }}/{{ loop.index }}.webp"
+                    data-src="{{ image }}"
                     alt="Read {{ manga.title }} Chapter {{ chapter }} Page {{ loop.index }} Free - MangaNoka"
-                    aria-label="Page {{ loop.index }} of {{ page.images|length }}"
+                    aria-label="Page {{ loop.index }} sur {{ page.images|length }}"
                     decoding="async"
                     loading="lazy"
                     style="opacity: 0; width: 100%; height: auto; display: block; transition: opacity 0.3s ease;"
                 >
             </div>
         {% else %}
-            <p class="empty">No images found.</p>
+            <p class="empty">Aucune image trouvée.</p>
         {% endfor %}
     </main>
 
@@ -217,25 +217,25 @@
 
         <nav class="chapter-buttons" aria-label="Chapter navigation">
             {% if previous_chapter %}
-                <a class="chapter-btn" href="/read/{{ slug }}/{{ previous_chapter.number }}" aria-label="Go to previous chapter {{ previous_chapter.number }}">PREV CHAPTER</a>
+                <a class="chapter-btn" href="/read/{{ slug }}/{{ previous_chapter.number }}" aria-label="Go to previous chapter {{ previous_chapter.number }}">CHAP. PRÉC.</a>
             {% else %}
-                <span class="chapter-btn disabled" aria-disabled="true">PREV CHAPTER</span>
+                <span class="chapter-btn disabled" aria-disabled="true">CHAP. PRÉC.</span>
             {% endif %}
-            <a class="chapter-btn home" href="/" aria-label="Return to home page">GO HOME</a>
+            <a class="chapter-btn home" href="/" aria-label="Return to home page">ACCUEIL</a>
             {% if next_chapter %}
-                <a class="chapter-btn" href="/read/{{ slug }}/{{ next_chapter.number }}" aria-label="Go to next chapter {{ next_chapter.number }}">NEXT CHAPTER</a>
+                <a class="chapter-btn" href="/read/{{ slug }}/{{ next_chapter.number }}" aria-label="Go to next chapter {{ next_chapter.number }}">CHAP. SUIV.</a>
             {% else %}
-                <span class="chapter-btn disabled" aria-disabled="true">NEXT CHAPTER</span>
+                <span class="chapter-btn disabled" aria-disabled="true">CHAP. SUIV.</span>
             {% endif %}
         </nav>
     </section>
 
     <nav class="chapter-breadcrumb chapter-breadcrumb-bottom" aria-label="Breadcrumb">
-        <a href="/">Manga Online</a>
+        <a href="/">Manga en ligne</a>
         <span>»</span>
         <a href="/manga/{{ slug }}">{{ manga.title }}</a>
         <span>»</span>
-        <span>Chapter {{ chapter }}</span>
+        <span>Chapitre {{ chapter }}</span>
     </nav>
 
     <script>

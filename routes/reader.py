@@ -19,11 +19,11 @@ def _is_bot_request(request: Request) -> bool:
     ]
     return any(pattern in user_agent for pattern in bot_patterns)
 
-from cache import CHAPTER_TTL_SECONDS, CHAPTER_TTL_SECONDS, MANGA_TTL_SECONDS, cache
-from scraper.client import FetchError, NotFoundError, get_html
-from scraper.parser import ChapterLink, ChapterPage, MangaDetail, parse_chapter, parse_manga
+from cache import CHAPTER_TTL_SECONDS, MANGA_TTL_SECONDS, cache
+from scraper.parser import ChapterLink, ChapterPage, MangaDetail
 from services.indexnow import ping_indexnow
 from services.google_indexing import ping_google_indexing
+from services.phenix_scans import get_phenix_api
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -32,24 +32,19 @@ templates = Jinja2Templates(directory=str(Path(__file__).resolve().parent.parent
 
 async def get_chapter_page(slug: str, chapter: str, manga: MangaDetail | None = None) -> ChapterPage:
     """
-    Récupère une page de chapitre depuis le cache ou la charge.
-    
-    Args:
-        slug: Slug du manga
-        chapter: Numéro du chapitre
-        manga: Données du manga déjà chargées (optionnel, pour éviter un double chargement)
+    Récupère une page de chapitre depuis le cache ou la charge via l'API Phenix Scans.
     """
     if manga is None:
         manga = await cache.get_or_set(
-            f"manga:{slug}",
+            f"manga:fr:{slug}",
             MANGA_TTL_SECONDS,
-            lambda: _load_manga(slug),
+            lambda: get_phenix_api().get_manga_detail(slug),
         )
-    
+
     return await cache.get_or_set(
-        f"chapter:{slug}:{chapter}",
+        f"chapter:fr:{slug}:{chapter}",
         CHAPTER_TTL_SECONDS,
-        lambda: _load_chapter_from_manga(manga, chapter),
+        lambda: get_phenix_api().get_chapter_images(slug, chapter),
     )
 
 
@@ -65,33 +60,39 @@ async def read_chapter(request: Request, slug: str, chapter: str, background_tas
                 slug = parts[0]
                 chapter = parts[1]
 
+    api = get_phenix_api()
     try:
         manga = await cache.get_or_set(
-            f"manga:{slug}",
+            f"manga:fr:{slug}",
             MANGA_TTL_SECONDS,
-            lambda: _load_manga(slug),
+            lambda: api.get_manga_detail(slug),
         )
-        
-        # SÉCURITÉ ACTIVE (Self-Healing) : Si la fiche manga est corrompue, on la répare et la re-scrape en direct !
+
+        # SÉCURITÉ ACTIVE (Self-Healing) : Si la fiche manga est corrompue, on la répare !
         if not manga or not isinstance(manga, dict) or not manga.get("chapters"):
             logger.warning("Manga Reader Cache: Corrupt manga cache detected for %s. Force re-scraping...", slug)
-            try:
-                manga = await _load_manga(slug)
-                await cache.get_or_set(f"manga:{slug}", MANGA_TTL_SECONDS, lambda: manga)
-            except Exception as e:
-                logger.error("Manga Reader Cache: Failed to self-heal corrupt cache for %s: %s", slug, e)
-                raise HTTPException(status_code=404, detail="Manga not found")
-            
-        # Passer le manga déjà chargé pour éviter un double fetch
-        page = await get_chapter_page(slug, chapter, manga=manga)
-    except NotFoundError as exc:
-        raise HTTPException(status_code=404, detail="Chapter not found") from exc
-    except FetchError as exc:
+            manga = await api.get_manga_detail(slug)
+            if manga:
+                await cache.get_or_set(f"manga:fr:{slug}", MANGA_TTL_SECONDS, lambda: manga)
+            else:
+                raise HTTPException(status_code=404, detail="Manga introuvable")
+
+        # Charger les images du chapitre via l'API Phenix Scans
+        images = await cache.get_or_set(
+            f"chapter:fr:{slug}:{chapter}",
+            CHAPTER_TTL_SECONDS,
+            lambda: api.get_chapter_images(slug, chapter),
+        )
+        # Encapsuler pour compatibilité avec le template (page.images)
+        page: ChapterPage = {"title": manga["title"], "images": images}
+    except HTTPException:
+        raise
+    except Exception as exc:
         logger.warning("Unable to load chapter %s/%s: %s", slug, chapter, exc)
-        raise HTTPException(status_code=502, detail="Source unavailable") from exc
+        raise HTTPException(status_code=502, detail="Source indisponible") from exc
 
     if not page["images"]:
-        raise HTTPException(status_code=404, detail="Chapter not found")
+        raise HTTPException(status_code=404, detail="Chapitre introuvable")
 
     previous_chapter, next_chapter = _chapter_neighbors(manga["chapters"], chapter)
 
@@ -153,49 +154,14 @@ async def _load_chapter(slug: str, chapter: str) -> ChapterPage:
 
 
 async def _load_chapter_from_manga(manga: MangaDetail, chapter: str) -> ChapterPage:
-    source_url = _find_chapter_url(manga, chapter)
-    html = await get_html(source_url)
-    return parse_chapter(html, title=manga["title"], chapter=chapter)
+    """Conservé pour compatibilité — délègue maintenant à l'API Phenix Scans."""
+    images = await get_phenix_api().get_chapter_images(manga["slug"], chapter)
+    return {"title": manga["title"], "images": images}
 
 
 async def _load_manga(slug: str) -> MangaDetail:
-    html = await get_html(f"/manga/{slug}")
-    
-    # Récupérer la liste des chapitres depuis l'API officielle de MangaBats
-    chapters_json_url = f"https://www.mangabats.com/api/manga/{slug}/chapters?limit=10000"
-    from scraper.client import get_http_client
-    client = get_http_client()
-    try:
-        r = await client.get(chapters_json_url)
-        r.raise_for_status()
-        chapters_data = r.json()
-    except Exception as exc:
-        logger.warning("Failed to fetch chapters JSON for %s: %s", slug, exc)
-        chapters_data = {}
-        
-    manga_detail = parse_manga(html, slug=slug, chapters_data=chapters_data)
-    try:
-        from services.mangabaka import fetch_mangabaka_data
-        mb_data = await fetch_mangabaka_data(manga_detail["title"])
-        manga_detail["alt_titles"] = mb_data.get("alt_titles", [])
-        manga_detail["bakacover"] = mb_data.get("cover_url")
-    except Exception as exc:
-        logger.warning("Failed to enrich manga %s with MangaBaka data: %s", slug, exc)
-        manga_detail["alt_titles"] = []
-        manga_detail["bakacover"] = None
-        
-    # Pré-charger la couverture d'image dans le cache pour éviter tout 404 sur Pinterest / Buffer / RSS
-    target_cover = manga_detail.get("bakacover") or manga_detail.get("cover")
-    if target_cover:
-        try:
-            from routes.images import get_image_cache_service
-            service = get_image_cache_service()
-            await service.get_or_cache_image(target_cover, bypass_validation=True)
-            logger.info("Manga Cache: Cover image pre-cached successfully for %s", slug)
-        except Exception as exc:
-            logger.warning("Manga Cache: Failed to pre-cache cover image: %s", exc)
-
-    return manga_detail
+    """Charge la fiche manga depuis l'API Phenix Scans."""
+    return await get_phenix_api().get_manga_detail(slug)
 
 
 def _find_chapter_url(manga: MangaDetail, chapter: str) -> str:
