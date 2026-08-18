@@ -3,7 +3,7 @@ name: Deploy to PlanetHoster
 on:
   push:
     branches:
-      - main
+      - fr
 
 jobs:
   deploy:
@@ -19,10 +19,10 @@ jobs:
           key: ${{ secrets.PH_SSH_KEY }}
           port: ${{ secrets.PH_PORT }}
           script: |
-            cd /home/wtzjscfs/manganoka
+            cd /home/wtzjscfs/fr_manganoka
 
             git fetch origin
-            git reset --hard origin/main
+            git reset --hard origin/fr
 
             source .venv/bin/activate
 
