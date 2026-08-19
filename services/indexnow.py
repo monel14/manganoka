@@ -3,11 +3,12 @@ import logging
 import sqlite3
 import time
 import httpx
+from urllib.parse import urlparse
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-BASE_URL = os.environ.get("BASE_URL", "https://www.manganoka.xyz").rstrip("/")
+BASE_URL = os.environ.get("BASE_URL", "https://manganoka.xyz/fr").rstrip("/")
 
 
 def _to_absolute(url: str) -> str:
@@ -77,8 +78,8 @@ async def ping_indexnow(urls: list[str]) -> None:
         return
 
     key = os.environ.get("INDEXNOW_KEY", "7a8e8b2fcd104ef9ac332a018af03324")
-    base_url = os.environ.get("BASE_URL", "https://www.manganoka.xyz").rstrip("/")
-    host = base_url.replace("https://", "").replace("http://", "")
+    base_url = os.environ.get("BASE_URL", "https://manganoka.xyz/fr").rstrip("/")
+    host = urlparse(base_url).netloc  # hostname seul, sans le chemin /fr
 
     payload = {
         "host": host,

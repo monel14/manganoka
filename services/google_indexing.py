@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 SERVICE_ACCOUNT_FILE = Path(__file__).resolve().parent.parent / "manganoka-indexing-bc242a69a6fc.json"
 SCOPES = ["https://www.googleapis.com/auth/indexing"]
-BASE_URL = os.environ.get("BASE_URL", "https://www.manganoka.xyz").rstrip("/")
+BASE_URL = os.environ.get("BASE_URL", "https://manganoka.xyz/fr").rstrip("/")
 
 
 @lru_cache(maxsize=1)

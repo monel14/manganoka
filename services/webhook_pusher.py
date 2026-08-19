@@ -158,7 +158,7 @@ async def push_to_make_webhook(manga_title: str, slug: str, latest_ch_num: str, 
             )
             return
     
-    base_url = os.environ.get("BASE_URL", "https://www.manganoka.xyz").rstrip("/")
+    base_url = os.environ.get("BASE_URL", "https://manganoka.xyz/fr").rstrip("/")
     guid = f"{base_url}/fr/manga/{slug}#ch-{latest_ch_num}"
     
     # 1. Éviter 100 % des doublons : si le chapitre est déjà publié, on s'arrête immédiatement !

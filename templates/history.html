@@ -14,7 +14,7 @@
       gtag('config', 'G-EXEWN0JKT1');
     </script>
     <title>Historique de lecture - MangaNoka</title>
-    {% set base_domain = 'https://www.manganoka.xyz' %}
+    {% set base_domain = 'https://manganoka.xyz' %}
     {% set fr_path = request.url.path %}
     {% set en_path = fr_path[3:] if fr_path.startswith('/fr') else fr_path %}
     {% set canonical_url = base_domain ~ fr_path %}
@@ -24,7 +24,7 @@
     <link rel="alternate" hreflang="x-default" href="{{ base_domain ~ en_path }}">
     <meta name="robots" content="noindex, follow">
     <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}?v=1.2">
-    <link rel="alternate" type="application/rss+xml" title="MangaNoka - Dernières sorties manga" href="https://www.manganoka.xyz/rss.xml">
+    <link rel="alternate" type="application/rss+xml" title="MangaNoka - Dernières sorties manga" href="https://manganoka.xyz/fr/rss.xml">
     
     <link rel="icon" href="/fr/favicon.ico" sizes="48x48" type="image/x-icon">
     <link rel="icon" href="/fr/favicon-32x32.png" sizes="32x32" type="image/png">
@@ -53,13 +53,13 @@
           "@type": "ListItem",
           "position": 1,
           "name": "Accueil",
-          "item": "https://www.manganoka.xyz/fr"
+          "item": "https://manganoka.xyz/fr"
         },
         {
           "@type": "ListItem",
           "position": 2,
           "name": "Historique de lecture",
-          "item": "https://www.manganoka.xyz/fr/history"
+          "item": "https://manganoka.xyz/fr/history"
         }
       ]
     }

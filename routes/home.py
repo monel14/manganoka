@@ -100,7 +100,7 @@ async def index(
 @router.api_route("/sitemap-index.xml", methods=["GET", "HEAD"])
 def sitemap_index() -> Response:
     """Sitemap index principal qui référence tous les sous-sitemaps."""
-    base_url = os.environ.get("BASE_URL", "https://www.manganoka.xyz").rstrip("/")
+    base_url = os.environ.get("BASE_URL", "https://manganoka.xyz/fr").rstrip("/")
     
     xml_content = f"""<?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -120,7 +120,7 @@ def sitemap_index() -> Response:
 @router.api_route("/sitemap.xml", methods=["GET", "HEAD"])
 def sitemap() -> Response:
     """Génère un sitemap XML dynamique basé sur les mangas actuellement en cache."""
-    base_url = os.environ.get("BASE_URL", "https://www.manganoka.xyz").rstrip("/")
+    base_url = os.environ.get("BASE_URL", "https://manganoka.xyz/fr").rstrip("/")
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     
     # Récupérer toutes les clés de manga du cache (ex: 'manga:fr:death-penalty')
@@ -170,7 +170,7 @@ def sitemap() -> Response:
 @router.api_route("/sitemap-chapters.xml", methods=["GET", "HEAD"])
 def sitemap_chapters() -> Response:
     """Génère un sitemap dédié aux 500 derniers chapitres sortis pour une indexation rapide."""
-    base_url = os.environ.get("BASE_URL", "https://www.manganoka.xyz").rstrip("/")
+    base_url = os.environ.get("BASE_URL", "https://manganoka.xyz/fr").rstrip("/")
     
     # Récupérer les mangas depuis le cache
     manga_keys = cache.get_keys_by_prefix("manga:")
@@ -225,7 +225,7 @@ def sitemap_chapters() -> Response:
 @router.get("/rss.xml", include_in_schema=False)
 async def rss_feed() -> Response:
     """Flux RSS des 30 derniers mangas mis en cache."""
-    base_url = os.environ.get("BASE_URL", "https://www.manganoka.xyz").rstrip("/")
+    base_url = os.environ.get("BASE_URL", "https://manganoka.xyz/fr").rstrip("/")
     now_rfc822 = datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S +0000")
 
     # Récupérer les slugs depuis le cache (lecture directe, sans déclencher de scrape)
@@ -318,7 +318,7 @@ async def rss_feed() -> Response:
 
 @router.get("/robots.txt", include_in_schema=False)
 def robots() -> Response:
-    base_url = os.getenv("BASE_URL", "https://www.manganoka.xyz").rstrip("/")
+    base_url = os.getenv("BASE_URL", "https://manganoka.xyz/fr").rstrip("/")
 
     robots = f"""# Global
 User-agent: *

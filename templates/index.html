@@ -17,7 +17,7 @@
     </script>
     <title>{% if page_title %}Lire {{ page_title }} en ligne gratuit - MangaNoka{% else %}MangaNoka - Lire des Manga en ligne gratuitement. Rapide et sans pub.{% endif %}</title>
     <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}?v=1.2">
-    <link rel="alternate" type="application/rss+xml" title="MangaNoka - Dernières sorties manga" href="https://www.manganoka.xyz/rss.xml">
+    <link rel="alternate" type="application/rss+xml" title="MangaNoka - Dernières sorties manga" href="https://manganoka.xyz/fr/rss.xml">
     <link rel="icon" href="/fr/favicon.ico" sizes="48x48" type="image/x-icon">
     <link rel="icon" href="/fr/favicon-32x32.png" sizes="32x32" type="image/png">
     <link rel="icon" href="{{ url_for('static', path='/noka_logo.svg') }}" type="image/svg+xml">
@@ -37,7 +37,7 @@
     <meta property="og:image" content="{{ og_image_abs }}">
     <meta name="twitter:card" content="summary_large_image">
     <link rel="manifest" href="{{ url_for('static', path='/manifest.json') }}">
-    {% set base_domain = 'https://www.manganoka.xyz' %}
+    {% set base_domain = 'https://manganoka.xyz' %}
     {% set fr_path = request.url.path %}
     {% set en_path = fr_path[3:] if fr_path.startswith('/fr') else fr_path %}
     {% set canonical_url = base_domain ~ fr_path %}
