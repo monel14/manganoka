@@ -10,7 +10,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
       - name: Deploy
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -19,13 +18,44 @@ jobs:
           key: ${{ secrets.PH_SSH_KEY }}
           port: ${{ secrets.PH_PORT }}
           script: |
+            set -e
+
             cd /home/wtzjscfs/fr_manganoka
 
+            echo "=== Mise à jour du code ==="
             git fetch origin
             git reset --hard origin/fr
 
-            source .venv/bin/activate
+            echo "=== Activation de Python 3.10 ==="
+            VENV="/home/wtzjscfs/virtualenv/fr_manganoka/3.10"
 
-            pip install --upgrade -r requirements.txt
+            if [ ! -f "$VENV/bin/activate" ]; then
+              echo "ERREUR: environnement Python introuvable: $VENV"
+              exit 1
+            fi
 
+            source "$VENV/bin/activate"
+
+            echo "Python utilisé:"
+            which python
+            python --version
+
+            echo "Pip utilisé:"
+            python -m pip --version
+
+            echo "=== Installation des dépendances ==="
+            python -m pip install --upgrade pip
+            python -m pip install --upgrade -r requirements.txt
+
+            echo "=== Vérification des dépendances ==="
+            python -c "import fastapi; print('FastAPI:', fastapi.__version__)"
+            python -c "import a2wsgi; print('a2wsgi OK')"
+            python -c "import uvicorn; print('Uvicorn OK')"
+
+            echo "=== Vérification de l'application ==="
+            python -c "from main import app; print('Application OK')"
+
+            echo "=== Redémarrage Passenger ==="
             touch tmp/restart.txt
+
+            echo "=== Déploiement terminé ==="
