@@ -169,8 +169,7 @@
         if (!results.length) { dropdown.hidden = true; return; }
         dropdown.innerHTML = results.map((r, i) => `
             <a class="sd-item" href="/fr/manga/${r.slug}" data-index="${i}">
-                <img class="sd-thumb" src="/img-proxy?url=${r.cover}" alt="${r.title}" loading="lazy"
-                     onerror="this.style.display='none'">
+                <img class="sd-thumb" src="/img-proxy?url=${r.cover}" alt="${r.title}" loading="lazy">
                 <div class="sd-info">
                     <span class="sd-title">${r.title}</span>
                     ${r.views ? `<span class="sd-views">👁 ${Number(r.views.replace(/\s/g,'')).toLocaleString('en-US')}</span>` : ''}
@@ -291,7 +290,7 @@ document.addEventListener("DOMContentLoaded", () => {
         bookmarksList.innerHTML = bookmarks.map(item => `
             <div class="user-bookmark-item" style="display: flex; gap: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; align-items: flex-start; text-align: left;">
                 <a href="/fr/manga/${item.slug}">
-                    <img src="/img-proxy?url=${item.cover}" alt="${item.title}" style="width: 65px; height: 85px; object-fit: cover; border-radius: 4px;" onerror="this.onerror=null;this.src='/static/noka_lost.svg';">
+                    <img src="/img-proxy?url=${item.cover}" alt="${item.title}" style="width: 65px; height: 85px; object-fit: cover; border-radius: 4px;">
                 </a>
                 <div class="user-bookmark-item-right" style="display: flex; flex-direction: column; gap: 6px; flex-grow: 1;">
                     <span class="bm-title" style="font-size: 15px; font-weight: bold;">
@@ -339,7 +338,7 @@ document.addEventListener("DOMContentLoaded", () => {
         historyList.innerHTML = history.map(item => `
             <div class="user-history-item" style="display: flex; gap: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; align-items: flex-start; text-align: left;">
                 <a href="/fr/manga/${item.slug}">
-                    <img src="/img-proxy?url=${item.cover}" alt="${item.title}" style="width: 65px; height: 85px; object-fit: cover; border-radius: 4px;" onerror="this.onerror=null;this.src='/static/noka_lost.svg';">
+                    <img src="/img-proxy?url=${item.cover}" alt="${item.title}" style="width: 65px; height: 85px; object-fit: cover; border-radius: 4px;">
                 </a>
                 <div class="user-history-item-right" style="display: flex; flex-direction: column; gap: 6px; flex-grow: 1;">
                     <span class="bm-title" style="font-size: 15px; font-weight: bold;">
