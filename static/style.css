@@ -1261,7 +1261,7 @@ img {
 /* Footer Styles (MangaBats Dark Theme style) */
 footer {
     background-color: var(--paper-deep);
-    background-image: url('/static/noka_pattern.svg');
+    background-image: url('noka_pattern.svg');
     background-size: 240px 240px;
     border-top: 1px solid var(--line);
     padding: 30px 0;
@@ -1568,7 +1568,7 @@ footer {
     width: 100%;
     max-width: 160px;
     height: 8px;
-    background: url('/static/brushstroke.svg') no-repeat left center / 100% 100%;
+    background: url('brushstroke.svg') no-repeat left center / 100% 100%;
 }
 
 /* État vide (recherche sans résultat, etc.) */

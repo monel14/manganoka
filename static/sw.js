@@ -1,6 +1,6 @@
-const CACHE_NAME = 'manganoka-v2';
+const CACHE_NAME = 'manganoka-v3';
 const ASSETS = [
-    '/',
+    '/fr/',
     '/static/style.css',
     '/static/theme.js',
     '/static/noka_logo.svg',
@@ -38,32 +38,39 @@ self.addEventListener('fetch', (e) => {
     if (e.request.method !== 'GET' || !e.request.url.startsWith(self.location.origin)) {
         return;
     }
-    
+
     const url = new URL(e.request.url);
-    
-    // Skip API calls and image proxy
-    if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/img-proxy')) {
+
+    // Ne pas intercepter : API, proxy d'images, routes d'administration
+    if (
+        url.pathname.startsWith('/api/') ||
+        url.pathname.startsWith('/img-proxy') ||
+        url.pathname.startsWith('/img-cdn') ||
+        url.pathname.startsWith('/admin')
+    ) {
         return;
     }
-    
+
     e.respondWith(
         fetch(e.request)
             .then((response) => {
-                // Clone pour mise en cache
+                // Ne mettre en cache que les réponses valides
+                if (!response.ok) return response;
+
                 const responseClone = response.clone();
-                
-                // Mettre en cache les pages visitées et images
-                if (response.ok && (
-                    url.pathname.startsWith('/read/') ||
-                    url.pathname.startsWith('/manga/') ||
+
+                // Mettre en cache les pages manga/reader et les assets statiques
+                if (
+                    url.pathname.startsWith('/fr/read/') ||
+                    url.pathname.startsWith('/fr/manga/') ||
                     url.pathname.includes('/static/') ||
-                    url.pathname.match(/\.(webp|jpg|jpeg|png|svg)$/)
-                )) {
+                    url.pathname.match(/\.(webp|jpg|jpeg|png|svg|css|js)$/)
+                ) {
                     caches.open(CACHE_NAME).then((cache) => {
                         cache.put(e.request, responseClone);
                     });
                 }
-                
+
                 return response;
             })
             .catch(() => {
@@ -72,16 +79,24 @@ self.addEventListener('fetch', (e) => {
                     if (cachedResponse) {
                         return cachedResponse;
                     }
-                    
+
                     // Fallback pour pages HTML
-                    if (e.request.headers.get('accept').includes('text/html')) {
-                        return caches.match('/');
+                    const accept = e.request.headers.get('accept') || '';
+                    if (accept.includes('text/html')) {
+                        return caches.match('/fr/').then((r) =>
+                            r || new Response('Hors ligne', { status: 503, headers: { 'Content-Type': 'text/plain' } })
+                        );
                     }
-                    
+
                     // Fallback pour images
-                    if (e.request.headers.get('accept').includes('image')) {
-                        return caches.match('/static/noka_lost.svg');
+                    if (accept.includes('image')) {
+                        return caches.match('/static/noka_lost.svg').then((r) =>
+                            r || new Response('', { status: 503 })
+                        );
                     }
+
+                    // Fallback générique — ne jamais retourner undefined
+                    return new Response('', { status: 503 });
                 });
             })
     );

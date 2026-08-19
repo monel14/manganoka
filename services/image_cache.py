@@ -175,9 +175,20 @@ class ImageCacheService:
             ImageTooBigError: Si l'image est trop grande
             InvalidContentTypeError: Si le Content-Type n'est pas valide
         """
+        # Adapter le Referer au domaine source pour éviter les 403 des CDN protégés
+        parsed_url = urlsplit(url)
+        domain = parsed_url.hostname or ""
+        if "waitst.com" in domain:
+            referer = "https://waitst.com/"
+        elif "2xstorage.com" in domain:
+            referer = "https://api.phenix-scans.co/"
+        else:
+            referer = f"{parsed_url.scheme}://{domain}/"
+
         headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-            "Referer": "https://api.phenix-scans.co/",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+            "Referer": referer,
+            "Accept": "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
         }
         
         async with httpx.AsyncClient(timeout=15) as client:
