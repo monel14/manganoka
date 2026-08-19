@@ -985,6 +985,18 @@ img {
    ========================================== */
 
 /* Tablet / small desktop : sidebar disparaît, layout passe en 1 col */
+/* Historique mobile : caché sur desktop, affiché avant "Latest Manga Releases" sur mobile
+   (le JS ajoute .mobile-history-visible uniquement s'il existe un historique local) */
+.history-container.only-mobile {
+    display: none;
+}
+
+@media (max-width: 980px) {
+    .history-container.only-mobile.mobile-history-visible {
+        display: block;
+    }
+}
+
 @media (max-width: 980px) {
     .topbar {
         display: flex;
