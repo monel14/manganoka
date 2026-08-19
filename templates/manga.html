@@ -25,9 +25,9 @@
     <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}?v=1.2">
     <link rel="alternate" type="application/rss+xml" title="MangaNoka - Dernières sorties manga" href="https://www.manganoka.xyz/rss.xml">
     
-    <link rel="icon" href="/favicon.ico" sizes="48x48" type="image/x-icon">
-    <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="icon" href="/fr/favicon.ico" sizes="48x48" type="image/x-icon">
+    <link rel="icon" href="/fr/favicon-32x32.png" sizes="32x32" type="image/png">
+    <link rel="apple-touch-icon" href="/fr/apple-touch-icon.png">
     <link rel="icon" href="{{ url_for('static', path='/noka_logo.svg') }}" type="image/svg+xml">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     {% set desc_text = (manga.description or manga.synopsis or "Lire " ~ manga.title ~ " en ligne gratuitement sur MangaNoka. Profitez d'une expérience rapide, responsive et sans publicité.") %}
@@ -114,7 +114,7 @@
 <body>
     <header class="site-top">
         <div class="topbar">
-            <a class="brand" href="/fr">
+            <a class="brand" href="/fr/">
                 <img class="brand-logo" src="{{ url_for('static', path='/noka_logo.svg') }}" alt="MangaNoka logo">
                 <span>Manga<b>Noka</b></span>
             </a>
@@ -129,8 +129,8 @@
                 <i class="fas fa-bars" aria-hidden="true"></i>
             </button>
             <nav class="quick-links" id="quick-links" aria-label="Main navigation">
-                <a href="/fr">Accueil</a>
-                <a href="/?list=2">Dernières sorties</a>
+                <a href="/fr/">Accueil</a>
+                <a href="/fr?list=2">Dernières sorties</a>
                 <button id="theme-toggle" class="theme-toggle-btn" aria-label="Changer le thème" title="Changer le thème (Lanterne Noka)">
                     <svg class="lantern-icon" viewBox="0 0 24 24">
                         <path d="M12 2v3M9 5h6" stroke-linecap="round"/>
@@ -230,7 +230,7 @@
                     </div>
                     <nav class="chapters" aria-label="Chapter list">
                         {% for chapter in manga.chapters %}
-                            <a href="/read/{{ slug }}/{{ chapter.number }}" aria-label="Read {{ chapter.title }}">
+                            <a href="/fr/read/{{ slug }}/{{ chapter.number }}" aria-label="Read {{ chapter.title }}">
                                 <span>{{ chapter.title }}</span>
                                 {% if chapter.date %}<time datetime="{{ chapter.date }}">{{ chapter.date }}</time>{% endif %}
                             </a>
@@ -247,7 +247,7 @@
                     </div>
                     <div class="related-manga-grid" role="list" aria-label="Related manga recommendations" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 16px; padding: 16px;">
                         {% for related in related_mangas %}
-                        <a href="/manga/{{ related.slug }}" class="related-manga-card" role="listitem" aria-label="View {{ related.title }}" style="display: flex; flex-direction: column; text-decoration: none; border-radius: var(--radius-md); overflow: hidden; background: var(--surface); transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.3)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                        <a href="/fr/manga/{{ related.slug }}" class="related-manga-card" role="listitem" aria-label="View {{ related.title }}" style="display: flex; flex-direction: column; text-decoration: none; border-radius: var(--radius-md); overflow: hidden; background: var(--surface); transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.3)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
                             <div style="position: relative; width: 100%; padding-bottom: 140%; overflow: hidden; background: var(--line);">
                                 <img src="/img-proxy?url={{ related.cover }}" alt="{{ related.title }} cover" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;" onerror="this.src='/static/cover_placeholder.svg';">
                             </div>
@@ -275,7 +275,7 @@
                     <ol class="rank-list">
                         {% for chapter in manga.chapters[:8] %}
                             <li>
-                                <a href="/read/{{ slug }}/{{ chapter.number }}">{{ chapter.title }}</a>
+                                <a href="/fr/read/{{ slug }}/{{ chapter.number }}">{{ chapter.title }}</a>
                                 {% if chapter.date %}<span>{{ chapter.date }}</span>{% endif %}
                             </li>
                         {% endfor %}
@@ -298,7 +298,7 @@
         
         let str = "<ul>";
         str += results.map((r, i) => `
-            <a href="/manga/${r.slug}">
+            <a href="/fr/manga/${r.slug}">
                 <li id="${i}" class="option ${i === activeIndex ? 'selected' : ''}" style="display: flex; gap: 10px; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 8px 12px; text-align: left;">
                     <img class="search_result_img" src="/img-proxy?url=${r.cover}" style="width: 45px; height: 60px; object-fit: cover; border-radius: 4px;" onerror="this.onerror=null;this.src='/static/noka_lost.svg';" />
                     <div class="search_result_item_right" style="display: flex; flex-direction: column; overflow: hidden; flex-grow: 1;">
@@ -314,7 +314,7 @@
         str += `
             <div id="search-footer" class="searchf" style="padding: 8px 12px; background: rgba(0,0,0,0.1); text-align: center; font-size: 11.5px; color: #888;">
                 <p style="margin: 0 0 4px 0;">Voici les 20 premiers résultats de Noka.</p>
-                <p style="margin: 0;"><a href="/search?q=${query}" style="color: var(--brand); text-decoration: none; font-weight: bold;">Voir tous les résultats →</a></p>
+                <p style="margin: 0;"><a href="/fr/search?q=${query}" style="color: var(--brand); text-decoration: none; font-weight: bold;">Voir tous les résultats →</a></p>
             </div>
         `;
 
@@ -473,22 +473,22 @@
                 </a>
             </div>
             <div class=footer-links>
-                <a href="/privacy-policy" style="color: var(--brand); font-weight: bold;">Politique de confidentialité</a>
+                <a href="/fr/privacy-policy" style="color: var(--brand); font-weight: bold;">Politique de confidentialité</a>
                 <span style="color: var(--line);">--</span>
-                <a href="/terms-conditions" style="color: var(--brand); font-weight: bold;">Conditions d'utilisation</a>
+                <a href="/fr/terms-conditions" style="color: var(--brand); font-weight: bold;">Conditions d'utilisation</a>
             </div>
             <div class="footer-genres" style="margin: 20px 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; font-size: 13px;">
                 <span style="color: var(--muted); font-weight: bold; width: 100%; text-align: center; margin-bottom: 8px;">Parcourir par genre</span>
-                <a href="/genre/action" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Action</a>
-                <a href="/genre/adventure" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Adventure</a>
-                <a href="/genre/comedy" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Comedy</a>
-                <a href="/genre/drama" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Drama</a>
-                <a href="/genre/fantasy" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Fantasy</a>
-                <a href="/genre/romance" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Romance</a>
-                <a href="/genre/horror" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Horror</a>
-                <a href="/genre/mystery" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Mystery</a>
+                <a href="/fr/genre/action" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Action</a>
+                <a href="/fr/genre/adventure" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Adventure</a>
+                <a href="/fr/genre/comedy" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Comedy</a>
+                <a href="/fr/genre/drama" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Drama</a>
+                <a href="/fr/genre/fantasy" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Fantasy</a>
+                <a href="/fr/genre/romance" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Romance</a>
+                <a href="/fr/genre/horror" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Horror</a>
+                <a href="/fr/genre/mystery" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Mystery</a>
             </div>
-            <p>Pourquoi lire des <a href="/fr" style="color: var(--brand); font-weight: bold;">Manga</a> en ligne sur MangaNoka ?</p>
+            <p>Pourquoi lire des <a href="/fr/" style="color: var(--brand); font-weight: bold;">Manga</a> en ligne sur MangaNoka ?</p>
             <p style="max-width: 800px; margin: 0 auto; font-size: 12px; color: var(--faint);">
                 Il existe de nombreuses raisons de lire des manga en ligne. L'une des plus importantes est l'économie réalisée par rapport à l'achat de livres physiques. Une autre raison majeure est la richesse du catalogue disponible : contrairement aux librairies physiques limitées par leur espace, les sites de lecture en ligne offrent une sélection quasi illimitée. Vitesse maximale, sans publicité et entièrement gratuit — MangaNoka, c'est votre bibliothèque manga idéale.
             </p>

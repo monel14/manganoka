@@ -26,9 +26,9 @@
     <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}?v=1.2">
     <link rel="alternate" type="application/rss+xml" title="MangaNoka - Dernières sorties manga" href="https://www.manganoka.xyz/rss.xml">
     
-    <link rel="icon" href="/favicon.ico" sizes="48x48" type="image/x-icon">
-    <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="icon" href="/fr/favicon.ico" sizes="48x48" type="image/x-icon">
+    <link rel="icon" href="/fr/favicon-32x32.png" sizes="32x32" type="image/png">
+    <link rel="apple-touch-icon" href="/fr/apple-touch-icon.png">
     <link rel="icon" href="{{ url_for('static', path='/noka_logo.svg') }}" type="image/svg+xml">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <meta name="description" content="📚 Retrouvez tous les mangas que vous avez lus, Noka s'en souvient pour vous. Expérience rapide, responsive et sans publicité.">
@@ -84,7 +84,7 @@
             </button>
             <nav class="quick-links" id="quick-links" aria-label="Main navigation">
                 <a href="/fr">Accueil</a>
-                <a href="/?list=2">Dernières sorties</a>
+                <a href="/fr?list=2">Dernières sorties</a>
                 <button id="theme-toggle" class="theme-toggle-btn" aria-label="Changer le thème" title="Changer le thème (Lanterne Noka)">
                     <svg class="lantern-icon" viewBox="0 0 24 24">
                         <path d="M12 2v3M9 5h6" stroke-linecap="round"/>
@@ -104,7 +104,7 @@
             <section class="main-column bare">
                 <div class="breadcrumb breadcrumbs" style="margin-bottom: 20px;">
                     <p>
-                        <a href="/fr">
+                        <a href="/fr/">
                             <span>Manga Online</span>
                         </a>
                         <span>»</span>
@@ -168,7 +168,7 @@
     function renderDropdown(results) {
         if (!results.length) { dropdown.hidden = true; return; }
         dropdown.innerHTML = results.map((r, i) => `
-            <a class="sd-item" href="/manga/${r.slug}" data-index="${i}">
+            <a class="sd-item" href="/fr/manga/${r.slug}" data-index="${i}">
                 <img class="sd-thumb" src="/img-proxy?url=${r.cover}" alt="${r.title}" loading="lazy"
                      onerror="this.style.display='none'">
                 <div class="sd-info">
@@ -176,7 +176,7 @@
                     ${r.views ? `<span class="sd-views">👁 ${Number(r.views.replace(/\s/g,'')).toLocaleString('en-US')}</span>` : ''}
                 </div>
             </a>
-        `).join('') + `<div class="sd-footer">Top 20 results — <a href="/search?q=${encodeURIComponent(input.value)}">View all</a></div>`;
+        `).join('') + `<div class="sd-footer">Top 20 results — <a href="/fr/search?q=${encodeURIComponent(input.value)}">View all</a></div>`;
         activeIndex = -1;
         dropdown.hidden = false;
     }
@@ -282,7 +282,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     <img src="{{ url_for('static', path='/noka_logo.svg') }}" alt="Noka Empty Bookmarks" style="width: 120px; height: 120px; object-fit: contain; margin-bottom: 20px; opacity: 0.95;">
                     <h3 style="font-family: 'Space Grotesk', sans-serif; font-size: 18px; color: var(--ink); margin-bottom: 8px;">📚 Votre liste de favoris est vide</h3>
                     <p style="color: var(--muted); font-size: 13.5px; max-width: 420px; margin: 0 auto 20px; line-height: 1.6;">Mettez vos chapitres préférés en favoris pour que Noka les retrouve et vous notifie des nouvelles sorties !</p>
-                    <a href="/fr" class="chapter-btn" style="background: var(--brand); color: #fff; padding: 10px 25px; border-radius: var(--radius-md); font-weight: bold; text-decoration: none; display: inline-block; font-size: 13.5px; border: 0; cursor: pointer;">Trouver des mangas à mettre en favoris</a>
+                    <a href="/fr/" class="chapter-btn" style="background: var(--brand); color: #fff; padding: 10px 25px; border-radius: var(--radius-md); font-weight: bold; text-decoration: none; display: inline-block; font-size: 13.5px; border: 0; cursor: pointer;">Trouver des mangas à mettre en favoris</a>
                 </div>
             `;
             return;
@@ -290,16 +290,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
         bookmarksList.innerHTML = bookmarks.map(item => `
             <div class="user-bookmark-item" style="display: flex; gap: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; align-items: flex-start; text-align: left;">
-                <a href="/manga/${item.slug}">
+                <a href="/fr/manga/${item.slug}">
                     <img src="/img-proxy?url=${item.cover}" alt="${item.title}" style="width: 65px; height: 85px; object-fit: cover; border-radius: 4px;" onerror="this.onerror=null;this.src='/static/noka_lost.svg';">
                 </a>
                 <div class="user-bookmark-item-right" style="display: flex; flex-direction: column; gap: 6px; flex-grow: 1;">
                     <span class="bm-title" style="font-size: 15px; font-weight: bold;">
-                        <a href="/manga/${item.slug}" style="color: var(--text-color); text-decoration: none;">${item.title}</a>
+                        <a href="/fr/manga/${item.slug}" style="color: var(--text-color); text-decoration: none;">${item.title}</a>
                     </span>
                     <span style="font-size: 12px; color: var(--muted);">Ajouté le ${item.time || 'recently'}</span>
                     <div style="display: flex; gap: 12px; margin-top: 4px;">
-                        <a href="/manga/${item.slug}" class="chapter-btn" style="background: var(--brand); color: #fff; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: bold; min-width: auto; min-height: auto; box-shadow: none;">Lire les chapitres</a>
+                        <a href="/fr/manga/${item.slug}" class="chapter-btn" style="background: var(--brand); color: #fff; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: bold; min-width: auto; min-height: auto; box-shadow: none;">Lire les chapitres</a>
                         <a href="javascript:void(0);" class="btn-remove-bookmark" data-slug="${item.slug}" style="font-size: 12px; color: #e06c75; text-decoration: none; align-self: center;">Retirer des favoris</a>
                     </div>
                 </div>
@@ -330,7 +330,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     <img src="{{ url_for('static', path='/noka_logo.svg') }}" alt="Noka Perdu" style="width: 120px; height: 120px; object-fit: contain; margin-bottom: 20px; opacity: 0.95;">
                     <h3 style="font-family: 'Space Grotesk', sans-serif; font-size: 18px; color: var(--ink); margin-bottom: 8px;">😵 Oh ! Votre historique de lecture est vide</h3>
                     <p style="color: var(--muted); font-size: 13.5px; max-width: 420px; margin: 0 auto 20px; line-height: 1.6;">Noka cherche partout mais n'a trouvé aucun manga sur cet appareil. Commencez à explorer et Noka gardera la trace de vos aventures !</p>
-                    <a href="/fr" class="chapter-btn" style="background: var(--brand); color: #fff; padding: 10px 25px; border-radius: var(--radius-md); font-weight: bold; text-decoration: none; display: inline-block; font-size: 13.5px; border: 0; cursor: pointer;">Explorer !</a>
+                    <a href="/fr/" class="chapter-btn" style="background: var(--brand); color: #fff; padding: 10px 25px; border-radius: var(--radius-md); font-weight: bold; text-decoration: none; display: inline-block; font-size: 13.5px; border: 0; cursor: pointer;">Explorer !</a>
                 </div>
             `;
             return;
@@ -338,15 +338,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
         historyList.innerHTML = history.map(item => `
             <div class="user-history-item" style="display: flex; gap: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; align-items: flex-start; text-align: left;">
-                <a href="/manga/${item.slug}">
+                <a href="/fr/manga/${item.slug}">
                     <img src="/img-proxy?url=${item.cover}" alt="${item.title}" style="width: 65px; height: 85px; object-fit: cover; border-radius: 4px;" onerror="this.onerror=null;this.src='/static/noka_lost.svg';">
                 </a>
                 <div class="user-history-item-right" style="display: flex; flex-direction: column; gap: 6px; flex-grow: 1;">
                     <span class="bm-title" style="font-size: 15px; font-weight: bold;">
-                        <a href="/manga/${item.slug}" style="color: var(--text-color); text-decoration: none;">${item.title}</a>
+                        <a href="/fr/manga/${item.slug}" style="color: var(--text-color); text-decoration: none;">${item.title}</a>
                     </span>
                     <span style="font-size: 13px; color: #aaa;">Continuer la lecture :
-                        <a href="/read/${item.slug}/${item.chapter}" style="color: var(--brand); text-decoration: none; font-weight: bold; margin-left: 4px;">Chapitre ${item.chapter}</a>
+                        <a href="/fr/read/${item.slug}/${item.chapter}" style="color: var(--brand); text-decoration: none; font-weight: bold; margin-left: 4px;">Chapitre ${item.chapter}</a>
                     </span>
                     <a href="javascript:void(0);" class="btn-remove-history" data-slug="${item.slug}" style="font-size: 12px; color: #e06c75; text-decoration: none; align-self: flex-start; margin-top: 4px;">Retirer</a>
                 </div>
@@ -392,11 +392,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 </a>
             </div>
             <div class=footer-links>
-                <a href="/privacy-policy" style="color: var(--brand); font-weight: bold;">Politique de confidentialité</a>
+                <a href="/fr/privacy-policy" style="color: var(--brand); font-weight: bold;">Politique de confidentialité</a>
                 <span style="color: var(--line);">--</span>
-                <a href="/terms-conditions" style="color: var(--brand); font-weight: bold;">Conditions d'utilisation</a>
+                <a href="/fr/terms-conditions" style="color: var(--brand); font-weight: bold;">Conditions d'utilisation</a>
             </div>
-            <p>Pourquoi lire des <a href="/fr" style="color: var(--brand); font-weight: bold;">Manga</a> en ligne sur MangaNoka ?</p>
+            <p>Pourquoi lire des <a href="/fr/" style="color: var(--brand); font-weight: bold;">Manga</a> en ligne sur MangaNoka ?</p>
             <p style="max-width: 800px; margin: 0 auto; font-size: 12px; color: var(--faint);">
                 Il existe de nombreuses raisons de lire des manga en ligne. L'une des plus importantes est l'économie réalisée par rapport à l'achat de livres physiques. Une autre raison majeure est la richesse du catalogue disponible : contrairement aux librairies physiques limitées par leur espace, les sites de lecture en ligne offrent une sélection quasi illimitée. Vitesse maximale, sans publicité et entièrement gratuit — MangaNoka, c'est votre bibliothèque manga idéale.
             </p>

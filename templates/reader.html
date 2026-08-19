@@ -17,9 +17,9 @@
     <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}?v=1.2">
     <link rel="alternate" type="application/rss+xml" title="MangaNoka - Dernières sorties manga" href="https://www.manganoka.xyz/rss.xml">
     
-    <link rel="icon" href="/favicon.ico" sizes="48x48" type="image/x-icon">
-    <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="icon" href="/fr/favicon.ico" sizes="48x48" type="image/x-icon">
+    <link rel="icon" href="/fr/favicon-32x32.png" sizes="32x32" type="image/png">
+    <link rel="apple-touch-icon" href="/fr/apple-touch-icon.png">
     <link rel="icon" href="{{ url_for('static', path='/noka_logo.svg') }}" type="image/svg+xml">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <script src="{{ url_for('static', path='/theme.js') }}"></script>
@@ -112,7 +112,7 @@
 <body class="reader-body">
     <header class="site-top chapter-reader-header">
         <div class="topbar chapter-reader-topbar">
-            <a class="brand chapter-reader-brand" href="/fr">
+            <a class="brand chapter-reader-brand" href="/fr/">
                 <img class="brand-logo" src="{{ url_for('static', path='/noka_logo.svg') }}" alt="MangaNoka logo">
                 <span>Manga<b>Noka</b></span>
             </a>
@@ -136,9 +136,9 @@
     </header>
 
     <nav class="chapter-breadcrumb" aria-label="Breadcrumb">
-        <a href="/fr">Manga en ligne</a>
+        <a href="/fr/">Manga en ligne</a>
         <span>»</span>
-        <a href="/manga/{{ slug }}">{{ manga.title }}</a>
+        <a href="/fr/manga/{{ slug }}">{{ manga.title }}</a>
         <span>»</span>
         <span>Chapitre {{ chapter }}</span>
     </nav>
@@ -154,13 +154,13 @@
 
         <nav class="chapter-buttons" aria-label="Chapter navigation">
             {% if previous_chapter %}
-                <a class="chapter-btn" href="/read/{{ slug }}/{{ previous_chapter.number }}" aria-label="Go to previous chapter {{ previous_chapter.number }}">CHAP. PRÉC.</a>
+                <a class="chapter-btn" href="/fr/read/{{ slug }}/{{ previous_chapter.number }}" aria-label="Go to previous chapter {{ previous_chapter.number }}">CHAP. PRÉC.</a>
             {% else %}
                 <span class="chapter-btn disabled" aria-disabled="true">CHAP. PRÉC.</span>
             {% endif %}
-            <a class="chapter-btn home" href="/fr" aria-label="Return to home page">ACCUEIL</a>
+            <a class="chapter-btn home" href="/fr/" aria-label="Return to home page">ACCUEIL</a>
             {% if next_chapter %}
-                <a class="chapter-btn" href="/read/{{ slug }}/{{ next_chapter.number }}" aria-label="Go to next chapter {{ next_chapter.number }}">CHAP. SUIV.</a>
+                <a class="chapter-btn" href="/fr/read/{{ slug }}/{{ next_chapter.number }}" aria-label="Go to next chapter {{ next_chapter.number }}">CHAP. SUIV.</a>
             {% else %}
                 <span class="chapter-btn disabled" aria-disabled="true">CHAP. SUIV.</span>
             {% endif %}
@@ -217,13 +217,13 @@
 
         <nav class="chapter-buttons" aria-label="Chapter navigation">
             {% if previous_chapter %}
-                <a class="chapter-btn" href="/read/{{ slug }}/{{ previous_chapter.number }}" aria-label="Go to previous chapter {{ previous_chapter.number }}">CHAP. PRÉC.</a>
+                <a class="chapter-btn" href="/fr/read/{{ slug }}/{{ previous_chapter.number }}" aria-label="Go to previous chapter {{ previous_chapter.number }}">CHAP. PRÉC.</a>
             {% else %}
                 <span class="chapter-btn disabled" aria-disabled="true">CHAP. PRÉC.</span>
             {% endif %}
-            <a class="chapter-btn home" href="/fr" aria-label="Return to home page">ACCUEIL</a>
+            <a class="chapter-btn home" href="/fr/" aria-label="Return to home page">ACCUEIL</a>
             {% if next_chapter %}
-                <a class="chapter-btn" href="/read/{{ slug }}/{{ next_chapter.number }}" aria-label="Go to next chapter {{ next_chapter.number }}">CHAP. SUIV.</a>
+                <a class="chapter-btn" href="/fr/read/{{ slug }}/{{ next_chapter.number }}" aria-label="Go to next chapter {{ next_chapter.number }}">CHAP. SUIV.</a>
             {% else %}
                 <span class="chapter-btn disabled" aria-disabled="true">CHAP. SUIV.</span>
             {% endif %}
@@ -231,9 +231,9 @@
     </section>
 
     <nav class="chapter-breadcrumb chapter-breadcrumb-bottom" aria-label="Breadcrumb">
-        <a href="/fr">Manga en ligne</a>
+        <a href="/fr/">Manga en ligne</a>
         <span>»</span>
-        <a href="/manga/{{ slug }}">{{ manga.title }}</a>
+        <a href="/fr/manga/{{ slug }}">{{ manga.title }}</a>
         <span>»</span>
         <span>Chapitre {{ chapter }}</span>
     </nav>
