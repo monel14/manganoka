@@ -8,7 +8,8 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-BASE_URL = os.environ.get("BASE_URL", "https://www.manganoka.xyz").rstrip("/")
+from config import get_fr_base_url
+BASE_URL = get_fr_base_url()
 
 
 def _to_absolute(url: str) -> str:
@@ -78,7 +79,7 @@ async def ping_indexnow(urls: list[str]) -> None:
         return
 
     key = os.environ.get("INDEXNOW_KEY", "7a8e8b2fcd104ef9ac332a018af03324")
-    base_url = os.environ.get("BASE_URL", "https://www.manganoka.xyz").rstrip("/")
+    base_url = BASE_URL  # base normalisée, se termine par exactement un /fr
     host = urlparse(base_url).netloc  # hostname seul, sans le chemin /fr
 
     payload = {
