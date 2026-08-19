@@ -193,21 +193,8 @@ async def image_proxy(request: Request, url: str):
         )
     
     except Exception as exc:
-        logger.warning("Échec du chargement de l'image proxy pour %s: %s. Service de secours de l'image par défaut.", url, exc)
-        # Charger l'image par défaut locale de secours (noka_lost.svg)
-        fallback_path = Path(__file__).resolve().parent.parent / "static" / "noka_lost.svg"
-        try:
-            with open(fallback_path, "rb") as f:
-                fallback_data = f.read()
-            return make_image_response(
-                request=request,
-                image_data=fallback_data,
-                content_type="image/svg+xml",
-                max_age=604800,
-            )
-        except Exception as file_exc:
-            logger.error("Échec critique de lecture de l'image de secours locale: %s", file_exc)
-            raise HTTPException(status_code=502, detail="Source image unavailable") from exc
+        logger.warning("Échec du chargement de l'image proxy pour %s: %s", url, exc)
+        raise HTTPException(status_code=404, detail="Image unavailable") from exc
 
 
 # ==============================
@@ -253,20 +240,8 @@ async def chapter_image_semantic(request: Request, slug: str, chapter_num: str, 
             content_type=content_type,
         )
     except Exception as exc:
-        logger.warning("Échec du chargement de l'image du chapitre %s/%s page %s: %s. Service de secours de l'image par défaut.", slug, chapter_num, page_num, exc)
-        fallback_path = Path(__file__).resolve().parent.parent / "static" / "noka_lost.svg"
-        try:
-            with open(fallback_path, "rb") as f:
-                fallback_data = f.read()
-            return make_image_response(
-                request=request,
-                image_data=fallback_data,
-                content_type="image/svg+xml",
-                max_age=604800,
-            )
-        except Exception as file_exc:
-            logger.error("Échec critique de lecture de l'image de secours locale: %s", file_exc)
-            raise HTTPException(status_code=502, detail="Source image unavailable") from exc
+        logger.warning("Échec du chargement de l'image du chapitre %s/%s page %s: %s", slug, chapter_num, page_num, exc)
+        raise HTTPException(status_code=404, detail="Image unavailable") from exc
 
 
 # ==============================
@@ -308,17 +283,5 @@ async def chapter_image(request: Request, slug: str, chapter: str, page_num: int
             content_type=content_type,
         )
     except Exception as exc:
-        logger.warning("Échec du chargement de l'image alternative du chapitre %s/%s page %s: %s. Service de secours de l'image par défaut.", slug, chapter, page_num, exc)
-        fallback_path = Path(__file__).resolve().parent.parent / "static" / "noka_lost.svg"
-        try:
-            with open(fallback_path, "rb") as f:
-                fallback_data = f.read()
-            return make_image_response(
-                request=request,
-                image_data=fallback_data,
-                content_type="image/svg+xml",
-                max_age=604800,
-            )
-        except Exception as file_exc:
-            logger.error("Échec critique de lecture de l'image de secours locale: %s", file_exc)
-            raise HTTPException(status_code=502, detail="Source image unavailable") from exc
+        logger.warning("Échec du chargement de l'image alternative du chapitre %s/%s page %s: %s", slug, chapter, page_num, exc)
+        raise HTTPException(status_code=404, detail="Image unavailable") from exc
