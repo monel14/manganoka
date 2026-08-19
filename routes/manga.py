@@ -68,8 +68,8 @@ async def manga_detail(request: Request, slug: str, background_tasks: Background
 
     # Indexation + Webhook : Ne déclencher que pour les vrais utilisateurs (pas les bots)
     if not _is_bot_request(request):
-        background_tasks.add_task(ping_indexnow, [f"/manga/{slug}"])
-        background_tasks.add_task(ping_google_indexing, [f"/manga/{slug}"])
+        background_tasks.add_task(ping_indexnow, [f"/fr/manga/{slug}"])
+        background_tasks.add_task(ping_google_indexing, [f"/fr/manga/{slug}"])
         # Webhook Make.com : déclenché ici dans la route, pas dans le loader de cache
         background_tasks.add_task(_trigger_webhook, manga, slug)
     else:

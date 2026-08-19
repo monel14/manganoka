@@ -155,7 +155,7 @@
                 <img class="brand-logo" src="{{ url_for('static', path='/noka_logo.svg') }}" alt="MangaNoka logo">
                 <span>Manga<b>Noka</b></span>
             </a>
-            <form class="search-bar" action="/search" method="get" id="search-form">
+            <form class="search-bar" action="/fr/search" method="get" id="search-form">
                 <input type="text" name="q" id="search-input" placeholder="Rechercher un manga..." autocomplete="off" required>
                 <button type="submit" aria-label="Rechercher">
                     <i class="fas fa-search" aria-hidden="true"></i>
@@ -220,7 +220,7 @@
                     {% for item in popular %}
                     <div class="pop-item" style="--bg:url('/img-proxy?url={{ item.cover }}')" role="listitem">
                         <a href="/fr/manga/{{ item.slug }}" aria-label="Read {{ item.title }}{% if item.chapter.title %}, latest: {{ item.chapter.title }}{% endif %}">
-                            <img src="/img-proxy?url={{ item.cover }}" alt="{{ item.title }} cover" {% if loop.index <= 4 %}fetchpriority="high" loading="eager"{% else %}loading="lazy"{% endif %} decoding="async" width="160" height="220">
+                            <img src="/fr/img-proxy?url={{ item.cover }}" alt="{{ item.title }} cover" {% if loop.index <= 4 %}fetchpriority="high" loading="eager"{% else %}loading="lazy"{% endif %} decoding="async" width="160" height="220">
                         </a>
                         <div class="pop-overlay">
                             <h3 class="pop-title">
@@ -276,7 +276,7 @@
                     <article class="release-item">
                         <a href="/fr/manga/{{ manga.slug }}" class="release-cover" aria-label="View {{ manga.title }}">
                             {% if manga.cover %}
-                            <img src="/img-proxy?url={{ manga.cover }}" alt="{{ manga.title }} cover" loading="lazy" decoding="async" width="70" height="95" style="display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+                            <img src="/fr/img-proxy?url={{ manga.cover }}" alt="{{ manga.title }} cover" loading="lazy" decoding="async" width="70" height="95" style="display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
                             {% else %}
                             <span aria-label="{{ manga.title }} cover placeholder">{{ manga.title[:1] }}</span>
                             {% endif %}
@@ -403,7 +403,7 @@
                 str += results.map((r, i) => `
             <a href="/fr/manga/${r.slug}">
                 <li id="${i}" class="option ${i === activeIndex ? 'selected' : ''}" style="display: flex; gap: 10px; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 8px 12px; text-align: left;">
-                    <img class="search_result_img" src="/img-proxy?url=${r.cover}" style="width: 45px; height: 60px; object-fit: cover; border-radius: 4px;" />
+                    <img class="search_result_img" src="/fr/img-proxy?url=${r.cover}" style="width: 45px; height: 60px; object-fit: cover; border-radius: 4px;" />
                     <div class="search_result_item_right" style="display: flex; flex-direction: column; overflow: hidden; flex-grow: 1;">
                         <p class="search_result_row1" id="${r.slug}" style="font-size: 13.5px; font-weight: bold; margin: 0 0 4px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-color);">${r.title}</p>
                         <p class="search_result_row2" style="font-size: 11px; margin: 0 0 2px 0; color: #888; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${r.author || ''}</p>
@@ -427,7 +427,7 @@
             }
 
             function fetchResults(q) {
-                fetch(`/api/fr/search?q=${encodeURIComponent(q)}`)
+                fetch(`/fr/api/search?q=${encodeURIComponent(q)}`)
                     .then(r => r.json())
                     .then(data => renderDropdown(data.results || []))
                     .catch(() => { dropdown.hidden = true; });
@@ -502,7 +502,7 @@
                 const itemsMarkup = history.slice(0, 5).map(item => `
             <div class="history-sidebar-content-item" style="display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px; margin-top: 8px;">
                 <a rel="nofollow" href="/fr/manga/${item.slug}" class="comic-link" aria-label="${item.title}">
-                    <img src="/img-proxy?url=${item.cover}" alt="${item.title}" class="lazy" width="36" height="48" style="border-radius: 4px; object-fit: cover;">
+                    <img src="/fr/img-proxy?url=${item.cover}" alt="${item.title}" class="lazy" width="36" height="48" style="border-radius: 4px; object-fit: cover;">
                 </a>
                 <div style="display: flex; flex-direction: column; overflow: hidden; text-align: left; flex-grow: 1;">
                     <span class="history-sidebar-content-text comic-name" style="font-size: 13px; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; width: 100%;">
@@ -529,7 +529,7 @@
                 const itemsMarkup = bookmarks.slice(0, 5).map(item => `
             <div class="bookmarks-sidebar-content-item" style="display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px; margin-top: 8px;">
                 <a rel="nofollow" href="/fr/manga/${item.slug}" class="comic-link" aria-label="${item.title}">
-                    <img src="/img-proxy?url=${item.cover}" alt="${item.title}" class="lazy" width="36" height="48" style="border-radius: 4px; object-fit: cover;">
+                    <img src="/fr/img-proxy?url=${item.cover}" alt="${item.title}" class="lazy" width="36" height="48" style="border-radius: 4px; object-fit: cover;">
                 </a>
                 <div style="display: flex; flex-direction: column; overflow: hidden; text-align: left; flex-grow: 1;">
                     <span class="history-sidebar-content-text comic-name" style="font-size: 13px; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; width: 100%;">

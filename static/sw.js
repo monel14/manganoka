@@ -43,9 +43,9 @@ self.addEventListener('fetch', (e) => {
 
     // Ne pas intercepter : API, proxy d'images, routes d'administration
     if (
-        url.pathname.startsWith('/api/') ||
-        url.pathname.startsWith('/img-proxy') ||
-        url.pathname.startsWith('/img-cdn') ||
+        url.pathname.startsWith('/fr/api/') ||
+        url.pathname.startsWith('/fr/img-proxy') ||
+        url.pathname.startsWith('/fr/img-cdn') ||
         url.pathname.startsWith('/admin')
     ) {
         return;

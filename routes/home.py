@@ -77,8 +77,8 @@ async def index(
         error = "😴 Noka n'arrive pas à joindre la bibliothèque… Réessaie dans un instant !"
 
     has_next_page = list_page < total_pages
-    previous_page_url = f"/?list={list_page - 1}" if list_page > 1 else None
-    next_page_url = f"/?list={list_page + 1}" if has_next_page else None
+    previous_page_url = f"/fr/?list={list_page - 1}" if list_page > 1 else None
+    next_page_url = f"/fr/?list={list_page + 1}" if has_next_page else None
 
     return templates.TemplateResponse(
         request,
@@ -138,7 +138,7 @@ def sitemap() -> Response:
     
     # 1. URL de la page d'accueil (version française sous /fr)
     xml_lines.append("    <url>")
-    xml_lines.append(f"        <loc>{base_url}/</loc>")
+    xml_lines.append(f"        <loc>{base_url}/fr</loc>")
     xml_lines.append(f"        <lastmod>{today}</lastmod>")
     xml_lines.append("        <changefreq>daily</changefreq>")
     xml_lines.append("        <priority>1.0</priority>")
@@ -154,7 +154,7 @@ def sitemap() -> Response:
         else:
             lastmod = today
         xml_lines.append("    <url>")
-        xml_lines.append(f"        <loc>{base_url}/manga/{slug}</loc>")
+        xml_lines.append(f"        <loc>{base_url}/fr/manga/{slug}</loc>")
         xml_lines.append(f"        <lastmod>{lastmod}</lastmod>")
         xml_lines.append("        <changefreq>weekly</changefreq>")
         xml_lines.append("        <priority>0.8</priority>")
@@ -194,7 +194,7 @@ def sitemap_chapters() -> Response:
             ch_num = chapter.get("number")
             if ch_num:
                 chapters_with_time.append({
-                    "url": f"{base_url}/read/{slug}/{ch_num}",
+                    "url": f"{base_url}/fr/read/{slug}/{ch_num}",
                     "time": creation_time,
                 })
     
@@ -271,7 +271,7 @@ async def rss_feed() -> Response:
                 filename, _ = get_cache_filename(cover)
                 # Forcer l'extension en .jpg pour assurer la compatibilité universelle sur les réseaux (Pinterest, n8n, etc.)
                 filename_jpg = filename.rsplit(".", 1)[0] + ".jpg"
-                cover_url = f"{base_url}/img-cdn/{filename_jpg}"
+                cover_url = f"{base_url}/fr/img-cdn/{filename_jpg}"
             except Exception as exc:
                 logger.warning("Failed to generate proxy cover URL for RSS: %s", exc)
                 cover_url = cover
@@ -287,9 +287,9 @@ async def rss_feed() -> Response:
             pub_date_rfc = now_rfc822
 
         # Le GUID est désormais unique par chapitre pour forcer la publication automatique de Pinterest
-        unique_guid = f"{base_url}/manga/{slug}#ch-{latest_ch_num}"
+        unique_guid = f"{base_url}/fr/manga/{slug}#ch-{latest_ch_num}"
         # Le lien de l'article pointe directement vers le lecteur de chapitre si disponible pour maximiser le taux de conversion
-        chapter_link = f"{base_url}/read/{slug}/{latest_ch_num}" if chapters else f"{base_url}/manga/{slug}"
+        chapter_link = f"{base_url}/fr/read/{slug}/{latest_ch_num}" if chapters else f"{base_url}/fr/manga/{slug}"
 
         rss_items.append(f"""        <item>
             <title>Lire {title} Chapitre {latest_ch_num} en ligne gratuit </title>
@@ -304,7 +304,7 @@ async def rss_feed() -> Response:
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
     <channel>
         <title>MangaNoka - Dernières mises à jour manga</title>
-        <link>{base_url}/</link>
+        <link>{base_url}/fr</link>
         <description>Lecture de manga rapide, responsive et sans publicité.</description>
         <language>fr-fr</language>
         <lastBuildDate>{now_rfc822}</lastBuildDate>

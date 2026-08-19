@@ -123,8 +123,8 @@ async def search(
             error = "Impossible d'effectuer la recherche pour le moment."
 
     has_next_page = len(mangas) >= 20
-    previous_page_url = f"/search?q={q}&p={page - 1}" if page > 1 else None
-    next_page_url = f"/search?q={q}&p={page + 1}" if has_next_page else None
+    previous_page_url = f"/fr/search?q={q}&p={page - 1}" if page > 1 else None
+    next_page_url = f"/fr/search?q={q}&p={page + 1}" if has_next_page else None
 
     return templates.TemplateResponse(
         request,

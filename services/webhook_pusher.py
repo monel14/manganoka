@@ -159,7 +159,7 @@ async def push_to_make_webhook(manga_title: str, slug: str, latest_ch_num: str, 
             return
     
     base_url = os.environ.get("BASE_URL", "https://www.manganoka.xyz").rstrip("/")
-    guid = f"{base_url}/manga/{slug}#ch-{latest_ch_num}"
+    guid = f"{base_url}/fr/manga/{slug}#ch-{latest_ch_num}"
     
     # 1. Éviter 100 % des doublons : si le chapitre est déjà publié, on s'arrête immédiatement !
     if is_guid_posted(guid):
@@ -210,7 +210,7 @@ async def push_to_make_webhook(manga_title: str, slug: str, latest_ch_num: str, 
                     service.upload_to_s3(service.get_s3_object_key(filename), image_data, content_type)
             
             # URL finale avec extension .jpg → conversion JPEG automatique dans /img-cdn
-            image_url = f"{base_url}/img-cdn/{filename_jpg}"
+            image_url = f"{base_url}/fr/img-cdn/{filename_jpg}"
         except Exception as exc:
             logger.warning("Webhook Pusher: Échec préchargement image, utilisation og_image: %s", exc)
             image_url = f"{base_url}/static/og_image.png"
@@ -243,7 +243,7 @@ async def push_to_make_webhook(manga_title: str, slug: str, latest_ch_num: str, 
 
     payload = {
         "title": pin_title,
-        "link": f"{base_url}/read/{slug}/{latest_ch_num}",
+        "link": f"{base_url}/fr/read/{slug}/{latest_ch_num}",
         "description": seo_desc,
         "image_url": image_url,
         "guid": guid

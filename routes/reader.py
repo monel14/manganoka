@@ -98,8 +98,8 @@ async def read_chapter(request: Request, slug: str, chapter: str, background_tas
 
     # Indexation + Webhook : Ne déclencher que pour les vrais utilisateurs (pas les bots)
     if not _is_bot_request(request):
-        background_tasks.add_task(ping_indexnow, [f"/read/{slug}/{chapter}"])
-        background_tasks.add_task(ping_google_indexing, [f"/read/{slug}/{chapter}"])
+        background_tasks.add_task(ping_indexnow, [f"/fr/read/{slug}/{chapter}"])
+        background_tasks.add_task(ping_google_indexing, [f"/fr/read/{slug}/{chapter}"])
         # Webhook Make.com : déclenché ici dans la route, pas dans le loader de cache
         # Ainsi il s'exécute à chaque visite, protégé par l'anti-doublon GUID
         background_tasks.add_task(
