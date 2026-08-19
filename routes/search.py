@@ -63,7 +63,7 @@ class SearchManga(TypedDict):
     views: str
 
 
-@router.get("/api/fr/search")
+@router.get("/api/search")
 async def api_search(q: str = Query(default="", min_length=1)) -> JSONResponse:
     """Endpoint JSON pour le dropdown de recherche live."""
     normalized_q = normalize_query(q)
@@ -97,7 +97,7 @@ async def api_search(q: str = Query(default="", min_length=1)) -> JSONResponse:
     })
 
 
-@router.get("/fr/search", response_class=HTMLResponse)
+@router.get("/search", response_class=HTMLResponse)
 async def search(
     request: Request,
     q: str = Query(default="", min_length=1),
@@ -123,8 +123,8 @@ async def search(
             error = "Impossible d'effectuer la recherche pour le moment."
 
     has_next_page = len(mangas) >= 20
-    previous_page_url = f"/fr/search?q={q}&p={page - 1}" if page > 1 else None
-    next_page_url = f"/fr/search?q={q}&p={page + 1}" if has_next_page else None
+    previous_page_url = f"/search?q={q}&p={page - 1}" if page > 1 else None
+    next_page_url = f"/search?q={q}&p={page + 1}" if has_next_page else None
 
     return templates.TemplateResponse(
         request,

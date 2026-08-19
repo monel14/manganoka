@@ -161,7 +161,7 @@ class PhenixScansAPI:
                                 {
                                     "number": ch_num,
                                     "title": f"Chapitre {ch_num}",
-                                    "url": f"/fr/read/{slug}/{ch_num}",
+                                    "url": f"/read/{slug}/{ch_num}",
                                     "date": self._format_date(
                                         ch.get("createdAt", "")
                                     ),
@@ -279,7 +279,7 @@ class PhenixScansAPI:
                             {
                                 "number": ch_num,
                                 "title": f"Chapitre {ch_num}",
-                                "url": f"/fr/read/{slug}/{ch_num}",
+                                "url": f"/read/{slug}/{ch_num}",
                                 "date": self._format_date(ch.get("createdAt", "")),
                             }
                         )

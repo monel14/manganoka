@@ -26,7 +26,7 @@ async def lifespan(app: FastAPI):
     await close_phenix_api()
 
 
-app = FastAPI(title="MangaNoka", lifespan=lifespan)
+app = FastAPI(title="MangaNoka", lifespan=lifespan, root_path="/fr")
 
 # Définition du dossier de base absolu
 BASE_DIR = Path(__file__).resolve().parent
@@ -149,44 +149,13 @@ async def android_chrome_512():
 from fastapi.responses import RedirectResponse
 from urllib.parse import quote
 
-@app.get("/", include_in_schema=False)
-async def fr_root_redirect():
-    return RedirectResponse("/fr", status_code=307)
-
-@app.get("/manga/{slug}", include_in_schema=False)
-async def fr_legacy_manga(slug: str):
-    return RedirectResponse(f"/fr/manga/{slug}", status_code=301)
-
-@app.get("/read/{slug}/{chapter}", include_in_schema=False)
-async def fr_legacy_reader(slug: str, chapter: str):
-    return RedirectResponse(f"/fr/read/{slug}/{chapter}", status_code=301)
-
-@app.get("/search", include_in_schema=False)
-async def fr_legacy_search(request: Request):
-    q = request.query_params.get("q", "")
-    p = request.query_params.get("p", "")
-    target = f"/fr/search?q={quote(q)}" + (f"&p={p}" if p else "")
-    return RedirectResponse(target, status_code=301)
-
-@app.get("/history", include_in_schema=False)
-async def fr_legacy_history():
-    return RedirectResponse("/fr/history", status_code=301)
-
-@app.get("/privacy-policy", include_in_schema=False)
-async def fr_legacy_privacy():
-    return RedirectResponse("/fr/privacy-policy", status_code=301)
-
-@app.get("/terms-conditions", include_in_schema=False)
-async def fr_legacy_terms():
-    return RedirectResponse("/fr/terms-conditions", status_code=301)
-
 @app.get("/genre/{genre_slug}", include_in_schema=False)
 async def fr_legacy_genre(genre_slug: str):
-    return RedirectResponse("/fr", status_code=301)
+    return RedirectResponse("/", status_code=301)
 
 @app.get("/manga-list/{list_type}", include_in_schema=False)
 async def fr_legacy_manga_list(list_type: str):
-    return RedirectResponse("/fr", status_code=301)
+    return RedirectResponse("/", status_code=301)
 
 @app.get("/manifest.json", include_in_schema=False)
 async def manifest_json():

@@ -46,7 +46,7 @@ router = APIRouter()
 templates = Jinja2Templates(directory=str(Path(__file__).resolve().parent.parent / "templates"))
 
 
-@router.get("/fr", response_class=HTMLResponse)
+@router.get("/", response_class=HTMLResponse)
 async def index(
     request: Request,
     list_page_param: int = Query(default=1, ge=1, alias="list"),
@@ -77,8 +77,8 @@ async def index(
         error = "😴 Noka n'arrive pas à joindre la bibliothèque… Réessaie dans un instant !"
 
     has_next_page = list_page < total_pages
-    previous_page_url = f"/fr/?list={list_page - 1}" if list_page > 1 else None
-    next_page_url = f"/fr/?list={list_page + 1}" if has_next_page else None
+    previous_page_url = f"/?list={list_page - 1}" if list_page > 1 else None
+    next_page_url = f"/?list={list_page + 1}" if has_next_page else None
 
     return templates.TemplateResponse(
         request,
@@ -138,7 +138,7 @@ def sitemap() -> Response:
     
     # 1. URL de la page d'accueil (version française sous /fr)
     xml_lines.append("    <url>")
-    xml_lines.append(f"        <loc>{base_url}/fr</loc>")
+    xml_lines.append(f"        <loc>{base_url}/</loc>")
     xml_lines.append(f"        <lastmod>{today}</lastmod>")
     xml_lines.append("        <changefreq>daily</changefreq>")
     xml_lines.append("        <priority>1.0</priority>")
@@ -154,7 +154,7 @@ def sitemap() -> Response:
         else:
             lastmod = today
         xml_lines.append("    <url>")
-        xml_lines.append(f"        <loc>{base_url}/fr/manga/{slug}</loc>")
+        xml_lines.append(f"        <loc>{base_url}/manga/{slug}</loc>")
         xml_lines.append(f"        <lastmod>{lastmod}</lastmod>")
         xml_lines.append("        <changefreq>weekly</changefreq>")
         xml_lines.append("        <priority>0.8</priority>")
@@ -194,7 +194,7 @@ def sitemap_chapters() -> Response:
             ch_num = chapter.get("number")
             if ch_num:
                 chapters_with_time.append({
-                    "url": f"{base_url}/fr/read/{slug}/{ch_num}",
+                    "url": f"{base_url}/read/{slug}/{ch_num}",
                     "time": creation_time,
                 })
     
@@ -287,9 +287,9 @@ async def rss_feed() -> Response:
             pub_date_rfc = now_rfc822
 
         # Le GUID est désormais unique par chapitre pour forcer la publication automatique de Pinterest
-        unique_guid = f"{base_url}/fr/manga/{slug}#ch-{latest_ch_num}"
+        unique_guid = f"{base_url}/manga/{slug}#ch-{latest_ch_num}"
         # Le lien de l'article pointe directement vers le lecteur de chapitre si disponible pour maximiser le taux de conversion
-        chapter_link = f"{base_url}/fr/read/{slug}/{latest_ch_num}" if chapters else f"{base_url}/fr/manga/{slug}"
+        chapter_link = f"{base_url}/read/{slug}/{latest_ch_num}" if chapters else f"{base_url}/manga/{slug}"
 
         rss_items.append(f"""        <item>
             <title>Lire {title} Chapitre {latest_ch_num} en ligne gratuit </title>
@@ -304,7 +304,7 @@ async def rss_feed() -> Response:
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
     <channel>
         <title>MangaNoka - Dernières mises à jour manga</title>
-        <link>{base_url}/fr</link>
+        <link>{base_url}/</link>
         <description>Lecture de manga rapide, responsive et sans publicité.</description>
         <language>fr-fr</language>
         <lastBuildDate>{now_rfc822}</lastBuildDate>
@@ -381,7 +381,7 @@ def indexnow_key(key_file: str) -> Response:
         return Response(content=indexnow_key, media_type="text/plain; charset=utf-8")
     return Response(content="Not Found", status_code=404, media_type="text/plain; charset=utf-8")
 
-@router.get("/fr/history", response_class=HTMLResponse)
+@router.get("/history", response_class=HTMLResponse)
 def history_page(request: Request) -> HTMLResponse:
     """Sert la page d'historique de lecture dédiée."""
     return templates.TemplateResponse(
@@ -392,24 +392,24 @@ def history_page(request: Request) -> HTMLResponse:
         },
     )
 
-@router.get("/fr/privacy-policy", response_class=HTMLResponse)
+@router.get("/privacy-policy", response_class=HTMLResponse)
 def privacy_policy(request: Request) -> HTMLResponse:
     """Sert la page Privacy Policy."""
     return templates.TemplateResponse(request, "privacy.html", {"request": request})
 
-@router.get("/fr/terms-conditions", response_class=HTMLResponse)
+@router.get("/terms-conditions", response_class=HTMLResponse)
 def terms_conditions(request: Request) -> HTMLResponse:
     """Sert la page Terms & Conditions."""
     return templates.TemplateResponse(request, "terms.html", {"request": request})
 
 
-@router.get("/fr/manga-list/{list_type}", include_in_schema=False)
+@router.get("/manga-list/{list_type}", include_in_schema=False)
 async def list_mangas_page(list_type: str) -> RedirectResponse:
     """Anciennes listes MangaBats (supprimées) — redirection vers l'accueil Phenix Scans."""
-    return RedirectResponse("/fr", status_code=301)
+    return RedirectResponse("/", status_code=301)
 
 
-@router.get("/fr/genre/{genre_slug}", include_in_schema=False)
+@router.get("/genre/{genre_slug}", include_in_schema=False)
 async def genre_mangas_page(genre_slug: str) -> RedirectResponse:
     """Anciens filtres par genre MangaBats (supprimés) — redirection vers l'accueil Phenix Scans."""
-    return RedirectResponse("/fr", status_code=301)
+    return RedirectResponse("/", status_code=301)

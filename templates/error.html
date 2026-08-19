@@ -88,7 +88,7 @@
 <body>
     <header class="site-top">
         <div class="topbar">
-            <a class="brand" href="/fr">
+            <a class="brand" href="/">
                 <img class="brand-logo" src="{{ url_for('static', path='/noka_logo.svg') }}" alt="MangaNoka logo">
                 <span>Manga<b>Noka</b></span>
             </a>
@@ -103,16 +103,16 @@
             <img class="brush" src="{{ url_for('static', path='/brushstroke.svg') }}" alt="">
             <p>{{ error_message }}</p>
             <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-bottom: 24px;">
-                <a class="btn-home" href="/fr">🏮 Retour à l'accueil</a>
-                <a class="btn-home" href="/fr?list=1" style="background: var(--surface); color: var(--ink); border: 1px solid var(--line);">📚 Dernières sorties</a>
-                <a class="btn-home" href="/fr/search" style="background: var(--surface); color: var(--ink); border: 1px solid var(--line);">🔍 Rechercher un manga</a>
+                <a class="btn-home" href="/">🏮 Retour à l'accueil</a>
+                <a class="btn-home" href="/?list=1" style="background: var(--surface); color: var(--ink); border: 1px solid var(--line);">📚 Dernières sorties</a>
+                <a class="btn-home" href="/search" style="background: var(--surface); color: var(--ink); border: 1px solid var(--line);">🔍 Rechercher un manga</a>
             </div>
             <div style="margin-top: 16px; font-size: 13px; color: var(--muted);">
                 <span>Recherches populaires : </span>
-                <a href="/fr/search?q=action" style="color: var(--brand); font-weight: bold; text-decoration: none; margin: 0 4px;">Action</a> ·
-                <a href="/fr/search?q=dragon" style="color: var(--brand); font-weight: bold; text-decoration: none; margin: 0 4px;">Dragon</a> ·
-                <a href="/fr/search?q=hero" style="color: var(--brand); font-weight: bold; text-decoration: none; margin: 0 4px;">Hero</a> ·
-                <a href="/fr/search?q=romance" style="color: var(--brand); font-weight: bold; text-decoration: none; margin: 0 4px;">Romance</a>
+                <a href="/search?q=action" style="color: var(--brand); font-weight: bold; text-decoration: none; margin: 0 4px;">Action</a> ·
+                <a href="/search?q=dragon" style="color: var(--brand); font-weight: bold; text-decoration: none; margin: 0 4px;">Dragon</a> ·
+                <a href="/search?q=hero" style="color: var(--brand); font-weight: bold; text-decoration: none; margin: 0 4px;">Hero</a> ·
+                <a href="/search?q=romance" style="color: var(--brand); font-weight: bold; text-decoration: none; margin: 0 4px;">Romance</a>
             </div>
         </div>
     </main>

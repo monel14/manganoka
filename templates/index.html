@@ -151,11 +151,11 @@
 <body>
     <header class="site-top">
         <div class="topbar">
-            <a class="brand" href="/fr">
+            <a class="brand" href="/">
                 <img class="brand-logo" src="{{ url_for('static', path='/noka_logo.svg') }}" alt="MangaNoka logo">
                 <span>Manga<b>Noka</b></span>
             </a>
-            <form class="search-bar" action="/fr/search" method="get" id="search-form">
+            <form class="search-bar" action="/search" method="get" id="search-form">
                 <input type="text" name="q" id="search-input" placeholder="Rechercher un manga..." autocomplete="off" required>
                 <button type="submit" aria-label="Rechercher">
                     <i class="fas fa-search" aria-hidden="true"></i>
@@ -167,8 +167,8 @@
                 <i class="fas fa-bars" aria-hidden="true"></i>
             </button>
             <nav class="quick-links" id="quick-links" aria-label="Main navigation">
-                <a href="/fr">Accueil</a>
-                <a href="/fr?list=1">Dernières sorties</a>
+                <a href="/">Accueil</a>
+                <a href="/?list=1">Dernières sorties</a>
                 <button id="theme-toggle" class="theme-toggle-btn" aria-label="Changer le thème"
                     title="Changer le thème (Lanterne Noka)">
                     <svg class="lantern-icon" viewBox="0 0 24 24">
@@ -219,16 +219,16 @@
                 <div class="pop-carousel" id="pop-carousel" role="list" aria-label="Liste des manga populaires">
                     {% for item in popular %}
                     <div class="pop-item" style="--bg:url('/img-proxy?url={{ item.cover }}')" role="listitem">
-                        <a href="/fr/manga/{{ item.slug }}" aria-label="Read {{ item.title }}{% if item.chapter.title %}, latest: {{ item.chapter.title }}{% endif %}">
+                        <a href="/manga/{{ item.slug }}" aria-label="Read {{ item.title }}{% if item.chapter.title %}, latest: {{ item.chapter.title }}{% endif %}">
                             <img src="/img-proxy?url={{ item.cover }}" alt="{{ item.title }} cover" {% if loop.index <= 4 %}fetchpriority="high" loading="eager"{% else %}loading="lazy"{% endif %} decoding="async" width="160" height="220">
                         </a>
                         <div class="pop-overlay">
                             <h3 class="pop-title">
-                                <a href="/fr/manga/{{ item.slug }}" title="{{ item.title }}">{{ item.title }}</a>
+                                <a href="/manga/{{ item.slug }}" title="{{ item.title }}">{{ item.title }}</a>
                             </h3>
                             {% if item.chapter.title %}
                             <div class="pop-chapter">
-                                <a href="/fr/read/{{ item.slug }}/{{ item.chapter.number }}"
+                                <a href="/read/{{ item.slug }}/{{ item.chapter.number }}"
                                     title="Read {{ item.chapter.title }}"
                                     aria-label="Read {{ item.title }} {{ item.chapter.title }}">
                                     {{ item.chapter.title }}
@@ -274,7 +274,7 @@
                 <div class="release-grid">
                     {% for manga in mangas %}
                     <article class="release-item">
-                        <a href="/fr/manga/{{ manga.slug }}" class="release-cover" aria-label="View {{ manga.title }}">
+                        <a href="/manga/{{ manga.slug }}" class="release-cover" aria-label="View {{ manga.title }}">
                             {% if manga.cover %}
                             <img src="/img-proxy?url={{ manga.cover }}" alt="{{ manga.title }} cover" loading="lazy" decoding="async" width="70" height="95" style="display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
                             {% else %}
@@ -283,11 +283,11 @@
                         </a>
                         <div class="release-meta">
                             <h2>
-                                <a href="/fr/manga/{{ manga.slug }}">{{ manga.title }}</a>
+                                <a href="/manga/{{ manga.slug }}">{{ manga.title }}</a>
                             </h2>
                             <div class="chapter-list">
                                 {% for chapter in manga.chapters[:3] %}
-                                <a class="chapter-link" href="/fr/read/{{ manga.slug }}/{{ chapter.number }}" aria-label="Read {{ manga.title }} {{ chapter.title }}">
+                                <a class="chapter-link" href="/read/{{ manga.slug }}/{{ chapter.number }}" aria-label="Read {{ manga.title }} {{ chapter.title }}">
                                     <span class="chapter-title">» {{ chapter.title }}</span>
                                     {% if chapter.date %}
                                     <time class="chapter-date" datetime="{{ chapter.date }}">{{ chapter.date }}</time>
@@ -334,7 +334,7 @@
                     style="display: none; margin-bottom: 20px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--paper); padding: 12px; box-shadow: var(--shadow);">
                     <div id="bookmarks-sidebar-header" class="history-sidebar-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); padding-bottom: 8px; margin-bottom: 10px;">
                         <h3 class="history-title history-title-bold" style="margin: 0; font-size: 14px; font-weight: bold; text-transform: uppercase; color: #28a745 !important;">Favoris</h3>
-                        <a href="/fr/history?tab=bookmarks" class="history-title history-title-viewmore" aria-label="View all bookmarks" style="font-size: 11.5px; color: #28a745 !important; font-weight: bold; text-decoration: none;">Voir tout <i
+                        <a href="/history?tab=bookmarks" class="history-title history-title-viewmore" aria-label="View all bookmarks" style="font-size: 11.5px; color: #28a745 !important; font-weight: bold; text-decoration: none;">Voir tout <i
                                 class="fas fa-angle-double-right" aria-hidden="true"></i></a>
                     </div>
                 </aside>
@@ -344,7 +344,7 @@
                     style="display: none; margin-bottom: 20px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--paper); padding: 12px; box-shadow: var(--shadow);">
                     <div id="history-sidebar-header" class="history-sidebar-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); padding-bottom: 8px; margin-bottom: 10px;">
                         <h3 class="history-title history-title-bold" style="margin: 0; font-size: 14px; font-weight: bold; text-transform: uppercase; color: var(--ink);">Historique</h3>
-                        <a href="/fr/history" class="history-title history-title-viewmore" aria-label="View full reading history" style="font-size: 11.5px; color: var(--brand); font-weight: bold; text-decoration: none;">Voir plus <i
+                        <a href="/history" class="history-title history-title-viewmore" aria-label="View full reading history" style="font-size: 11.5px; color: var(--brand); font-weight: bold; text-decoration: none;">Voir plus <i
                                 class="fas fa-angle-double-right" aria-hidden="true"></i></a>
                     </div>
                 </aside>
@@ -358,7 +358,7 @@
                             style="text-align: left; padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.05);">
                             <h3
                                 style="font-size: 13px; margin: 0; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                <a href="/fr/manga/{{ item.slug }}" title="{{ item.title }}"
+                                <a href="/manga/{{ item.slug }}" title="{{ item.title }}"
                                     style="color: var(--text-color); text-decoration: none;">
                                     {{ item.title }}
                                 </a>
@@ -371,7 +371,7 @@
                             style="text-align: left; padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.05);">
                             <h3
                                 style="font-size: 13px; margin: 0; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                <a href="/fr/manga/{{ manga.slug }}" title="{{ manga.title }}"
+                                <a href="/manga/{{ manga.slug }}" title="{{ manga.title }}"
                                     style="color: var(--text-color); text-decoration: none;">
                                     {{ manga.title }}
                                 </a>
@@ -401,7 +401,7 @@
 
                 let str = "<ul>";
                 str += results.map((r, i) => `
-            <a href="/fr/manga/${r.slug}">
+            <a href="/manga/${r.slug}">
                 <li id="${i}" class="option ${i === activeIndex ? 'selected' : ''}" style="display: flex; gap: 10px; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 8px 12px; text-align: left;">
                     <img class="search_result_img" src="/img-proxy?url=${r.cover}" style="width: 45px; height: 60px; object-fit: cover; border-radius: 4px;" onerror="this.onerror=null;this.src='/static/noka_lost.svg';" />
                     <div class="search_result_item_right" style="display: flex; flex-direction: column; overflow: hidden; flex-grow: 1;">
@@ -417,7 +417,7 @@
                 str += `
             <div id="search-footer" class="searchf" style="padding: 8px 12px; background: rgba(0,0,0,0.1); text-align: center; font-size: 11.5px; color: #888;">
                 <p style="margin: 0 0 4px 0;">Voici les 20 premiers résultats de Noka.</p>
-                <p style="margin: 0;"><a href="/fr/search?q=${query}" style="color: var(--brand); text-decoration: none; font-weight: bold;">Voir tous les résultats →</a></p>
+                <p style="margin: 0;"><a href="/search?q=${query}" style="color: var(--brand); text-decoration: none; font-weight: bold;">Voir tous les résultats →</a></p>
             </div>
         `;
 
@@ -501,15 +501,15 @@
                 const header = historyList.querySelector("#history-sidebar-header");
                 const itemsMarkup = history.slice(0, 5).map(item => `
             <div class="history-sidebar-content-item" style="display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px; margin-top: 8px;">
-                <a rel="nofollow" href="/fr/manga/${item.slug}" class="comic-link" aria-label="${item.title}">
+                <a rel="nofollow" href="/manga/${item.slug}" class="comic-link" aria-label="${item.title}">
                     <img src="/img-proxy?url=${item.cover}" alt="${item.title}" class="lazy" width="36" height="48" style="border-radius: 4px; object-fit: cover;" onerror="this.onerror=null;this.src='/static/noka_lost.svg';">
                 </a>
                 <div style="display: flex; flex-direction: column; overflow: hidden; text-align: left; flex-grow: 1;">
                     <span class="history-sidebar-content-text comic-name" style="font-size: 13px; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; width: 100%;">
-                        <a rel="nofollow" href="/fr/manga/${item.slug}" class="comic-link-title" style="text-decoration: none; color: var(--text-color);">${item.title}</a>
+                        <a rel="nofollow" href="/manga/${item.slug}" class="comic-link-title" style="text-decoration: none; color: var(--text-color);">${item.title}</a>
                     </span>
                     <span class="history-sidebar-content-text" style="font-size: 11px; margin-top: 2px;">
-                        <a rel="nofollow" href="/fr/read/${item.slug}/${item.chapter}" class="chapter-link" style="text-decoration: none; color: var(--brand); font-weight: bold;">Chapitre ${item.chapter}</a>
+                        <a rel="nofollow" href="/read/${item.slug}/${item.chapter}" class="chapter-link" style="text-decoration: none; color: var(--brand); font-weight: bold;">Chapitre ${item.chapter}</a>
                     </span>
                 </div>
             </div>
@@ -528,12 +528,12 @@
                 const header = bookmarksList.querySelector("#bookmarks-sidebar-header");
                 const itemsMarkup = bookmarks.slice(0, 5).map(item => `
             <div class="bookmarks-sidebar-content-item" style="display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px; margin-top: 8px;">
-                <a rel="nofollow" href="/fr/manga/${item.slug}" class="comic-link" aria-label="${item.title}">
+                <a rel="nofollow" href="/manga/${item.slug}" class="comic-link" aria-label="${item.title}">
                     <img src="/img-proxy?url=${item.cover}" alt="${item.title}" class="lazy" width="36" height="48" style="border-radius: 4px; object-fit: cover;" onerror="this.onerror=null;this.src='/static/noka_lost.svg';">
                 </a>
                 <div style="display: flex; flex-direction: column; overflow: hidden; text-align: left; flex-grow: 1;">
                     <span class="history-sidebar-content-text comic-name" style="font-size: 13px; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; width: 100%;">
-                        <a rel="nofollow" href="/fr/manga/${item.slug}" class="comic-link-title" style="text-decoration: none; color: var(--text-color);">${item.title}</a>
+                        <a rel="nofollow" href="/manga/${item.slug}" class="comic-link-title" style="text-decoration: none; color: var(--text-color);">${item.title}</a>
                     </span>
                     <span class="history-sidebar-content-text" style="font-size: 11px; margin-top: 2px; color: var(--muted);">
                         Enregistré le : ${item.time || ''}
@@ -595,22 +595,22 @@
                 </a>
             </div>
             <div class=footer-links>
-                <a href="/fr/privacy-policy" style="color: var(--brand); font-weight: bold;">Privacy Policy</a>
+                <a href="/privacy-policy" style="color: var(--brand); font-weight: bold;">Privacy Policy</a>
                 <span style="color: var(--line);">--</span>
-                <a href="/fr/terms-conditions" style="color: var(--brand); font-weight: bold;">Terms Conditions</a>
+                <a href="/terms-conditions" style="color: var(--brand); font-weight: bold;">Terms Conditions</a>
             </div>
             <div class="footer-genres" style="margin: 20px 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; font-size: 13px;">
                 <span style="color: var(--muted); font-weight: bold; width: 100%; text-align: center; margin-bottom: 8px;">Chercher par titre</span>
-                <a href="/fr/search?q=action" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Action</a>
-                <a href="/fr/search?q=dragon" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Dragon</a>
-                <a href="/fr/search?q=hero" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Hero</a>
-                <a href="/fr/search?q=magic" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Magic</a>
-                <a href="/fr/search?q=sword" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Sword</a>
-                <a href="/fr/search?q=romance" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Romance</a>
-                <a href="/fr/search?q=reincarnation" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Réincarnation</a>
-                <a href="/fr/search?q=academy" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Academy</a>
+                <a href="/search?q=action" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Action</a>
+                <a href="/search?q=dragon" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Dragon</a>
+                <a href="/search?q=hero" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Hero</a>
+                <a href="/search?q=magic" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Magic</a>
+                <a href="/search?q=sword" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Sword</a>
+                <a href="/search?q=romance" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Romance</a>
+                <a href="/search?q=reincarnation" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Réincarnation</a>
+                <a href="/search?q=academy" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Academy</a>
             </div>
-            <p>Pourquoi <a href="/fr" style="color: var(--brand); font-weight: bold;">lire des mangas</a> en ligne sur
+            <p>Pourquoi <a href="/" style="color: var(--brand); font-weight: bold;">lire des mangas</a> en ligne sur
                 MangaNoka ?</p>
             <p style="max-width: 800px; margin: 0 auto; font-size: 12px; color: var(--faint);">
                 Lire des mangas en ligne sur MangaNoka, c'est profiter d'une expérience rapide, responsive et sans publicité.
