@@ -31,7 +31,7 @@ BUCKET_NAME = os.environ.get("N0C_BUCKET")
 ENDPOINT_URL = os.environ.get("N0C_ENDPOINT")
 ACCESS_KEY = os.environ.get("N0C_ACCESS_KEY")
 SECRET_KEY = os.environ.get("N0C_SECRET_KEY")
-BASE_URL = os.environ.get("BASE_URL", "https://manganoka.xyz/fr")
+BASE_URL = os.environ.get("BASE_URL", "https://www.manganoka.xyz")
 
 LOCAL_CACHE_DIR = (
     Path(__file__).resolve().parent.parent
