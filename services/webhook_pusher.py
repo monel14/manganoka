@@ -132,7 +132,7 @@ def is_new_manga_detection(slug: str) -> bool:
         return False  # En cas d'erreur, considérer comme existant
 
 
-async def push_to_make_webhook(manga_title: str, slug: str, latest_ch_num: str, raw_desc: str, cover: str, bakacover: str | None = None, all_chapters: list = None, is_new_manga: bool = False) -> None:
+async def push_to_make_webhook(manga_title: str, slug: str, latest_ch_num: str, raw_desc: str, cover: str, all_chapters: list = None, is_new_manga: bool = False) -> None:
     """
     Envoie en temps réel un payload JSON structuré au Webhook de Make.com.
     Utilise la table SQLite `posted_pins` pour garantir qu'un chapitre n'est envoyé qu'UNE SEULE FOIS.
@@ -159,7 +159,7 @@ async def push_to_make_webhook(manga_title: str, slug: str, latest_ch_num: str, 
             return
     
     base_url = os.environ.get("BASE_URL", "https://www.manganoka.xyz").rstrip("/")
-    guid = f"{base_url}/manga/{slug}#ch-{latest_ch_num}"
+    guid = f"{base_url}/fr/manga/{slug}#ch-{latest_ch_num}"
     
     # 1. Éviter 100 % des doublons : si le chapitre est déjà publié, on s'arrête immédiatement !
     if is_guid_posted(guid):
@@ -243,7 +243,7 @@ async def push_to_make_webhook(manga_title: str, slug: str, latest_ch_num: str, 
 
     payload = {
         "title": pin_title,
-        "link": f"{base_url}/read/{slug}/{latest_ch_num}",
+        "link": f"{base_url}/fr/read/{slug}/{latest_ch_num}",
         "description": seo_desc,
         "image_url": image_url,
         "guid": guid

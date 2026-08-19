@@ -32,14 +32,14 @@
     <meta name="twitter:card" content="summary_large_image">
     <link rel="manifest" href="{{ url_for('static', path='/manifest.json') }}">
     <meta name="theme-color" content="#17171A">
-    {% set host = request.url.netloc %}
-    {% if not host.startswith('www.') %}
-    {% set host = 'www.' ~ host %}
-    {% endif %}
-    {% set canonical_url = request.url.scheme ~ '://' ~ host ~ request.url.path %}
+    {% set base_domain = 'https://www.manganoka.xyz' %}
+    {% set fr_path = request.url.path %}
+    {% set en_path = fr_path[3:] if fr_path.startswith('/fr') else fr_path %}
+    {% set canonical_url = base_domain ~ fr_path %}
     <link rel="canonical" href="{{ canonical_url }}">
-    <link rel="alternate" hreflang="en" href="{{ canonical_url }}">
-    <link rel="alternate" hreflang="x-default" href="{{ canonical_url }}">
+    <link rel="alternate" hreflang="fr" href="{{ canonical_url }}">
+    <link rel="alternate" hreflang="en" href="{{ base_domain ~ en_path }}">
+    <link rel="alternate" hreflang="x-default" href="{{ base_domain ~ en_path }}">
     <script defer src="https://cloud.umami.is/script.js" data-website-id="83ab3ed5-3da3-4d7f-bb38-1c19953d0c57"></script>
     
     <!-- Données structurées Schema.org (JSON-LD) pour Google Rich Snippets -->
@@ -53,33 +53,33 @@
             {
               "@type": "ListItem",
               "position": 1,
-              "name": "Home",
-              "item": "https://www.manganoka.xyz/"
+              "name": "Accueil",
+              "item": "https://www.manganoka.xyz/fr"
             },
             {
               "@type": "ListItem",
               "position": 2,
               "name": {{ manga.title|tojson }},
-              "item": "https://www.manganoka.xyz/manga/{{ slug }}"
+              "item": "https://www.manganoka.xyz/fr/manga/{{ slug }}"
             },
             {
               "@type": "ListItem",
               "position": 3,
               "name": "Chapitre {{ chapter }}",
-              "item": "https://www.manganoka.xyz/read/{{ slug }}/{{ chapter }}"
+              "item": "https://www.manganoka.xyz/fr/read/{{ slug }}/{{ chapter }}"
             }
           ]
         },
         {
           "@type": ["ComicIssue", "Book"],
-          "@id": "https://www.manganoka.xyz/read/{{ slug }}/{{ chapter }}#issue",
-          "name": {{ (manga.title ~ " Chapter " ~ chapter)|tojson }},
-          "url": "https://www.manganoka.xyz/read/{{ slug }}/{{ chapter }}",
+          "@id": "https://www.manganoka.xyz/fr/read/{{ slug }}/{{ chapter }}#issue",
+          "name": {{ (manga.title ~ " Chapitre " ~ chapter)|tojson }},
+          "url": "https://www.manganoka.xyz/fr/read/{{ slug }}/{{ chapter }}",
           "issueNumber": "{{ chapter }}",
           "isPartOf": {
             "@type": "ComicSeries",
             "name": {{ manga.title|tojson }},
-            "url": "https://www.manganoka.xyz/manga/{{ slug }}"
+            "url": "https://www.manganoka.xyz/fr/manga/{{ slug }}"
           },
           "publisher": {
             "@type": "Organization",
@@ -93,7 +93,7 @@
           "@type": "ReadAction",
           "target": {
             "@type": "EntryPoint",
-            "urlTemplate": "https://www.manganoka.xyz/read/{{ slug }}/{{ chapter }}",
+            "urlTemplate": "https://www.manganoka.xyz/fr/read/{{ slug }}/{{ chapter }}",
             "actionPlatform": [
               "http://schema.org/DesktopWebPlatform",
               "http://schema.org/MobileWebPlatform"
@@ -101,8 +101,8 @@
           },
           "object": {
             "@type": "ComicIssue",
-            "name": {{ (manga.title ~ " Chapter " ~ chapter)|tojson }},
-            "url": "https://www.manganoka.xyz/read/{{ slug }}/{{ chapter }}"
+            "name": {{ (manga.title ~ " Chapitre " ~ chapter)|tojson }},
+            "url": "https://www.manganoka.xyz/fr/read/{{ slug }}/{{ chapter }}"
           }
         }
       ]
@@ -112,7 +112,7 @@
 <body class="reader-body">
     <header class="site-top chapter-reader-header">
         <div class="topbar chapter-reader-topbar">
-            <a class="brand chapter-reader-brand" href="/">
+            <a class="brand chapter-reader-brand" href="/fr">
                 <img class="brand-logo" src="{{ url_for('static', path='/noka_logo.svg') }}" alt="MangaNoka logo">
                 <span>Manga<b>Noka</b></span>
             </a>
@@ -136,9 +136,9 @@
     </header>
 
     <nav class="chapter-breadcrumb" aria-label="Breadcrumb">
-        <a href="/">Manga en ligne</a>
+        <a href="/fr">Manga en ligne</a>
         <span>»</span>
-        <a href="/manga/{{ slug }}">{{ manga.title }}</a>
+        <a href="/fr/manga/{{ slug }}">{{ manga.title }}</a>
         <span>»</span>
         <span>Chapitre {{ chapter }}</span>
     </nav>
@@ -154,13 +154,13 @@
 
         <nav class="chapter-buttons" aria-label="Chapter navigation">
             {% if previous_chapter %}
-                <a class="chapter-btn" href="/read/{{ slug }}/{{ previous_chapter.number }}" aria-label="Go to previous chapter {{ previous_chapter.number }}">CHAP. PRÉC.</a>
+                <a class="chapter-btn" href="/fr/read/{{ slug }}/{{ previous_chapter.number }}" aria-label="Go to previous chapter {{ previous_chapter.number }}">CHAP. PRÉC.</a>
             {% else %}
                 <span class="chapter-btn disabled" aria-disabled="true">CHAP. PRÉC.</span>
             {% endif %}
-            <a class="chapter-btn home" href="/" aria-label="Return to home page">ACCUEIL</a>
+            <a class="chapter-btn home" href="/fr" aria-label="Return to home page">ACCUEIL</a>
             {% if next_chapter %}
-                <a class="chapter-btn" href="/read/{{ slug }}/{{ next_chapter.number }}" aria-label="Go to next chapter {{ next_chapter.number }}">CHAP. SUIV.</a>
+                <a class="chapter-btn" href="/fr/read/{{ slug }}/{{ next_chapter.number }}" aria-label="Go to next chapter {{ next_chapter.number }}">CHAP. SUIV.</a>
             {% else %}
                 <span class="chapter-btn disabled" aria-disabled="true">CHAP. SUIV.</span>
             {% endif %}
@@ -217,13 +217,13 @@
 
         <nav class="chapter-buttons" aria-label="Chapter navigation">
             {% if previous_chapter %}
-                <a class="chapter-btn" href="/read/{{ slug }}/{{ previous_chapter.number }}" aria-label="Go to previous chapter {{ previous_chapter.number }}">CHAP. PRÉC.</a>
+                <a class="chapter-btn" href="/fr/read/{{ slug }}/{{ previous_chapter.number }}" aria-label="Go to previous chapter {{ previous_chapter.number }}">CHAP. PRÉC.</a>
             {% else %}
                 <span class="chapter-btn disabled" aria-disabled="true">CHAP. PRÉC.</span>
             {% endif %}
-            <a class="chapter-btn home" href="/" aria-label="Return to home page">ACCUEIL</a>
+            <a class="chapter-btn home" href="/fr" aria-label="Return to home page">ACCUEIL</a>
             {% if next_chapter %}
-                <a class="chapter-btn" href="/read/{{ slug }}/{{ next_chapter.number }}" aria-label="Go to next chapter {{ next_chapter.number }}">CHAP. SUIV.</a>
+                <a class="chapter-btn" href="/fr/read/{{ slug }}/{{ next_chapter.number }}" aria-label="Go to next chapter {{ next_chapter.number }}">CHAP. SUIV.</a>
             {% else %}
                 <span class="chapter-btn disabled" aria-disabled="true">CHAP. SUIV.</span>
             {% endif %}
@@ -231,9 +231,9 @@
     </section>
 
     <nav class="chapter-breadcrumb chapter-breadcrumb-bottom" aria-label="Breadcrumb">
-        <a href="/">Manga en ligne</a>
+        <a href="/fr">Manga en ligne</a>
         <span>»</span>
-        <a href="/manga/{{ slug }}">{{ manga.title }}</a>
+        <a href="/fr/manga/{{ slug }}">{{ manga.title }}</a>
         <span>»</span>
         <span>Chapitre {{ chapter }}</span>
     </nav>
@@ -411,5 +411,5 @@
         }
     });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a27de7f1cef15710',t:'MTc4NjE4NTY1OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2d509c07d939a38',t:'MTc4NzA5OTMwNQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

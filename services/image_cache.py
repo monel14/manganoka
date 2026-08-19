@@ -33,8 +33,6 @@ ALLOWED_DOMAINS = {
     "api.phenix-scans.co",
     "img-r1.2xstorage.com",
     "img-r2.2xstorage.com",
-    "images.mangabaka.dev",
-    "mangabaka.dev",
 }
 
 

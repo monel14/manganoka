@@ -20,7 +20,7 @@ def _is_bot_request(request: Request) -> bool:
     return any(pattern in user_agent for pattern in bot_patterns)
 
 from cache import MANGA_TTL_SECONDS, cache
-from scraper.parser import MangaDetail
+from models import MangaDetail
 from services.indexnow import ping_indexnow
 from services.google_indexing import ping_google_indexing
 from services.phenix_scans import get_phenix_api
@@ -30,7 +30,7 @@ router = APIRouter()
 templates = Jinja2Templates(directory=str(Path(__file__).resolve().parent.parent / "templates"))
 
 
-@router.get("/manga/{slug}", response_class=HTMLResponse)
+@router.get("/fr/manga/{slug}", response_class=HTMLResponse)
 async def manga_detail(request: Request, slug: str, background_tasks: BackgroundTasks) -> HTMLResponse:
     # Récupérer le slug brut non-décodé depuis la socket HTTP
     raw_path_bytes = request.scope.get("raw_path")
@@ -68,8 +68,8 @@ async def manga_detail(request: Request, slug: str, background_tasks: Background
 
     # Indexation + Webhook : Ne déclencher que pour les vrais utilisateurs (pas les bots)
     if not _is_bot_request(request):
-        background_tasks.add_task(ping_indexnow, [f"/manga/{slug}"])
-        background_tasks.add_task(ping_google_indexing, [f"/manga/{slug}"])
+        background_tasks.add_task(ping_indexnow, [f"/fr/manga/{slug}"])
+        background_tasks.add_task(ping_google_indexing, [f"/fr/manga/{slug}"])
         # Webhook Make.com : déclenché ici dans la route, pas dans le loader de cache
         background_tasks.add_task(_trigger_webhook, manga, slug)
     else:
@@ -106,7 +106,6 @@ async def _trigger_webhook(manga: MangaDetail, slug: str) -> None:
                     latest_ch_num=first_ch_num,
                     raw_desc=manga.get("description"),
                     cover=manga.get("cover"),
-                    bakacover=manga.get("bakacover"),
                     all_chapters=chapters,
                     is_new_manga=True,
                 )
@@ -119,7 +118,6 @@ async def _trigger_webhook(manga: MangaDetail, slug: str) -> None:
             latest_ch_num=latest_ch_num,
             raw_desc=manga.get("description"),
             cover=manga.get("cover"),
-            bakacover=manga.get("bakacover"),
             all_chapters=chapters,
             is_new_manga=False,
         )

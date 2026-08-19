@@ -14,14 +14,14 @@
       gtag('config', 'G-EXEWN0JKT1');
     </script>
     <title>{{ manga.title }} - Lire en ligne gratuitement - MangaNoka</title>
-    {% set host = request.url.netloc %}
-    {% if not host.startswith('www.') %}
-    {% set host = 'www.' ~ host %}
-    {% endif %}
-    {% set canonical_url = request.url.scheme ~ '://' ~ host ~ request.url.path %}
+    {% set base_domain = 'https://www.manganoka.xyz' %}
+    {% set fr_path = request.url.path %}
+    {% set en_path = fr_path[3:] if fr_path.startswith('/fr') else fr_path %}
+    {% set canonical_url = base_domain ~ fr_path %}
     <link rel="canonical" href="{{ canonical_url }}">
-    <link rel="alternate" hreflang="en" href="{{ canonical_url }}">
-    <link rel="alternate" hreflang="x-default" href="{{ canonical_url }}">
+    <link rel="alternate" hreflang="fr" href="{{ canonical_url }}">
+    <link rel="alternate" hreflang="en" href="{{ base_domain ~ en_path }}">
+    <link rel="alternate" hreflang="x-default" href="{{ base_domain ~ en_path }}">
     <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}?v=1.2">
     <link rel="alternate" type="application/rss+xml" title="MangaNoka - Dernières sorties manga" href="https://www.manganoka.xyz/rss.xml">
     
@@ -30,12 +30,10 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <link rel="icon" href="{{ url_for('static', path='/noka_logo.svg') }}" type="image/svg+xml">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    {% set desc_text = (manga.baka_description or manga.description or "Read " ~ manga.title ~ " online for free on MangaNoka. Enjoy a fast, responsive, and ad-free manga reading experience.") %}
+    {% set desc_text = (manga.description or manga.synopsis or "Lire " ~ manga.title ~ " en ligne gratuitement sur MangaNoka. Profitez d'une expérience rapide, responsive et sans publicité.") %}
     {% set short_desc = (desc_text[:152] ~ "...") if desc_text|length > 155 else desc_text %}
     <meta name="description" content="{{ short_desc }}">
-    {% if manga.alt_titles %}
-    <meta name="keywords" content="read {{ manga.title }} online, {% for alt in manga.alt_titles %}{{ alt.lower() }}, {% endfor %}free manga online, read manhwa, read webtoon">
-    {% endif %}
+    <meta name="keywords" content="lire {{ manga.title }} en ligne, manga {{ manga.title }}, scan {{ manga.title }}, manhwa, webtoon, MangaNoka">
     <meta property="og:site_name" content="MangaNoka">
     <meta property="og:type" content="book">
     <meta property="og:title" content="{{ manga.title }} - MangaNoka">
@@ -48,6 +46,7 @@
     <script defer src="https://cloud.umami.is/script.js" data-website-id="83ab3ed5-3da3-4d7f-bb38-1c19953d0c57"></script>
     
     <!-- Données structurées Schema.org (JSON-LD) pour Google Rich Snippets -->
+    {% set base_url = request.url.scheme ~ '://' ~ request.url.netloc %}
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -58,56 +57,53 @@
             {
               "@type": "ListItem",
               "position": 1,
-              "name": "Home",
-              "item": "https://www.manganoka.xyz/"
+              "name": "Accueil",
+              "item": "{{ base_url }}/fr"
             },
             {
               "@type": "ListItem",
               "position": 2,
               "name": {{ manga.title|tojson }},
-              "item": "https://www.manganoka.xyz/manga/{{ slug }}"
+              "item": "{{ base_url }}/fr/manga/{{ slug }}"
             }
           ]
         },
         {
           "@type": ["ComicSeries", "Book"],
-          "@id": "https://www.manganoka.xyz/manga/{{ slug }}#series",
+          "@id": "{{ base_url }}/fr/manga/{{ slug }}#series",
           "name": {{ manga.title|tojson }},
-          {% if manga.alt_titles %}
-          "alternateName": {{ manga.alt_titles|tojson }},
-          {% endif %}
-          "url": "https://www.manganoka.xyz/manga/{{ slug }}",
-          "mainEntityOfPage": "https://www.manganoka.xyz/manga/{{ slug }}",
+          "url": "{{ base_url }}/fr/manga/{{ slug }}",
+          "mainEntityOfPage": "{{ base_url }}/fr/manga/{{ slug }}",
           "image": "{{ manga.cover }}",
-          "description": {{ (manga.baka_description or manga.description)|tojson }},
-          {% if manga.author or manga.baka_authors %}
+          "description": {{ desc_text|tojson }},
+          {% if manga.author and manga.author != 'Inconnu' %}
           "author": {
             "@type": "Person",
-            "name": {{ (manga.baka_authors[0] if manga.baka_authors else manga.author)|tojson }}
+            "name": {{ manga.author|tojson }}
           },
           {% endif %}
           "publisher": {
             "@type": "Organization",
             "name": "MangaNoka",
-            "url": "https://www.manganoka.xyz/",
+            "url": "{{ base_url }}/fr",
             "logo": {
               "@type": "ImageObject",
-              "url": "https://www.manganoka.xyz/static/icon512.png"
+              "url": "{{ base_url }}/static/icon512.png"
             }
           },
-          {% if manga.baka_rating %}
+          {% if manga.rating %}
           "aggregateRating": {
             "@type": "AggregateRating",
-            "ratingValue": "{{ manga.baka_rating }}",
-            "bestRating": "5",
-            "worstRating": "1",
-            "ratingCount": "{{ manga.baka_rating_votes or '1000' }}"
+            "ratingValue": "{{ manga.rating }}",
+            "bestRating": "10",
+            "worstRating": "0",
+            "ratingCount": "100"
           },
           {% endif %}
           {% if manga.genres %}
           "genre": {{ manga.genres|tojson }},
           {% endif %}
-          "inLanguage": "en",
+          "inLanguage": "fr",
           "bookFormat": "http://schema.org/EBook",
           "isAccessibleForFree": true
         }
@@ -118,11 +114,11 @@
 <body>
     <header class="site-top">
         <div class="topbar">
-            <a class="brand" href="/">
+            <a class="brand" href="/fr">
                 <img class="brand-logo" src="{{ url_for('static', path='/noka_logo.svg') }}" alt="MangaNoka logo">
                 <span>Manga<b>Noka</b></span>
             </a>
-            <form class="search-bar" action="/search" method="get" id="search-form">
+            <form class="search-bar" action="/fr/search" method="get" id="search-form">
                 <input type="text" name="q" id="search-input" placeholder="Rechercher un manga..." autocomplete="off" required>
                 <button type="submit" aria-label="Rechercher">
                     <i class="fas fa-search" aria-hidden="true"></i>
@@ -133,8 +129,8 @@
                 <i class="fas fa-bars" aria-hidden="true"></i>
             </button>
             <nav class="quick-links" id="quick-links" aria-label="Main navigation">
-                <a href="/">Accueil</a>
-                <a href="/?list=2">Dernières sorties</a>
+                <a href="/fr">Accueil</a>
+                <a href="/fr/?list=2">Dernières sorties</a>
                 <button id="theme-toggle" class="theme-toggle-btn" aria-label="Changer le thème" title="Changer le thème (Lanterne Noka)">
                     <svg class="lantern-icon" viewBox="0 0 24 24">
                         <path d="M12 2v3M9 5h6" stroke-linecap="round"/>
@@ -180,59 +176,50 @@
                             </div>
                         </div>
                         <dl class="info-list">
-                            {% if manga.baka_authors or manga.author %}
-                                <div><dt>Auteur</dt><dd>{{ manga.baka_authors[0] if manga.baka_authors else manga.author }}</dd></div>
+                            {% if manga.author and manga.author != 'Inconnu' %}
+                                <div><dt>Auteur</dt><dd>{{ manga.author }}</dd></div>
                             {% endif %}
-                            {% if manga.baka_status or manga.status %}
+                            {% if manga.status %}
                                 <div><dt>Statut</dt><dd>
-                                    {% if manga.baka_status == 'releasing' %}
+                                    {% if manga.status|lower in ['ongoing', 'releasing', 'en cours'] %}
                                         🟢 En cours
-                                    {% elif manga.baka_status == 'completed' %}
+                                    {% elif manga.status|lower in ['completed', 'terminé', 'termine'] %}
                                         🔴 Terminé
-                                    {% elif manga.baka_status == 'hiatus' %}
+                                    {% elif manga.status|lower in ['hiatus', 'en pause'] %}
                                         ⏸️ En pause
-                                    {% elif manga.baka_status == 'cancelled' %}
+                                    {% elif manga.status|lower in ['cancelled', 'canceled', 'annulé', 'annule'] %}
                                         ❌ Annulé
                                     {% else %}
                                         {{ manga.status }}
                                     {% endif %}
                                 </dd></div>
                             {% endif %}
-                            {% if manga.baka_rating %}
-                                <div><dt>Note</dt><dd style="display: flex; align-items: center; gap: 6px;">
-                                    <span style="color: #FFD700; font-size: 14px;" aria-label="{{ manga.baka_rating }} out of 5 stars">
-                                        {% for i in range(5) %}
-                                            {% if i < (manga.baka_rating|round|int) %}
-                                                ⭐
-                                            {% else %}
-                                                ☆
-                                            {% endif %}
-                                        {% endfor %}
+                            {% if manga.rating %}
+                                <div><dt>Note</dt><dd>
+                                    <span style="color: #FFD700; font-size: 14px;" aria-label="{{ manga.rating }} sur 10">
+                                        ⭐
                                     </span>
-                                    <span style="font-weight: bold; color: var(--brand);">{{ manga.baka_rating }}/5</span>
+                                    <span style="font-weight: bold; color: var(--brand);">{{ manga.rating }}/10</span>
                                 </dd></div>
-                            {% elif manga.rating %}
-                                <div><dt>Note</dt><dd>{{ manga.rating }}</dd></div>
                             {% endif %}
-                            {% if manga.baka_year %}
-                                <div><dt>Année</dt><dd>{{ manga.baka_year }}</dd></div>
+                            {% if manga.type %}
+                                <div><dt>Type</dt><dd>{{ manga.type }}</dd></div>
                             {% endif %}
                             {% if manga.genres %}
                                 <div style="grid-column: span 3; border-top: 1px solid var(--line); padding: 12px 16px;">
                                     <dt style="margin-bottom: 8px;">Genres</dt>
                                     <dd style="display: flex; flex-wrap: wrap; gap: 8px;">
                                         {% for genre in manga.genres %}
-                                            <a href="/genre/{{ genre|lower }}" style="background: var(--brand); color: #fff; padding: 4px 10px; border-radius: var(--radius-sm); font-size: 12px; text-decoration: none; font-weight: bold; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">{{ genre|capitalize }}</a>
+                                            <span style="background: var(--brand); color: #fff; padding: 4px 10px; border-radius: var(--radius-sm); font-size: 12px; font-weight: bold;">{{ genre }}</span>
                                         {% endfor %}
                                     </dd>
                                 </div>
                             {% endif %}
-                            {% if manga.alt_titles %}
-                                <div style="grid-column: span 3; border-top: 1px solid var(--line); padding: 12px 16px;"><dt>Titres alternatifs</dt><dd style="font-weight: 500; font-size: 13px; color: var(--muted); line-height: 1.5;">{% for alt in manga.alt_titles %}{{ alt }}{% if not loop.last %} · {% endif %}{% endfor %}</dd></div>
-                            {% endif %}
                         </dl>
-                        {% if manga.baka_description or manga.description %}
-                            <p class="description" style="white-space: pre-line;">{{ manga.baka_description or manga.description }}</p>
+                        {% if manga.description or manga.synopsis %}
+                            <p class="description" style="white-space: pre-line;">{{ manga.description or manga.synopsis }}</p>
+                        {% else %}
+                            <p class="description" style="white-space: pre-line; color: var(--muted);">📝 Aucune description disponible pour ce manga pour le moment.</p>
                         {% endif %}
                     </div>
                 </article>
@@ -243,7 +230,7 @@
                     </div>
                     <nav class="chapters" aria-label="Chapter list">
                         {% for chapter in manga.chapters %}
-                            <a href="/read/{{ slug }}/{{ chapter.number }}" aria-label="Read {{ chapter.title }}">
+                            <a href="/fr/read/{{ slug }}/{{ chapter.number }}" aria-label="Read {{ chapter.title }}">
                                 <span>{{ chapter.title }}</span>
                                 {% if chapter.date %}<time datetime="{{ chapter.date }}">{{ chapter.date }}</time>{% endif %}
                             </a>
@@ -260,7 +247,7 @@
                     </div>
                     <div class="related-manga-grid" role="list" aria-label="Related manga recommendations" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 16px; padding: 16px;">
                         {% for related in related_mangas %}
-                        <a href="/manga/{{ related.slug }}" class="related-manga-card" role="listitem" aria-label="View {{ related.title }}" style="display: flex; flex-direction: column; text-decoration: none; border-radius: var(--radius-md); overflow: hidden; background: var(--surface); transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.3)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                        <a href="/fr/manga/{{ related.slug }}" class="related-manga-card" role="listitem" aria-label="View {{ related.title }}" style="display: flex; flex-direction: column; text-decoration: none; border-radius: var(--radius-md); overflow: hidden; background: var(--surface); transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.3)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
                             <div style="position: relative; width: 100%; padding-bottom: 140%; overflow: hidden; background: var(--line);">
                                 <img src="/img-proxy?url={{ related.cover }}" alt="{{ related.title }} cover" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;" onerror="this.src='/static/cover_placeholder.svg';">
                             </div>
@@ -288,7 +275,7 @@
                     <ol class="rank-list">
                         {% for chapter in manga.chapters[:8] %}
                             <li>
-                                <a href="/read/{{ slug }}/{{ chapter.number }}">{{ chapter.title }}</a>
+                                <a href="/fr/read/{{ slug }}/{{ chapter.number }}">{{ chapter.title }}</a>
                                 {% if chapter.date %}<span>{{ chapter.date }}</span>{% endif %}
                             </li>
                         {% endfor %}
@@ -311,7 +298,7 @@
         
         let str = "<ul>";
         str += results.map((r, i) => `
-            <a href="/manga/${r.slug}">
+            <a href="/fr/manga/${r.slug}">
                 <li id="${i}" class="option ${i === activeIndex ? 'selected' : ''}" style="display: flex; gap: 10px; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 8px 12px; text-align: left;">
                     <img class="search_result_img" src="/img-proxy?url=${r.cover}" style="width: 45px; height: 60px; object-fit: cover; border-radius: 4px;" onerror="this.onerror=null;this.src='/static/noka_lost.svg';" />
                     <div class="search_result_item_right" style="display: flex; flex-direction: column; overflow: hidden; flex-grow: 1;">
@@ -327,7 +314,7 @@
         str += `
             <div id="search-footer" class="searchf" style="padding: 8px 12px; background: rgba(0,0,0,0.1); text-align: center; font-size: 11.5px; color: #888;">
                 <p style="margin: 0 0 4px 0;">Voici les 20 premiers résultats de Noka.</p>
-                <p style="margin: 0;"><a href="/search?q=${query}" style="color: var(--brand); text-decoration: none; font-weight: bold;">Voir tous les résultats →</a></p>
+                <p style="margin: 0;"><a href="/fr/search?q=${query}" style="color: var(--brand); text-decoration: none; font-weight: bold;">Voir tous les résultats →</a></p>
             </div>
         `;
 
@@ -337,7 +324,7 @@
     }
 
     function fetchResults(q) {
-        fetch(`/api/search?q=${encodeURIComponent(q)}`)
+        fetch(`/api/fr/search?q=${encodeURIComponent(q)}`)
             .then(r => r.json())
             .then(data => renderDropdown(data.results || []))
             .catch(() => { dropdown.hidden = true; });
@@ -486,22 +473,22 @@
                 </a>
             </div>
             <div class=footer-links>
-                <a href="/privacy-policy" style="color: var(--brand); font-weight: bold;">Politique de confidentialité</a>
+                <a href="/fr/privacy-policy" style="color: var(--brand); font-weight: bold;">Politique de confidentialité</a>
                 <span style="color: var(--line);">--</span>
-                <a href="/terms-conditions" style="color: var(--brand); font-weight: bold;">Conditions d'utilisation</a>
+                <a href="/fr/terms-conditions" style="color: var(--brand); font-weight: bold;">Conditions d'utilisation</a>
             </div>
             <div class="footer-genres" style="margin: 20px 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; font-size: 13px;">
                 <span style="color: var(--muted); font-weight: bold; width: 100%; text-align: center; margin-bottom: 8px;">Parcourir par genre</span>
-                <a href="/genre/action" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Action</a>
-                <a href="/genre/adventure" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Adventure</a>
-                <a href="/genre/comedy" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Comedy</a>
-                <a href="/genre/drama" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Drama</a>
-                <a href="/genre/fantasy" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Fantasy</a>
-                <a href="/genre/romance" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Romance</a>
-                <a href="/genre/horror" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Horror</a>
-                <a href="/genre/mystery" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Mystery</a>
+                <a href="/fr/genre/action" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Action</a>
+                <a href="/fr/genre/adventure" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Adventure</a>
+                <a href="/fr/genre/comedy" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Comedy</a>
+                <a href="/fr/genre/drama" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Drama</a>
+                <a href="/fr/genre/fantasy" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Fantasy</a>
+                <a href="/fr/genre/romance" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Romance</a>
+                <a href="/fr/genre/horror" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Horror</a>
+                <a href="/fr/genre/mystery" style="color: var(--ink); padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--ink)';">Mystery</a>
             </div>
-            <p>Pourquoi lire des <a href="/" style="color: var(--brand); font-weight: bold;">Manga</a> en ligne sur MangaNoka ?</p>
+            <p>Pourquoi lire des <a href="/fr" style="color: var(--brand); font-weight: bold;">Manga</a> en ligne sur MangaNoka ?</p>
             <p style="max-width: 800px; margin: 0 auto; font-size: 12px; color: var(--faint);">
                 Il existe de nombreuses raisons de lire des manga en ligne. L'une des plus importantes est l'économie réalisée par rapport à l'achat de livres physiques. Une autre raison majeure est la richesse du catalogue disponible : contrairement aux librairies physiques limitées par leur espace, les sites de lecture en ligne offrent une sélection quasi illimitée. Vitesse maximale, sans publicité et entièrement gratuit — MangaNoka, c'est votre bibliothèque manga idéale.
             </p>
@@ -528,5 +515,5 @@
         </div>
     </footer>
 
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a20a3a7c0fbd14ed',t:'MTc4NDk3MjY5MQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a20f17487883281b',t:'MTc4NTAyMzY3OA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a21aa28bef322dae',t:'MTc4NTE0NDcyNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a22bfb336d4d566e',t:'MTc4NTMyNjYxNQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2490a1288fd58af',t:'MTc4NTYzMTMxMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a272b3bd68495d4f',t:'MTc4NjA2ODE3Nw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a27e47a309fd6a5a',t:'MTc4NjE4OTU3OA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2d509094aeb9a38',t:'MTc4NzA5OTI3NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

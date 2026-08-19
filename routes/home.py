@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import APIRouter, Query, Request, Response
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from cache import HOME_TTL_SECONDS, MANGA_TTL_SECONDS, cache
@@ -46,9 +46,12 @@ router = APIRouter()
 templates = Jinja2Templates(directory=str(Path(__file__).resolve().parent.parent / "templates"))
 
 
-@router.get("/", response_class=HTMLResponse)
-async def index(request: Request, list: int = Query(default=1, ge=1)) -> HTMLResponse:
-    list_page = list
+@router.get("/fr", response_class=HTMLResponse)
+async def index(
+    request: Request,
+    list_page_param: int = Query(default=1, ge=1, alias="list"),
+) -> HTMLResponse:
+    list_page = list_page_param
     error: str | None = None
 
     try:
@@ -58,8 +61,9 @@ async def index(request: Request, list: int = Query(default=1, ge=1)) -> HTMLRes
             lambda: get_phenix_api().get_latest_mangas(page=list_page),
         )
         # get_latest_mangas retourne un tuple (mangas, total_pages)
+        total_pages = 1
         if isinstance(result, (list, tuple)) and len(result) == 2:
-            mangas, _ = result
+            mangas, total_pages = result
         else:
             mangas = result if isinstance(result, list) else []
         popular = []
@@ -69,11 +73,12 @@ async def index(request: Request, list: int = Query(default=1, ge=1)) -> HTMLRes
         mangas = []
         popular = []
         popular_sidebar = []
+        total_pages = 1
         error = "😴 Noka n'arrive pas à joindre la bibliothèque… Réessaie dans un instant !"
 
-    has_next_page = bool(mangas)
-    previous_page_url = f"/?list={list_page - 1}" if list_page > 1 else None
-    next_page_url = f"/?list={list_page + 1}" if has_next_page else None
+    has_next_page = list_page < total_pages
+    previous_page_url = f"/fr/?list={list_page - 1}" if list_page > 1 else None
+    next_page_url = f"/fr/?list={list_page + 1}" if has_next_page else None
 
     return templates.TemplateResponse(
         request,
@@ -118,12 +123,12 @@ def sitemap() -> Response:
     base_url = os.environ.get("BASE_URL", "https://www.manganoka.xyz").rstrip("/")
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     
-    # Récupérer toutes les clés de manga du cache (ex: 'manga:Dan%252C-the-Bat...')
+    # Récupérer toutes les clés de manga du cache (ex: 'manga:fr:death-penalty')
     manga_keys = cache.get_keys_by_prefix("manga:")
-    slugs = []
+    entries = []  # (clé complète, slug)
     for key in manga_keys:
         if ":" in key:
-            slugs.append(key.split(":", 1)[1])
+            entries.append((key, key.rsplit(":", 1)[1]))
 
     # Génération du contenu XML
     xml_lines = [
@@ -131,25 +136,25 @@ def sitemap() -> Response:
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
     ]
     
-    # 1. URL de la page d'accueil
+    # 1. URL de la page d'accueil (version française sous /fr)
     xml_lines.append("    <url>")
-    xml_lines.append(f"        <loc>{base_url}/</loc>")
+    xml_lines.append(f"        <loc>{base_url}/fr</loc>")
     xml_lines.append(f"        <lastmod>{today}</lastmod>")
     xml_lines.append("        <changefreq>daily</changefreq>")
     xml_lines.append("        <priority>1.0</priority>")
     xml_lines.append("    </url>")
     
     # 2. URLs de tous les mangas en cache
-    for slug in slugs:
+    for key, slug in entries:
         # Calculer la date de création du cache pour un lastmod précis
-        _manga, expires = _cache_get_with_expiry(f"manga:{slug}")
+        _manga, expires = _cache_get_with_expiry(key)
         if expires:
             creation_time = expires - MANGA_TTL_SECONDS
             lastmod = datetime.fromtimestamp(creation_time, tz=timezone.utc).strftime("%Y-%m-%d")
         else:
             lastmod = today
         xml_lines.append("    <url>")
-        xml_lines.append(f"        <loc>{base_url}/manga/{slug}</loc>")
+        xml_lines.append(f"        <loc>{base_url}/fr/manga/{slug}</loc>")
         xml_lines.append(f"        <lastmod>{lastmod}</lastmod>")
         xml_lines.append("        <changefreq>weekly</changefreq>")
         xml_lines.append("        <priority>0.8</priority>")
@@ -175,8 +180,8 @@ def sitemap_chapters() -> Response:
     for key in manga_keys:
         if ":" not in key:
             continue
-        slug = key.split(":", 1)[1]
-        manga, expires = _cache_get_with_expiry(f"manga:{slug}")
+        slug = key.rsplit(":", 1)[1]
+        manga, expires = _cache_get_with_expiry(key)
         if not isinstance(manga, dict):
             continue
         
@@ -189,7 +194,7 @@ def sitemap_chapters() -> Response:
             ch_num = chapter.get("number")
             if ch_num:
                 chapters_with_time.append({
-                    "url": f"{base_url}/read/{slug}/{ch_num}",
+                    "url": f"{base_url}/fr/read/{slug}/{ch_num}",
                     "time": creation_time,
                 })
     
@@ -225,11 +230,11 @@ async def rss_feed() -> Response:
 
     # Récupérer les slugs depuis le cache (lecture directe, sans déclencher de scrape)
     manga_keys = cache.get_keys_by_prefix("manga:")
-    slugs = [k.split(":", 1)[1] for k in manga_keys if ":" in k][:30]
+    rss_keys = [(k, k.rsplit(":", 1)[1]) for k in manga_keys if ":" in k][:30]
 
     rss_items: list[str] = []
-    for slug in slugs:
-        manga, expires = _cache_get_with_expiry(f"manga:{slug}")
+    for key, slug in rss_keys:
+        manga, expires = _cache_get_with_expiry(key)
         if not isinstance(manga, dict) or not manga.get("title"):
             continue
 
@@ -257,25 +262,19 @@ async def rss_feed() -> Response:
             f"\n\n#manga #manhwa #webtoon #liremanga #anime #manganoka {specific_hashtag}"
         )
         desc = saxutils.escape(seo_desc)
-        # Utiliser l'URL de couverture JPEG directe et publique de MangaBaka si elle existe (optimal pour les réseaux sociaux)
-        bakacover = manga.get("bakacover")
-        if bakacover:
-            cover_url = bakacover
-        else:
-            cover = manga.get("cover", "")
-            cover_url = ""
-            if cover:
-                try:
-                    from services.image_cache import get_cache_filename
-                    filename, _ = get_cache_filename(cover)
-                    # Forcer l'extension en .jpg pour assurer la compatibilité universelle sur les réseaux (Pinterest, n8n, etc.)
-                    filename_jpg = filename.rsplit(".", 1)[0] + ".jpg"
-                    cover_url = f"{base_url}/img-cdn/{filename_jpg}"
-                except Exception as exc:
-                    logger.warning("Failed to generate proxy cover URL for RSS: %s", exc)
-                    cover_url = cover
-            else:
-                cover_url = ""
+        # Couverture : proxy local en .jpg pour compatibilité Pinterest/n8n
+        cover = manga.get("cover", "")
+        cover_url = ""
+        if cover:
+            try:
+                from services.image_cache import get_cache_filename
+                filename, _ = get_cache_filename(cover)
+                # Forcer l'extension en .jpg pour assurer la compatibilité universelle sur les réseaux (Pinterest, n8n, etc.)
+                filename_jpg = filename.rsplit(".", 1)[0] + ".jpg"
+                cover_url = f"{base_url}/img-cdn/{filename_jpg}"
+            except Exception as exc:
+                logger.warning("Failed to generate proxy cover URL for RSS: %s", exc)
+                cover_url = cover
 
         enclosure = f'<enclosure url="{saxutils.escape(cover_url)}" type="image/jpeg" />' if cover_url else ""
 
@@ -288,9 +287,9 @@ async def rss_feed() -> Response:
             pub_date_rfc = now_rfc822
 
         # Le GUID est désormais unique par chapitre pour forcer la publication automatique de Pinterest
-        unique_guid = f"{base_url}/manga/{slug}#ch-{latest_ch_num}"
+        unique_guid = f"{base_url}/fr/manga/{slug}#ch-{latest_ch_num}"
         # Le lien de l'article pointe directement vers le lecteur de chapitre si disponible pour maximiser le taux de conversion
-        chapter_link = f"{base_url}/read/{slug}/{latest_ch_num}" if chapters else f"{base_url}/manga/{slug}"
+        chapter_link = f"{base_url}/fr/read/{slug}/{latest_ch_num}" if chapters else f"{base_url}/fr/manga/{slug}"
 
         rss_items.append(f"""        <item>
             <title>Lire {title} Chapitre {latest_ch_num} en ligne gratuit </title>
@@ -305,7 +304,7 @@ async def rss_feed() -> Response:
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
     <channel>
         <title>MangaNoka - Dernières mises à jour manga</title>
-        <link>{base_url}</link>
+        <link>{base_url}/fr</link>
         <description>Lecture de manga rapide, responsive et sans publicité.</description>
         <language>fr-fr</language>
         <lastBuildDate>{now_rfc822}</lastBuildDate>
@@ -382,7 +381,7 @@ def indexnow_key(key_file: str) -> Response:
         return Response(content=indexnow_key, media_type="text/plain; charset=utf-8")
     return Response(content="Not Found", status_code=404, media_type="text/plain; charset=utf-8")
 
-@router.get("/history", response_class=HTMLResponse)
+@router.get("/fr/history", response_class=HTMLResponse)
 def history_page(request: Request) -> HTMLResponse:
     """Sert la page d'historique de lecture dédiée."""
     return templates.TemplateResponse(
@@ -393,105 +392,24 @@ def history_page(request: Request) -> HTMLResponse:
         },
     )
 
-@router.get("/privacy-policy", response_class=HTMLResponse)
+@router.get("/fr/privacy-policy", response_class=HTMLResponse)
 def privacy_policy(request: Request) -> HTMLResponse:
     """Sert la page Privacy Policy."""
     return templates.TemplateResponse(request, "privacy.html", {"request": request})
 
-@router.get("/terms-conditions", response_class=HTMLResponse)
+@router.get("/fr/terms-conditions", response_class=HTMLResponse)
 def terms_conditions(request: Request) -> HTMLResponse:
     """Sert la page Terms & Conditions."""
     return templates.TemplateResponse(request, "terms.html", {"request": request})
 
 
-async def _load_generic_list(path: str) -> dict:
-    """Route désactivée — plus de scraper MangaBats."""
-    return {"mangas": [], "popular_sidebar": []}
+@router.get("/fr/manga-list/{list_type}", include_in_schema=False)
+async def list_mangas_page(list_type: str) -> RedirectResponse:
+    """Anciennes listes MangaBats (supprimées) — redirection vers l'accueil Phenix Scans."""
+    return RedirectResponse("/fr", status_code=301)
 
 
-@router.get("/manga-list/{list_type}", response_class=HTMLResponse)
-async def list_mangas_page(
-    request: Request,
-    list_type: str,
-    page: int = Query(default=1, ge=1)
-) -> HTMLResponse:
-    """Redirige vers l'accueil Phenix Scans (les listes MangaBats ne sont plus disponibles)."""
-    try:
-        result = await cache.get_or_set(
-            f"home:fr:latest:{page}",
-            HOME_TTL_SECONDS,
-            lambda: get_phenix_api().get_latest_mangas(page=page),
-        )
-        if isinstance(result, (list, tuple)) and len(result) == 2:
-            mangas, _ = result
-        else:
-            mangas = result if isinstance(result, list) else []
-    except Exception as exc:
-        logger.warning("Unable to load manga list page %s: %s", page, exc)
-        mangas = []
-
-    has_next_page = bool(mangas)
-    previous_page_url = f"/manga-list/{list_type}?page={page - 1}" if page > 1 else None
-    next_page_url = f"/manga-list/{list_type}?page={page + 1}" if has_next_page else None
-
-    title_parts = [word.capitalize() for word in list_type.split("-")]
-    page_title = " ".join(title_parts)
-
-    return templates.TemplateResponse(
-        request,
-        "index.html",
-        {
-            "request": request,
-            "mangas": mangas,
-            "popular": [],
-            "popular_sidebar": [],
-            "current_page": page,
-            "previous_page_url": previous_page_url,
-            "next_page_url": next_page_url,
-            "page_title": page_title,
-            "is_home": False,
-        },
-    )
-
-
-@router.get("/genre/{genre_slug}", response_class=HTMLResponse)
-async def genre_mangas_page(
-    request: Request,
-    genre_slug: str,
-    page: int = Query(default=1, ge=1)
-) -> HTMLResponse:
-    """Sert la liste des mangas disponibles (filtre genre non encore disponible sur Phenix Scans)."""
-    try:
-        result = await cache.get_or_set(
-            f"home:fr:latest:{page}",
-            HOME_TTL_SECONDS,
-            lambda: get_phenix_api().get_latest_mangas(page=page),
-        )
-        if isinstance(result, (list, tuple)) and len(result) == 2:
-            mangas, _ = result
-        else:
-            mangas = result if isinstance(result, list) else []
-    except Exception as exc:
-        logger.warning("Unable to load genre page %s: %s", genre_slug, exc)
-        mangas = []
-
-    has_next_page = bool(mangas)
-    previous_page_url = f"/genre/{genre_slug}?page={page - 1}" if page > 1 else None
-    next_page_url = f"/genre/{genre_slug}?page={page + 1}" if has_next_page else None
-    page_title = f"{genre_slug.capitalize()} Manga"
-
-    return templates.TemplateResponse(
-        request,
-        "index.html",
-        {
-            "request": request,
-            "mangas": mangas,
-            "popular": [],
-            "popular_sidebar": [],
-            "current_page": page,
-            "previous_page_url": previous_page_url,
-            "next_page_url": next_page_url,
-            "page_title": page_title,
-            "is_home": False,
-        },
-    )
+@router.get("/fr/genre/{genre_slug}", include_in_schema=False)
+async def genre_mangas_page(genre_slug: str) -> RedirectResponse:
+    """Anciens filtres par genre MangaBats (supprimés) — redirection vers l'accueil Phenix Scans."""
+    return RedirectResponse("/fr", status_code=301)

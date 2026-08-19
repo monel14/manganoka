@@ -20,7 +20,7 @@ def _is_bot_request(request: Request) -> bool:
     return any(pattern in user_agent for pattern in bot_patterns)
 
 from cache import CHAPTER_TTL_SECONDS, MANGA_TTL_SECONDS, cache
-from scraper.parser import ChapterLink, ChapterPage, MangaDetail
+from models import ChapterLink, ChapterPage, MangaDetail
 from services.indexnow import ping_indexnow
 from services.google_indexing import ping_google_indexing
 from services.phenix_scans import get_phenix_api
@@ -48,7 +48,7 @@ async def get_chapter_page(slug: str, chapter: str, manga: MangaDetail | None = 
     )
 
 
-@router.get("/read/{slug}/{chapter}", response_class=HTMLResponse)
+@router.get("/fr/read/{slug}/{chapter}", response_class=HTMLResponse)
 async def read_chapter(request: Request, slug: str, chapter: str, background_tasks: BackgroundTasks) -> HTMLResponse:
     # Récupérer le slug et le chapitre bruts non-décodés (double encodage) depuis la socket HTTP pour le site source
     raw_path_bytes = request.scope.get("raw_path")
@@ -98,8 +98,8 @@ async def read_chapter(request: Request, slug: str, chapter: str, background_tas
 
     # Indexation + Webhook : Ne déclencher que pour les vrais utilisateurs (pas les bots)
     if not _is_bot_request(request):
-        background_tasks.add_task(ping_indexnow, [f"/read/{slug}/{chapter}"])
-        background_tasks.add_task(ping_google_indexing, [f"/read/{slug}/{chapter}"])
+        background_tasks.add_task(ping_indexnow, [f"/fr/read/{slug}/{chapter}"])
+        background_tasks.add_task(ping_google_indexing, [f"/fr/read/{slug}/{chapter}"])
         # Webhook Make.com : déclenché ici dans la route, pas dans le loader de cache
         # Ainsi il s'exécute à chaque visite, protégé par l'anti-doublon GUID
         background_tasks.add_task(

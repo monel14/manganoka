@@ -1,5 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=Outfit:wght@700;800&display=swap');
 
+/* Gestion de l'attribut hidden */
+[hidden] {
+    display: none !important;
+}
+
 :root {
     color-scheme: only light;
     --brand: #B51E3B;      /* Rouge MangaNoka */

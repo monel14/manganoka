@@ -218,7 +218,7 @@ async def image_proxy(request: Request, url: str):
 async def chapter_image_semantic(request: Request, slug: str, chapter_num: str, page_num: int):
     """
     Sert les images de chapitre avec des URLs sémantiques.
-    Exemple: https://manganoka.xyz/i-became-the-rogue-first-prince/45/2.webp
+    Exemple: https://www.manganoka.xyz/i-became-the-rogue-first-prince/45/2.webp
     """
     # Récupérer le slug et le chapitre bruts non-décodés pour préserver le double-encodage requis par le site source
     raw_path_bytes = request.scope.get("raw_path")
